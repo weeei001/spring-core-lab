@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: web-server
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            # 透過 Eureka 以服務名稱做負載平衡轉發
+            - id: equipment-borrow
+              uri: lb://EQUIPMENT-BORROW
+              predicates:
+                - Path=/api/equipment/**
+    # LoadBalancer 實例快取
+    loadbalancer:
+      cache:
+        ttl: 5s
+
+eureka:
+  client:
+    # 拉取註冊表間隔
+    registry-fetch-interval-seconds: 5
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

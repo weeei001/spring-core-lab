@@ -1,0 +1,12 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  client:
+    # 單機模式：自己不註冊、也不拉取註冊表
+    register-with-eureka: false
+    fetch-registry: false
