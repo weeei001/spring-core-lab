@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+/**
+ * 分頁查詢結果：items 為這一頁的資料，page 從 1 起算，total 為符合條件的總筆數。
+ */
 @Getter
 public class PageResponse<T> {
 
@@ -46,7 +49,12 @@ public class PageResponse<T> {
         this.total = total;
     }
 
+    /**
+     * 把 QueryParameter 的 page、size、sort 轉成 Spring Data 的 {@link Pageable}。
+     * sort 只接受 allowed 內的欄位；最後一律補上 id 排序，排序值相同時分頁結果才固定。
+     */
     public static Pageable pageable(QueryParameter<?> parameter, Set<String> allowed) {
+        // 最後一個條件：跳過的筆數（offset）不可超過 int 範圍
         if (parameter.getPage() < 1 || parameter.getSize() < 1 || parameter.getSize() > 100
                 || (long) (parameter.getPage() - 1) * parameter.getSize() > Integer.MAX_VALUE) {
             throw new BusinessException("page 從 1 起算，size 介於 1 至 100");

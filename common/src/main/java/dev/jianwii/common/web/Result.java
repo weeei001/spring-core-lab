@@ -1,11 +1,13 @@
 package dev.jianwii.common.web;
 
 /**
- * API 統一外殼。成功帶 data，失敗帶 errorCode / message。 業務錯誤丟 ProjectException；驗證與型態錯誤由
- * ExceptionHandleController 轉成 failure。
+ * 回給前端的統一格式：成功帶 data，失敗帶 errorCode／message。
+ * 只有 web-server 回前端時才包 Result；服務之間（XxxApi）成功時直接回物件。
+ * 失敗不必手動建立：業務錯誤丟 ProjectException，驗證與型態錯誤也會由 ExceptionHandleController 轉成 failure。
  */
 public class Result<T> {
 
+    /** true 成功、false 失敗。 */
     private final boolean result;
     private final T data;
     private final String errorCode;

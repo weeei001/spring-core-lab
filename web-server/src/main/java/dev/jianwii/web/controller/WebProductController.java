@@ -14,8 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 前端用的商品 API：呼叫 product-service 的 {@link ProductApi}，包成 Result。
- * 這裡先驗證一次，格式錯誤不必送到後端服務；後端錯誤由 RemoteServiceException 原樣轉回。
+ * 前端用的商品 API：呼叫 product-service 的 {@link ProductApi}，結果包成 Result。
+ * 這裡先驗證一次，格式錯誤不必送到後端服務；後端回的錯誤會變成 RemoteServiceException，
+ * 再由 ExceptionHandleController 轉成同樣的 Result.failure 回前端。
  */
 @RestController
 @AllArgsConstructor
@@ -54,6 +55,7 @@ public class WebProductController {
 
     @PostMapping("/batch")
     public Result<List<Product>> getByIds(@RequestBody List<Long> ids) {
+        // 空清單不必呼叫後端
         if (ids.isEmpty()) {
             return Result.success(List.of());
         }

@@ -1,7 +1,7 @@
 package dev.jianwii.common.query;
 
 /**
- * 查詢比較方式，只供 Java 端組合條件使用，不接受 API 呼叫端傳入 operator。
+ * 查詢比較方式，寫死在 Java 端（{@link QueryField} 或 toQueryConditions），API 呼叫端不能自己指定。
  * 轉成 JPA 條件與型別檢查在 {@link dev.jianwii.common.dao.QuerySpecifications}。
  *
  * <ul>

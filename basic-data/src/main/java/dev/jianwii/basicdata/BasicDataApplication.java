@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 
 @SpringBootApplication
-// Entity 都在 common，只掃自己負責的
+// Entity 都放在 common，這裡只掃自己負責的 package，才不會連其他服務的資料表也建出來
 @EntityScan("dev.jianwii.entity.basicdata")
 public class BasicDataApplication {
 

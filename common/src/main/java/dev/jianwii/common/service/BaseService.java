@@ -19,11 +19,20 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * 基礎 API：query、queryPage、create、update、delete（軟刪除），輸入輸出直接使用 Entity；查詢條件另用 {@link QueryParameter}。
- * 已軟刪除的資料（dbMark = INVALID）查不到、也不能修改或再刪除。
- * XxxService 繼承這個類別並加 @Service，只需提供 DAO；需要檢查時覆寫 before* 方法，
- * 可排序欄位覆寫 {@link #sortableFields()}。多出來的業務方法寫在 XxxService 上。
+ * 共用 CRUD：query、queryPage、create、update（部分更新）、delete（軟刪除），輸入輸出直接用 Entity，
+ * 查詢條件用 {@link QueryParameter}。已軟刪除的資料（dbMark = INVALID）查不到，也不能修改或再刪除。
+ *
+ * <p>
+ * 用法：XxxService 繼承此類別並加 @Service，建構子把 DAO 傳給 super。
+ * 需要額外檢查時覆寫 before* 方法（丟例外即中止，交易會 rollback）；可排序欄位覆寫 {@link #sortableFields()}；
+ * 其他業務方法直接寫在 XxxService。
+ *
+ * @param <E>
+ *            Entity
+ * @param <Q>
+ *            查詢參數
  */
+// 所有 public 方法都在交易內執行；查詢方法另標 readOnly
 @Transactional
 public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter<E>> {
 
@@ -37,6 +46,7 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
         this.dao = dao;
     }
 
+    /** 不分頁查詢（例如下拉選單），最多回傳 size 筆；page 必須為 1，要翻頁請用 queryPage。 */
     @Transactional(readOnly = true)
     public List<E> query(Q parameter) {
         if (parameter.getPage() != 1) {
@@ -45,6 +55,7 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
         return queryPage(parameter).getItems();
     }
 
+    /** 分頁查詢，自動排除已軟刪除的資料。 */
     @Transactional(readOnly = true)
     public PageResponse<E> queryPage(Q parameter) {
         beforeList();
@@ -54,14 +65,16 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
                 PageResponse.pageable(parameter, sortableFields())));
     }
 
+    /** 新增；id 與 dbMark 由系統設定。 */
     public E create(E request) {
-        // 防止帶 id 時 save 變成 merge，覆蓋到既有資料。
+        // 清掉前端送來的 id：有 id 時 save 會變成更新既有資料
         request.setId(null);
         request.setDbMark(BaseEntity.VALID);
         beforeCreate(request);
         return dao.saveAndFlush(request);
     }
 
+    /** 部分更新：只複製 request 中非 null 的欄位，見 {@link #applyUpdate}。 */
     public E update(Long id, E request) {
         E entity = find(id);
         beforeUpdate(entity, request);
@@ -109,15 +122,22 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
         return Set.of("id", "createTime", "transTime");
     }
 
+    /** 新增前的檢查或補值，例如檢查代碼重複、填入系統編號。 */
     protected void beforeCreate(E request) {
     }
 
+    /**
+     * 更新前的檢查。entity 是資料庫中的現值，request 是前端送來的新值；
+     * 不允許修改的欄位可在這裡設為 null，就不會被複製。
+     */
     protected void beforeUpdate(E entity, E request) {
     }
 
+    /** 刪除前的檢查，例如仍有關聯資料時禁止刪除。 */
     protected void beforeDelete(E entity) {
     }
 
+    /** 查詢前的檢查，例如權限。 */
     protected void beforeList() {
     }
 }

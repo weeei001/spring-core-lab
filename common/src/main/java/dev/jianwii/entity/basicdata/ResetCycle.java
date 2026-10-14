@@ -7,8 +7,11 @@ import java.time.YearMonth;
 public enum ResetCycle {
     /** 不歸零 */
     NONE,
+    /** 每年 */
     YEAR,
+    /** 每月 */
     MONTH,
+    /** 每日 */
     DAY;
 
     /** last 與 today 是否在同一週期；NONE 永遠視為同一週期。 */

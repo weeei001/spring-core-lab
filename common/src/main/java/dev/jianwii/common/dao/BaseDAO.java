@@ -8,8 +8,10 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 共用 DAO，內建 {@link JpaSpecificationExecutor} 供 QueryParameter 查詢。
- * 批次 DML 會略過 Entity Listener（審計欄位不會更新），因此停用。
+ * 共用 DAO（Spring Data JPA Repository），XxxDAO 繼承此介面即可。
+ * 多繼承 {@link JpaSpecificationExecutor} 是為了用 QueryParameter 組出的動態條件查詢。
+ * update* 只是 save* 的別名，讓呼叫端讀起來清楚是更新。
+ * *InBatch 刪除會直接下 SQL、略過 JPA 的 Entity Listener（審計欄位不會更新），因此停用。
  */
 @NoRepositoryBean
 public interface BaseDAO<E, ID extends Serializable>

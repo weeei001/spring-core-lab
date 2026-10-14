@@ -15,8 +15,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/** 編號規則的 CRUD（繼承 BaseService）與取號。 */
 @Service
 public class SerialNumberService extends BaseService<SerialNumber, SerialNumberQueryParameter> {
+    /** rule 中的 {...} 區塊。 */
     private static final Pattern TOKEN = Pattern.compile("\\{([^{}]*)}");
 
     private final SerialNumberDAO serialNumberDAO;
@@ -70,11 +72,12 @@ public class SerialNumberService extends BaseService<SerialNumber, SerialNumberQ
         request.setLastIndex(null);
     }
 
-    /** 跟 tvbs 的 checkSettingRule 一樣，先試產生一次，失敗就不讓規則存進去。 */
+    /** 先用今天日期試產生一次編號，失敗代表 rule 寫錯，不讓它存進去（同 tvbs 的 checkSettingRule）。 */
     private void requireValidRule(String rule) {
         render(rule, LocalDate.now(), 1);
     }
 
+    /** 依 rule 產生編號，例如 P{yyyyMM}{0000}、2026-10-14、流水號 1 → P2026100001。 */
     private String render(String rule, LocalDate date, long index) {
         Matcher matcher = TOKEN.matcher(rule);
         StringBuilder result = new StringBuilder();
@@ -82,6 +85,7 @@ public class SerialNumberService extends BaseService<SerialNumber, SerialNumberQ
         while (matcher.find()) {
             String token = matcher.group(1);
             String value;
+            // {0000}：補零流水號
             if (!token.isEmpty() && token.chars().allMatch(character -> character == '0')) {
                 sequences++;
                 String sequence = String.valueOf(index);
@@ -90,6 +94,7 @@ public class SerialNumberService extends BaseService<SerialNumber, SerialNumberQ
                 }
                 value = "0".repeat(token.length() - sequence.length()) + sequence;
             } else if (token.matches("[yMd]+")) {
+                // {yyyyMM} 等：日期
                 value = date.format(DateTimeFormatter.ofPattern(token));
             } else {
                 throw new BusinessException("rule 不支援 {" + token + "}，日期只能用 y、M、d，流水號用 0");

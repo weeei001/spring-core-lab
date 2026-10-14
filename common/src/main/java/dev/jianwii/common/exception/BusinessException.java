@@ -2,6 +2,7 @@ package dev.jianwii.common.exception;
 
 import org.springframework.http.HttpStatus;
 
+/** 業務規則不符（400），例如庫存不足、格式不支援。 */
 public class BusinessException extends ProjectException {
 
     public BusinessException(String message) {

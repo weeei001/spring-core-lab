@@ -12,8 +12,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 系統編號規則（參考 tvbs TSerialNumberSetting）。
- * 資料表只在 basic-data（@EntityScan 此 package）；其他服務透過 SerialNumberApi 取號。
+ * 系統編號規則（參考 tvbs TSerialNumberSetting），例如商品編號 P2026100001。
+ * Entity 放在 common 讓各服務共用類別，但只有 basic-data 會建這張表（它的 @EntityScan 只掃這個 package）；
+ * 其他服務透過 SerialNumberApi 取號。欄位驗證的分組規則見 ValidGroup。
  */
 @Entity
 @Table(name = "serial_number")
@@ -28,6 +29,7 @@ public class SerialNumber extends BaseEntity {
     @Column(name = "serial_key", nullable = false, unique = true, updatable = false, length = 50)
     private String serialKey;
 
+    /** 規則名稱，例如「商品系統編號」；不可全為空白。 */
     @NotBlank(groups = ValidGroup.Create.class)
     @Size(max = 100)
     @Pattern(regexp = "(?sU).*\\S.*")

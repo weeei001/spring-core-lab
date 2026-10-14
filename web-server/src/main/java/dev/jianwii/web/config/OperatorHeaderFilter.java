@@ -15,6 +15,7 @@ import java.util.Enumeration;
 
 /**
  * 操作者只能由 web-server（登入後）設定，外部送來的 {@value Operator#HEADER} 一律忽略，避免偽造。
+ * 做法是用 HttpServletRequestWrapper 把這個 header 藏起來，後續程式（包含 Operator.current()）都讀不到。
  * 之後加上登入時，改成依登入者回傳這個 header。
  */
 @Component

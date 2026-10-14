@@ -17,8 +17,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 把 {@link QueryConditions} 轉成 JPA {@link Specification}，並檢查條件值與 Entity property 型別相符。
- * 型別不符、property 不存在屬於程式設定錯誤（IllegalStateException）；使用者輸入錯誤丟 {@link BusinessException}。
+ * 把 {@link QueryConditions} 轉成 Spring Data 的 {@link Specification}（動態 WHERE 條件，底層是 JPA Criteria API），
+ * 並檢查條件值與 Entity property 型別相符。
+ * 型別不符、property 不存在是程式寫錯（IllegalStateException，回 500）；使用者輸入錯誤丟 {@link BusinessException}（回 400）。
  */
 public final class QuerySpecifications {
 
@@ -80,6 +81,7 @@ public final class QuerySpecifications {
                 character -> Character.isWhitespace(character) || Character.isSpaceChar(character))) {
             throw new BusinessException("查詢文字不可空白");
         }
+        // 跳脫 LIKE 萬用字元，使用者輸入的 % 與 _ 當一般字元比對
         String escaped = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
         return builder.like(path.as(String.class), (contains ? "%" : "") + escaped + "%", '\\');
     }
@@ -98,7 +100,7 @@ public final class QuerySpecifications {
         };
     }
 
-    /** 值必須與 property 同型別；字串 id／*Id 對到 Long 時轉成 Long。 */
+    /** 值必須與 property 同型別；例外是 property 為 id／xxxId（Long）而值是字串時，轉成 Long。 */
     private static Object typed(String property, Class<?> type, Object value) {
         String name = property.substring(property.lastIndexOf('.') + 1);
         if (type == Long.class && value instanceof String text && (name.equals("id")
@@ -124,6 +126,7 @@ public final class QuerySpecifications {
         }
     }
 
+    /** 可以當查詢條件的欄位型別。 */
     private static boolean supports(Class<?> type) {
         return type == String.class || type == Boolean.class || Number.class.isAssignableFrom(type)
                 || type.isEnum() || type == LocalDateTime.class;

@@ -12,10 +12,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 /**
- * 共用資料庫產生的主鍵、軟刪除標記 {@link #dbMark}，以及 Spring 維護的建立／修改者與時間。
- * 操作者來自 {@link org.springframework.data.domain.AuditorAware}，預設見 CommonAutoConfiguration。
- * Entity 直接當 API 輸入／輸出：前端送來的 id 與審計欄位由 BaseService 忽略（新增時清空 id、更新時不複製），
- * 審計值由 JPA Auditing 覆寫。不設 JSON 唯讀，其他服務收到 Entity 時才拿得到這些值。
+ * 所有 Entity 的共用欄位：主鍵 id（資料庫自動遞增）、軟刪除標記 {@link #dbMark}，以及建立／最後修改的人與時間（審計欄位）。
+ * 審計欄位由 JPA Auditing 在存檔時自動填入（看 @CreatedBy 等註解），操作者來源見 CommonAutoConfiguration。
+ *
+ * <p>
+ * Entity 直接當 API 的輸入／輸出：前端送來的 id 與審計欄位不會生效（BaseService 新增時清空 id、更新時不複製，
+ * 審計值也會被 JPA Auditing 覆寫）。這些欄位不設成 JSON 唯讀，是因為其他服務透過 XxxApi 收到 Entity 時需要這些值。
  */
 @Getter
 @Setter
@@ -32,27 +34,30 @@ public abstract class BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** 建立者 */
     @CreatedBy
     @Column(name = "create_id", nullable = false, updatable = false, length = 100)
-    // 建立者
     private String createId;
 
+    /** 建立時間 */
     @CreatedDate
     @Column(name = "create_time", nullable = false, updatable = false, columnDefinition = "datetime(6)")
-    // 建立時間
     private LocalDateTime createTime;
 
+    /** 最後修改者 */
     @LastModifiedBy
     @Column(name = "trans_id", nullable = false, length = 100)
-    // 最後修改者
     private String transId;
 
+    /** 最後修改時間 */
     @LastModifiedDate
     @Column(name = "trans_time", nullable = false, columnDefinition = "datetime(6)")
-    // 最後修改時間
     private LocalDateTime transTime;
 
-    /** 軟刪除標記（參考 tvbs dbMark），由 BaseService 維護：新增為 {@link #VALID}，刪除改為 {@link #INVALID}。 */
+    /**
+     * 軟刪除標記：刪除時不真的 DELETE，只把這個欄位改為 {@link #INVALID}，查詢時再排除。
+     * 由 BaseService 維護，新增為 {@link #VALID}。
+     */
     @Column(name = "db_mark", nullable = false)
     private Integer dbMark;
 }

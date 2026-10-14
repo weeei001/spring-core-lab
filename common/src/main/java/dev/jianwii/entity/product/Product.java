@@ -16,7 +16,12 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 /**
- * 商品。資料表只在 product-service（@EntityScan 此 package）；其他服務透過 ProductApi 取得。
+ * 商品。Entity 放在 common 讓各服務共用類別，但只有 product-service 會建這張表（它的 @EntityScan 只掃這個 package）；
+ * 其他服務透過 ProductApi 取得。
+ *
+ * <p>
+ * 欄位驗證：{@code groups = ValidGroup.Create.class} 的規則只在新增時檢查（必填）；
+ * 沒寫 groups 的規則新增、更新都檢查，但值為 null 時略過，所以更新時不給就是不改。詳見 ValidGroup。
  */
 @Entity
 @Table(name = "product")
@@ -28,7 +33,6 @@ public class Product extends BaseEntity {
     @Column(name = "code", nullable = false, unique = true, updatable = false, length = 50)
     private String code;
 
-    // 建立時必填；更新時可省略（null 表示不改），但不可為空白字串
     /** 商品貨號（使用者自訂），不可重複。 */
     @NotBlank(groups = ValidGroup.Create.class)
     @Size(max = 50)
@@ -36,6 +40,7 @@ public class Product extends BaseEntity {
     @Column(name = "sku", nullable = false, unique = true, length = 50)
     private String sku;
 
+    /** 商品名稱，不可全為空白。 */
     @NotBlank(groups = ValidGroup.Create.class)
     @Size(max = 100)
     @Pattern(regexp = "(?sU).*\\S.*")
@@ -47,6 +52,7 @@ public class Product extends BaseEntity {
     @Column(name = "category", nullable = false, length = 30)
     private ProductCategory category;
 
+    /** 售價，最多 8 位整數、2 位小數。 */
     @NotNull(groups = ValidGroup.Create.class)
     @DecimalMin("0")
     @Digits(integer = 8, fraction = 2)

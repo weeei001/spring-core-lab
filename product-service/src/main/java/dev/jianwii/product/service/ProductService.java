@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/** 商品的 CRUD（繼承 BaseService）、批次查詢與庫存調整。 */
 @Service
 public class ProductService extends BaseService<Product, ProductQueryParameter> {
     private static final int MAX_BATCH = 100;
@@ -56,7 +57,7 @@ public class ProductService extends BaseService<Product, ProductQueryParameter> 
     @Override
     protected void beforeCreate(Product request) {
         requireUniqueSku(request.getSku());
-        // 檢查都通過才取號，減少跳號
+        // 號碼取走就不會退回，所以檢查都通過才取號，減少跳號
         request.setCode(serialNumberApi.next(SERIAL_KEY));
     }
 

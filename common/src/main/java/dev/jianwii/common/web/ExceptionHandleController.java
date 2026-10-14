@@ -25,7 +25,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
 /**
- * 把例外統一轉成 {@link Result#failure}。業務錯誤丟 {@link ProjectException} 子類別即可。
+ * 全域例外處理（@RestControllerAdvice）：所有 Controller 丟出的例外都在這裡統一轉成 {@link Result#failure}。
+ * 業務錯誤丟 {@link ProjectException} 子類別即可。5xx 一律回通用訊息並記錄 log，不把內部錯誤細節回給前端。
  * 由 CommonAutoConfiguration 註冊，各服務不需要再掃描這個 package。
  */
 @RestControllerAdvice
@@ -51,17 +52,20 @@ public class ExceptionHandleController {
                 .body(Result.failure("資料衝突", "版本已變更，請重新讀取"));
     }
 
+    /** 例如 id 字串超出 Long 範圍。 */
     @ExceptionHandler(NumberFormatException.class)
     public ResponseEntity<Result<Void>> handleInvalidIdentifier(NumberFormatException e) {
         return validationFailure("ID 超出有效範圍");
     }
 
+    /** 資料庫約束失敗，例如唯一鍵重複；通常已先在 before* 檢查，這裡處理同時送出的情況。 */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Result<Void>> handleDataIntegrity(DataIntegrityViolationException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Result.failure("資料衝突", "資料重複或仍有關聯資料"));
     }
 
+    /** 其他沒處理到的例外。 */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Result<Void>> handleUnexpected(Exception e) {
         return unexpectedFailure(e, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -80,6 +84,7 @@ public class ExceptionHandleController {
                 .body(Result.failure("不支援的操作", "此資源不支援這個 HTTP 方法"));
     }
 
+    /** @Valid／@Validated 的 request body 驗證失敗。 */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Result<Void>> handleMethodArgumentNotValid(
             MethodArgumentNotValidException e) {
@@ -97,6 +102,7 @@ public class ExceptionHandleController {
         return validationFailure(message);
     }
 
+    /** JSON 格式錯誤或欄位型態不符，例如數字欄位送了文字。 */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Result<Void>> handleHttpMessageNotReadable(
             HttpMessageNotReadableException e) {

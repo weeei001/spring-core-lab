@@ -5,14 +5,15 @@ spring:
   application:
     name: web-server
   cloud:
-    # LoadBalancer 實例快取
+    # 服務實例清單快取 5 秒（預設 35 秒），服務重啟後較快恢復
     loadbalancer:
       cache:
         ttl: 5s
 
 eureka:
   client:
-    # 拉取註冊表間隔
+    # 每 5 秒向 Eureka 更新服務清單（預設 30 秒）
     registry-fetch-interval-seconds: 5
+    # Eureka Server 位址
     service-url:
       defaultZone: http://localhost:8761/eureka/

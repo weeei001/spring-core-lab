@@ -2,6 +2,7 @@ package dev.jianwii.common.exception;
 
 import org.springframework.http.HttpStatus;
 
+/** 查無資料（404）。 */
 public class NotFoundException extends ProjectException {
 
     public NotFoundException() {

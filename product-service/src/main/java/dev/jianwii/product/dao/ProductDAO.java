@@ -16,7 +16,7 @@ public interface ProductDAO extends BaseDAO<Product, Long> {
 
     List<Product> findAllByIdInAndDbMark(Collection<Long> ids, Integer dbMark);
 
-    /** SELECT ... FOR UPDATE，交易結束前其他人無法修改同一筆；調整庫存用。 */
+    /** 悲觀鎖（SELECT ... FOR UPDATE），交易結束前其他交易無法修改同一筆；調整庫存用。 */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Product> findWithLockByIdAndDbMark(Long id, Integer dbMark);
 }

@@ -12,13 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 查詢 DTO 基底：分頁參數，以及把欄位轉成 {@link QueryConditions}（跟 JPA 無關，DAO 層再轉成查詢）。
+ * 查詢參數基底（查詢 API 的 request body）：分頁、排序，以及把子類別的欄位自動轉成查詢條件，
+ * 子類別只要宣告欄位，不必手寫「有值才加條件」的判斷。
  *
  * <ul>
- * <li>非 null 欄位自動成為條件，預設同名 EQUAL；false 與 0 仍有效。</li>
- * <li>欄位名或比較方式不同時加 {@link QueryField}；不當條件的欄位加 {@link QueryIgnore}。</li>
+ * <li>值非 null 的欄位才會變成條件，預設為「Entity 同名欄位 = 值」；false 與 0 也算有值。</li>
+ * <li>Entity 欄位名不同或要用其他比較方式時加 {@link QueryField}；不當條件的欄位加 {@link QueryIgnore}。</li>
  * <li>OR、關鍵字等特殊條件：覆寫 {@link #toQueryConditions}，先呼叫 super 再加。</li>
- * <li>欄位不可為基本型別（無法表示「不篩選」）；字串 id／*Id 對到 Long 時會自動轉換。</li>
+ * <li>欄位不可用基本型別（例如 int 預設為 0，無法表示「不篩選」）；字串的 id／xxxId 對到 Long 時會自動轉換。</li>
  * </ul>
  * page 從 1 起算；page、size、sort 不參與篩選。
  *
@@ -42,6 +43,7 @@ public abstract class QueryParameter<T> {
     @Valid
     private List<@NotNull Order> sort = new ArrayList<>();
 
+    /** 用反射讀取所有欄位（含父類別），把有值的欄位轉成查詢條件。 */
     public QueryConditions toQueryConditions() {
         QueryConditions conditions = new QueryConditions();
         for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
@@ -68,6 +70,7 @@ public abstract class QueryParameter<T> {
         return conditions;
     }
 
+    /** 排序：field 為 Entity 欄位名（必須在 Service 的 sortableFields 內），direction 為 asc 或 desc。 */
     @Getter
     @Setter
     public static class Order {

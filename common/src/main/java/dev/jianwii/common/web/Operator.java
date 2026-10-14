@@ -10,11 +10,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 目前操作者，透過 {@value #HEADER} header 在服務之間傳遞（值經 URL 編碼，可含中文）。
+ * 目前操作者（寫進審計欄位的建立／修改者），透過 {@value #HEADER} header 在服務之間傳遞（值經 URL 編碼，可含中文）。
  *
  * <p>
- * 外部請求的這個 header 會被 web-server 的 OperatorHeaderFilter 忽略，只能由 web-server（登入驗證後）或內部服務呼叫設定；
- * 沒有 header、或不在 HTTP 請求內（排程、啟動程序）時視為 {@value #SYSTEM}。
+ * 前端送來的這個 header 會被 web-server 的 OperatorHeaderFilter 忽略，只能由 web-server（登入驗證後）或服務之間的呼叫設定。
  */
 public final class Operator {
 
@@ -24,6 +23,7 @@ public final class Operator {
     private Operator() {
     }
 
+    /** 從目前 HTTP 請求的 header 取得操作者；沒有 header 或不在 HTTP 請求內（排程、啟動程序）時回 {@value #SYSTEM}。 */
     public static String current() {
         if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
             HttpServletRequest request = attributes.getRequest();

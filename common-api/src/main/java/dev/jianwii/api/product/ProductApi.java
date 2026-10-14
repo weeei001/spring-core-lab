@@ -16,34 +16,39 @@ import org.springframework.web.service.annotation.PostExchange;
 import java.util.List;
 
 /**
- * product-service 的 API：成功直接回物件，不包 Result；失敗仍回 Result.failure 與 HTTP 狀態，
- * 由 common 的 RemoteErrorHandler 還原成 RemoteServiceException。
+ * product-service 的商品 API（Spring HTTP Interface），提供端與呼叫端共用同一個介面：
  *
  * <ul>
- * <li>提供端：product-service 的 ProductController implements 此介面。</li>
- * <li>呼叫端：{@code @ImportHttpServices(group = "product-service", types = ProductApi.class)}，
- * 群組名稱即 Eureka 服務名稱。前端經 web-server 的 WebProductController 呼叫，由它包成 Result。</li>
+ * <li>提供端：product-service 的 ProductController implements 此介面，這裡的路徑與驗證註解直接生效。</li>
+ * <li>呼叫端：啟動類別加 {@code @ImportHttpServices(group = "product-service", types = ProductApi.class)}
+ * 後即可注入 ProductApi，Spring 會自動產生實作，呼叫方法就是送出 HTTP 請求；group 即 Eureka 上的服務名稱。
+ * 前端經 web-server 的 WebProductController 呼叫，由它包成 Result。</li>
  * </ul>
+ *
+ * 成功時直接回傳物件，不包 Result；失敗時對方回 Result.failure 與 HTTP 狀態，
+ * 呼叫端會收到 RemoteServiceException（轉換在 common 的 RemoteErrorHandler）。
  */
 @HttpExchange("/api/product")
 public interface ProductApi {
 
-    /** 依條件查詢，page 必須為 1、最多 size 筆。 */
+    /** 不分頁查詢（例如下拉選單）：page 必須為 1，最多回傳 size 筆。 */
     @PostExchange("/query")
     List<Product> query(@Valid @RequestBody ProductQueryParameter parameter);
 
+    /** 分頁查詢，page 從 1 起算。 */
     @PostExchange("/queryPage")
     PageResponse<Product> queryPage(@Valid @RequestBody ProductQueryParameter parameter);
 
+    /** 新增；只檢查 ValidGroup.Create 與未分組的驗證規則。code 由系統取號，前端給的會被忽略。 */
     @PostExchange
     Product create(@Validated(ValidGroup.Create.class) @RequestBody Product product);
 
-    /** 只更新非 null 欄位；庫存不可在這裡改，請用 {@link #adjustStock}。 */
+    /** 部分更新：只更新有給值（非 null）的欄位；庫存不可在這裡改，請用 {@link #adjustStock}。 */
     @PatchExchange("/{id}")
     Product update(@PathVariable("id") Long id,
             @Validated(ValidGroup.Update.class) @RequestBody Product product);
 
-    /** 軟刪除；不存在或已刪除時回 404。 */
+    /** 軟刪除（只標記為已刪除，資料仍在資料表）；不存在或已刪除時回 404。 */
     @DeleteExchange("/{id}")
     void delete(@PathVariable("id") Long id);
 

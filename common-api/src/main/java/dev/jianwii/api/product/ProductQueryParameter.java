@@ -19,20 +19,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 商品查詢，各欄位示範一種條件寫法；未給的欄位不篩選，條件之間為 AND。
+ * 商品查詢條件，各欄位示範一種條件寫法（規則見 {@link QueryParameter}）；未給的欄位不篩選，條件之間為 AND。
  */
 @Getter
 @Setter
 public class ProductQueryParameter extends QueryParameter<Product> {
 
-    /** 同名 EQUAL：不加註解。 */
+    /** 沒加 @QueryField：比對 Entity 同名欄位，code = 值。 */
     @Size(max = 50)
     private String code;
 
     @Size(max = 50)
     private String sku;
 
-    /** OR：code、sku 或 name 包含關鍵字，在 {@link #toQueryConditions} 自行組合。 */
+    /** OR：code、sku 或 name 任一包含關鍵字；加 @QueryIgnore 不自動轉換，改在 {@link #toQueryConditions} 組合。不可全為空白。 */
     @QueryIgnore
     @Size(max = 100)
     @Pattern(regexp = "(?sU).*\\S.*")
@@ -64,6 +64,7 @@ public class ProductQueryParameter extends QueryParameter<Product> {
         return super.toQueryConditions().keyword(keyword, "code", "sku", "name");
     }
 
+    // @AssertTrue 放在 isXxx 方法上：驗證時會呼叫它，回傳 false 即驗證失敗（用來檢查多個欄位的關係）
     @AssertTrue(message = "minPrice 不可大於 maxPrice")
     private boolean isPriceRangeValid() {
         return minPrice == null || maxPrice == null || minPrice.compareTo(maxPrice) <= 0;

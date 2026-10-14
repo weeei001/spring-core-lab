@@ -20,22 +20,25 @@ import tools.jackson.databind.json.JsonMapper;
 import java.util.Optional;
 
 /**
- * 引用 common 的服務自動套用：全域例外處理、JPA Auditing（BaseEntity 的建立／修改者與時間）、
- * 呼叫其他服務時的操作者傳遞與錯誤還原。
- * 透過 META-INF/spring/...AutoConfiguration.imports 載入，服務的 @SpringBootApplication 不必掃描 dev.jianwii.common。
+ * 服務只要依賴 common 就會自動套用：全域例外處理、JPA Auditing（自動填 BaseEntity 的建立／修改者與時間）、
+ * 呼叫其他服務時的操作者傳遞與錯誤轉換。
+ * 跟 Spring Boot 各 starter 的自動設定同一套機制：類別名稱列在
+ * META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports，
+ * 因此服務的 @SpringBootApplication 不必掃描 dev.jianwii.common。
  */
-// 排在 JPA 之後，才判斷得到有沒有 EntityManagerFactory
+// 排在 JPA 自動設定之後，下面的 @ConditionalOnBean(EntityManagerFactory) 才判斷得準
 @AutoConfiguration(afterName = "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration")
+// 註冊全域例外處理
 @Import(ExceptionHandleController.class)
 public class CommonAutoConfiguration {
 
-    /** 有資料庫的服務才啟用；web-server 沒有 DataSource，不套用。 */
+    /** JPA Auditing：存檔時自動填入 @CreatedBy、@CreatedDate 等欄位。有資料庫的服務才啟用，web-server 不套用。 */
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnBean(EntityManagerFactory.class)
     @EnableJpaAuditing
     static class JpaAuditingConfiguration {
 
-        /** 操作者取自 {@link Operator#HEADER}，沒有時記為 system；服務自行定義 AuditorAware bean 即可覆蓋。 */
+        /** 告訴 JPA Auditing 目前操作者是誰：取自 {@link Operator#HEADER}，沒有時記為 system；服務自行定義 AuditorAware bean 即可覆蓋。 */
         @Bean
         @ConditionalOnMissingBean(AuditorAware.class)
         AuditorAware<String> operatorAuditor() {
@@ -44,7 +47,8 @@ public class CommonAutoConfiguration {
     }
 
     /**
-     * 套用到 Spring Boot 提供的 RestClient.Builder 與 HTTP Interface 服務群組；
+     * 呼叫其他服務時：送出前帶上操作者 header，收到 4xx/5xx 時轉成 RemoteServiceException。
+     * 套用到 Spring Boot 提供的 RestClient.Builder 與 @ImportHttpServices 產生的 XxxApi；
      * 自己用 RestClient.builder() 建立的不會套用。
      */
     @Bean

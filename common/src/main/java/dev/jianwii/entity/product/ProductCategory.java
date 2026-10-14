@@ -1,6 +1,6 @@
 package dev.jianwii.entity.product;
 
-/** 商品分類，資料庫存名稱（{@code @Enumerated(STRING)}），新增值不影響既有資料。 */
+/** 商品分類。資料庫存的是名稱字串（{@code @Enumerated(STRING)}）而非序號，新增或調整順序都不影響既有資料。 */
 public enum ProductCategory {
     /** 3C 電子 */
     ELECTRONICS,

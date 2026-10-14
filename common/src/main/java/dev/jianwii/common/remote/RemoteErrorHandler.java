@@ -14,6 +14,7 @@ import java.io.IOException;
 /**
  * 對方回 4xx/5xx 時，解析 {@code Result.failure} 的 errorCode、message，轉成 {@link RemoteServiceException}。
  * 回應不是 Result 格式（例如服務沒啟動、gateway 回的錯誤頁）時改用通用訊息。
+ * 由 CommonAutoConfiguration 掛到 RestClient 上，呼叫端不必自己檢查 HTTP 狀態。
  */
 public class RemoteErrorHandler implements RestClient.ResponseSpec.ErrorHandler {
 
