@@ -9,9 +9,10 @@ import java.util.Optional;
 
 public interface SerialNumberDAO extends BaseDAO<SerialNumber, Long> {
 
+    /** 含已軟刪除的資料，與資料表的唯一約束一致。 */
     boolean existsBySerialKey(String serialKey);
 
     /** SELECT ... FOR UPDATE，交易結束前同一規則的其他取號會等待；取號用。 */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<SerialNumber> findWithLockBySerialKey(String serialKey);
+    Optional<SerialNumber> findWithLockBySerialKeyAndDbMark(String serialKey, Integer dbMark);
 }

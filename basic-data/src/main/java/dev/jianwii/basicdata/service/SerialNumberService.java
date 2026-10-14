@@ -32,7 +32,8 @@ public class SerialNumberService extends BaseService<SerialNumber, SerialNumberQ
      */
     @Transactional
     public String next(String serialKey) {
-        SerialNumber serialNumber = serialNumberDAO.findWithLockBySerialKey(serialKey)
+        SerialNumber serialNumber = serialNumberDAO
+                .findWithLockBySerialKeyAndDbMark(serialKey, SerialNumber.VALID)
                 .orElseThrow(() -> new NotFoundException("查無編號規則：" + serialKey));
         // 與 JPA Auditing 寫入 transTime 使用同一個時區（系統預設）
         LocalDate today = LocalDate.now();
@@ -48,7 +49,7 @@ public class SerialNumberService extends BaseService<SerialNumber, SerialNumberQ
     @Override
     protected void beforeCreate(SerialNumber request) {
         if (serialNumberDAO.existsBySerialKey(request.getSerialKey())) {
-            throw new ConflictException("編號規則已存在：" + request.getSerialKey());
+            throw new ConflictException("編號規則已存在（含已刪除）：" + request.getSerialKey());
         }
         requireValidRule(request.getRule());
         if (request.getLastIndex() == null) {

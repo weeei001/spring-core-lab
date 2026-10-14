@@ -23,24 +23,6 @@ import java.util.List;
 public class WebProductController {
     private final ProductApi productApi;
 
-    @GetMapping
-    public Result<List<Product>> getAll() {
-        return Result.success(productApi.getAll());
-    }
-
-    @GetMapping("/{id}")
-    public Result<Product> getById(@PathVariable Long id) {
-        return Result.success(productApi.getById(id));
-    }
-
-    @PostMapping("/batch")
-    public Result<List<Product>> getByIds(@RequestBody List<Long> ids) {
-        if (ids.isEmpty()) {
-            return Result.success(List.of());
-        }
-        return Result.success(productApi.getByIds(ids));
-    }
-
     @PostMapping("/query")
     public Result<List<Product>> query(@Valid @RequestBody ProductQueryParameter parameter) {
         return Result.success(productApi.query(parameter));
@@ -64,14 +46,22 @@ public class WebProductController {
         return Result.success(productApi.update(id, product));
     }
 
-    @PostMapping("/{id}/stock")
-    public Result<Product> adjustStock(@PathVariable Long id, @RequestParam int quantity) {
-        return Result.success(productApi.adjustStock(id, quantity));
-    }
-
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         productApi.delete(id);
         return Result.success();
+    }
+
+    @PostMapping("/batch")
+    public Result<List<Product>> getByIds(@RequestBody List<Long> ids) {
+        if (ids.isEmpty()) {
+            return Result.success(List.of());
+        }
+        return Result.success(productApi.getByIds(ids));
+    }
+
+    @PostMapping("/{id}/stock")
+    public Result<Product> adjustStock(@PathVariable Long id, @RequestParam int quantity) {
+        return Result.success(productApi.adjustStock(id, quantity));
     }
 }

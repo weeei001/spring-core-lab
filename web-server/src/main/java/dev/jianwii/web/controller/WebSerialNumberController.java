@@ -2,6 +2,7 @@ package dev.jianwii.web.controller;
 
 import dev.jianwii.api.basicdata.SerialNumberApi;
 import dev.jianwii.api.basicdata.SerialNumberQueryParameter;
+import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.basicdata.SerialNumber;
@@ -22,20 +23,16 @@ import java.util.List;
 public class WebSerialNumberController {
     private final SerialNumberApi serialNumberApi;
 
-    @GetMapping
-    public Result<List<SerialNumber>> getAll() {
-        return Result.success(serialNumberApi.getAll());
-    }
-
-    @GetMapping("/{id}")
-    public Result<SerialNumber> getById(@PathVariable Long id) {
-        return Result.success(serialNumberApi.getById(id));
-    }
-
     @PostMapping("/query")
     public Result<List<SerialNumber>> query(
             @Valid @RequestBody SerialNumberQueryParameter parameter) {
         return Result.success(serialNumberApi.query(parameter));
+    }
+
+    @PostMapping("/queryPage")
+    public Result<PageResponse<SerialNumber>> queryPage(
+            @Valid @RequestBody SerialNumberQueryParameter parameter) {
+        return Result.success(serialNumberApi.queryPage(parameter));
     }
 
     @PostMapping

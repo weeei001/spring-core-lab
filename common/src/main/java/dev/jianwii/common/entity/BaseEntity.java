@@ -12,7 +12,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 /**
- * 共用資料庫產生的主鍵，以及 Spring 維護的建立／修改者與時間。
+ * 共用資料庫產生的主鍵、軟刪除標記 {@link #dbMark}，以及 Spring 維護的建立／修改者與時間。
  * 操作者來自 {@link org.springframework.data.domain.AuditorAware}，預設見 CommonAutoConfiguration。
  * Entity 直接當 API 輸入／輸出：前端送來的 id 與審計欄位由 BaseService 忽略（新增時清空 id、更新時不複製），
  * 審計值由 JPA Auditing 覆寫。不設 JSON 唯讀，其他服務收到 Entity 時才拿得到這些值。
@@ -22,6 +22,11 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
+
+    /** 有效資料。 */
+    public static final int VALID = 0;
+    /** 已刪除（軟刪除）。 */
+    public static final int INVALID = 1;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,4 +51,8 @@ public abstract class BaseEntity {
     @Column(name = "trans_time", nullable = false, columnDefinition = "datetime(6)")
     // 最後修改時間
     private LocalDateTime transTime;
+
+    /** 軟刪除標記（參考 tvbs dbMark），由 BaseService 維護：新增為 {@link #VALID}，刪除改為 {@link #INVALID}。 */
+    @Column(name = "db_mark", nullable = false)
+    private Integer dbMark;
 }

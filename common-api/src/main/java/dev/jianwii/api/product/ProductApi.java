@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.DeleteExchange;
-import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PatchExchange;
 import org.springframework.web.service.annotation.PostExchange;
@@ -29,18 +28,6 @@ import java.util.List;
 @HttpExchange("/api/product")
 public interface ProductApi {
 
-    /** 依 id 排序，最多 100 筆。 */
-    @GetExchange
-    List<Product> getAll();
-
-    /** 查無資料時對方回 404，呼叫端收到 RemoteServiceException。 */
-    @GetExchange("/{id}")
-    Product getById(@PathVariable("id") Long id);
-
-    /** 批次查詢，最多 100 筆；不存在的 id 直接略過。其他服務要顯示多筆商品時用這個，不要逐筆呼叫 getById。 */
-    @PostExchange("/batch")
-    List<Product> getByIds(@RequestBody List<Long> ids);
-
     /** 依條件查詢，page 必須為 1、最多 size 筆。 */
     @PostExchange("/query")
     List<Product> query(@Valid @RequestBody ProductQueryParameter parameter);
@@ -56,10 +43,17 @@ public interface ProductApi {
     Product update(@PathVariable("id") Long id,
             @Validated(ValidGroup.Update.class) @RequestBody Product product);
 
+    /** 軟刪除；不存在或已刪除時回 404。 */
+    @DeleteExchange("/{id}")
+    void delete(@PathVariable("id") Long id);
+
+    // ---- 以下為商品專屬的業務 API ----
+
+    /** 批次查詢，最多 100 筆；不存在或已刪除的 id 直接略過。其他服務要顯示多筆商品時用這個。 */
+    @PostExchange("/batch")
+    List<Product> getByIds(@RequestBody List<Long> ids);
+
     /** 調整庫存：quantity 正數為入庫、負數為出庫；庫存不足時回 400。 */
     @PostExchange("/{id}/stock")
     Product adjustStock(@PathVariable("id") Long id, @RequestParam("quantity") int quantity);
-
-    @DeleteExchange("/{id}")
-    void delete(@PathVariable("id") Long id);
 }

@@ -11,9 +11,6 @@ Content-Type: application/json
   "onSale": true
 }
 
-### 查單筆
-GET http://localhost:8080/api/product/1
-
 ### 條件分頁查詢：關鍵字（code、sku 或 name）、分類 IN、價格區間、上架中，新的在前
 POST http://localhost:8080/api/product/queryPage
 Content-Type: application/json

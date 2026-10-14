@@ -19,21 +19,6 @@ public class ProductController implements ProductApi {
     private final ProductService productService;
 
     @Override
-    public List<Product> getAll() {
-        return productService.getAll();
-    }
-
-    @Override
-    public Product getById(Long id) {
-        return productService.getById(id);
-    }
-
-    @Override
-    public List<Product> getByIds(List<Long> ids) {
-        return productService.getByIds(ids);
-    }
-
-    @Override
     public List<Product> query(ProductQueryParameter parameter) {
         return productService.query(parameter);
     }
@@ -54,12 +39,17 @@ public class ProductController implements ProductApi {
     }
 
     @Override
-    public Product adjustStock(Long id, int quantity) {
-        return productService.adjustStock(id, quantity);
+    public void delete(Long id) {
+        productService.delete(id);
     }
 
     @Override
-    public void delete(Long id) {
-        productService.deleteById(id);
+    public List<Product> getByIds(List<Long> ids) {
+        return productService.getByIds(ids);
+    }
+
+    @Override
+    public Product adjustStock(Long id, int quantity) {
+        return productService.adjustStock(id, quantity);
     }
 }

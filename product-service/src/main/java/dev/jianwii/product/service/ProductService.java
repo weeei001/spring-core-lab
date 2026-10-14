@@ -28,19 +28,19 @@ public class ProductService extends BaseService<Product, ProductQueryParameter> 
         this.serialNumberApi = serialNumberApi;
     }
 
-    /** 批次查詢；不存在的 id 直接略過，回傳順序不保證與 ids 相同。 */
+    /** 批次查詢；不存在或已刪除的 id 直接略過，回傳順序不保證與 ids 相同。 */
     @Transactional(readOnly = true)
     public List<Product> getByIds(List<Long> ids) {
         if (ids.size() > MAX_BATCH) {
             throw new BusinessException("一次最多查詢 " + MAX_BATCH + " 筆");
         }
-        return productDAO.findAllById(ids.stream().distinct().toList());
+        return productDAO.findAllByIdInAndDbMark(ids.stream().distinct().toList(), Product.VALID);
     }
 
     /** 鎖住該筆商品再計算，同時出庫也不會超賣。 */
     @Transactional
     public Product adjustStock(Long id, int quantity) {
-        Product product = productDAO.findWithLockById(id)
+        Product product = productDAO.findWithLockByIdAndDbMark(id, Product.VALID)
                 .orElseThrow(() -> new NotFoundException("查無資料，id：" + id));
         long stock = (long) product.getStock() + quantity;
         if (stock < 0) {
@@ -74,7 +74,7 @@ public class ProductService extends BaseService<Product, ProductQueryParameter> 
 
     private void requireUniqueSku(String sku) {
         if (productDAO.existsBySku(sku)) {
-            throw new ConflictException("商品貨號已存在：" + sku);
+            throw new ConflictException("商品貨號已存在（含已刪除）：" + sku);
         }
     }
 }
