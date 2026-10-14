@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    // 只有型別的 import 必須寫 import type；不可用 enum 等需要轉譯的語法
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+
+    // 嚴格檢查
+    "strict": true,
+    // 陣列、Record 用索引取值時型別包含 undefined，必須先判斷
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // @/ 代表 src/，避免 ../../../ 的相對路徑
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["src"]
+}

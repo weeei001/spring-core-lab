@@ -6,7 +6,7 @@
 ### 3. 填進 http/http-client.private.env.json 的 session（不進 git），執行 .http 時環境選 dev
 ### 4. 執行下面的「目前登入者」，會自動取得 CSRF token 存成 {{xsrf}}，其他 .http 就能使用
 
-### 目前登入者；未登入或 session 過期 → 401
+### 目前登入者與他的功能權限（permissions）；未登入或 session 過期 → 401
 # @no-cookie-jar
 GET http://localhost:8080/api/auth/me
 Cookie: JSESSIONID={{session}}
@@ -17,6 +17,7 @@ Cookie: JSESSIONID={{session}}
     if (cookie) {
         client.global.set("xsrf", cookie.substring("XSRF-TOKEN=".length).split(";")[0]);
     }
+    client.global.set("userId", response.body.data.id);
 %}
 
 ### 把 createId、transId 換成名字（system 不是使用者，不要放進 ids）

@@ -1,0 +1,38 @@
+package dev.jianwii.basicdata.serialnumber;
+
+import dev.jianwii.entity.basicdata.ResetCycle;
+import dev.jianwii.entity.basicdata.SerialNumber;
+import lombok.AllArgsConstructor;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
+
+/**
+ * 啟動時建立各服務需要的編號規則；已存在的不覆蓋（可能已被管理者調整過）。
+ * 新服務要取號時，在這裡加一筆規則。
+ */
+@Component
+@AllArgsConstructor
+public class SerialNumberSetup implements ApplicationRunner {
+    private final SerialNumberDAO serialNumberDAO;
+    private final SerialNumberService serialNumberService;
+
+    @Override
+    public void run(ApplicationArguments args) {
+        // 例：P2026100001，每月從 0001 開始
+        createIfAbsent("PRODUCT", "商品系統編號", "P{yyyyMM}{0000}", ResetCycle.MONTH);
+    }
+
+    private void createIfAbsent(String serialKey, String name, String rule,
+            ResetCycle resetCycle) {
+        if (serialNumberDAO.existsBySerialKey(serialKey)) {
+            return;
+        }
+        SerialNumber serialNumber = new SerialNumber();
+        serialNumber.setSerialKey(serialKey);
+        serialNumber.setName(name);
+        serialNumber.setRule(rule);
+        serialNumber.setResetCycle(resetCycle);
+        serialNumberService.create(serialNumber);
+    }
+}

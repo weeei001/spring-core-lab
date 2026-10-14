@@ -1,0 +1,5 @@
+{
+  // 瀏覽器程式（src）與 Node 端設定檔（vite.config.ts）分開檢查，型別互不混用
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
+}

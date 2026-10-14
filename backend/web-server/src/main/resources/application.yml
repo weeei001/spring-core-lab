@@ -1,0 +1,46 @@
+server:
+  port: 8080
+  # 經前端 dev server 或反向代理轉發時，依 X-Forwarded-* 還原瀏覽器看到的網址；登入的 redirect URI 由此組出
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: web-server
+  profiles:
+    # 載入 application-local.yml（client-secret 等本機設定，不進 git）
+    active: local
+  cloud:
+    # 服務實例清單快取 5 秒（預設 35 秒），服務重啟後較快恢復
+    loadbalancer:
+      cache:
+        ttl: 5s
+  security:
+    oauth2:
+      client:
+        registration:
+          authentik:
+            client-id: spring-cloud
+            # client-secret 放在 application-local.yml
+            authorization-grant-type: authorization_code
+            scope: openid,profile,email
+            # 要和 authentik 設定的 redirect URI 一致；{baseUrl} 是瀏覽器看到的網址（開發時經前端轉發為 localhost:3000）
+            redirect-uri: "{baseUrl}/auth/callback"
+        provider:
+          authentik:
+            # 啟動時從這裡讀取授權、token、登出等網址
+            issuer-uri: https://authentik.example.com/application/o/spring-cloud/
+
+app:
+  # 登入、登出完成後導回的前端網址
+  frontend-url: http://localhost:3000/
+  # 超級管理員（擁有全部權限）的 authentik subject，逗號分隔；登入後從 /api/auth/me 的 subject 取得。
+  # 各環境不同，寫在 application-local.yml
+  super-admin-subjects: ""
+
+eureka:
+  client:
+    # 每 5 秒向 Eureka 更新服務清單（預設 30 秒）
+    registry-fetch-interval-seconds: 5
+    # Eureka Server 位址
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

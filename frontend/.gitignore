@@ -1,0 +1,11 @@
+node_modules/
+dist/
+
+# Yarn 4：只保留需要共用的檔案
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*

@@ -1,4 +1,4 @@
-### 登出：清掉 session 並導向 authentik 登出（前端用表單 POST，瀏覽器會跟著跳轉）
+### 登出：清掉 session，回傳 authentik 的登出網址（data），前端再整頁跳轉過去
 ### 執行後 {{session}} 就失效，要重新登入
 # @no-cookie-jar
 POST http://localhost:8080/auth/logout

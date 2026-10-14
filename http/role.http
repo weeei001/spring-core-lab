@@ -1,0 +1,101 @@
+### 權限管理（需要 role:manage）
+### 第一次使用時還沒有人有權限，先設定超級管理員（擁有全部權限）：
+### 1. 依 auth.http 登入，執行「目前登入者」，複製回應中的 subject
+### 2. 填進 web-server 的 application-local.yml 的 app.super-admin-subjects，重啟 web-server 後重新登入
+### 3. 之後用下面的 API 建立角色、指派給其他人；一般使用者呼叫這些 API 會回 403
+### 先依 auth.http 登入並執行「目前登入者」（會取得 {{xsrf}}、{{userId}}），再由上往下執行
+
+### 1. 所有可勾選的功能權限（依 group 分組顯示）
+# @no-cookie-jar
+GET http://localhost:8080/api/basic-data/role/permissions
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+
+### 2. 新增角色「倉管」：查詢商品 + 調整庫存（代碼不可重複，用時間戳記產生）
+# @no-cookie-jar
+POST http://localhost:8080/api/basic-data/role
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "code": "WAREHOUSE_{{$timestamp}}",
+  "name": "倉管",
+  "permissionCodes": ["product:read", "product:stock"]
+}
+
+> {%
+    client.global.set("roleId", response.body.data.id);
+%}
+
+### 權限不存在 → 400，訊息列出不存在的 code
+# @no-cookie-jar
+POST http://localhost:8080/api/basic-data/role
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "code": "BAD_{{$timestamp}}",
+  "name": "錯誤角色",
+  "permissionCodes": ["product:read", "product:fly"]
+}
+
+### 3. 修改角色權限：整批取代，加上維護品牌
+# @no-cookie-jar
+PATCH http://localhost:8080/api/basic-data/role/{{roleId}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "permissionCodes": ["product:read", "product:stock", "brand:write"]
+}
+
+### 4. 角色列表
+# @no-cookie-jar
+POST http://localhost:8080/api/basic-data/role/queryPage
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{}
+
+### 5. 指派角色給自己（整批取代）；超級管理員本來就有全部權限，一般使用者重新查「目前登入者」就會看到新權限
+# @no-cookie-jar
+PUT http://localhost:8080/api/basic-data/user/{{userId}}/roles
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+[{{roleId}}]
+
+### 6. 使用者列表（含每個人的 roleIds），權限管理畫面用
+# @no-cookie-jar
+POST http://localhost:8080/api/basic-data/user/queryPage
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{}
+
+### 7. 仍有使用者擁有此角色時不可刪除 → 409
+# @no-cookie-jar
+DELETE http://localhost:8080/api/basic-data/role/{{roleId}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+
+### 8. 移除自己的所有角色，再刪除角色
+# @no-cookie-jar
+PUT http://localhost:8080/api/basic-data/user/{{userId}}/roles
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+[]
+
+###
+# @no-cookie-jar
+DELETE http://localhost:8080/api/basic-data/role/{{roleId}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
