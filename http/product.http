@@ -1,0 +1,59 @@
+### 新增商品（code 由 basic-data 自動產生，例如 P2026100001）
+POST http://localhost:8080/api/product
+Content-Type: application/json
+
+{
+  "sku": "BK-0001",
+  "name": "Spring 實戰",
+  "category": "BOOK",
+  "price": 680,
+  "stock": 10,
+  "onSale": true
+}
+
+### 查單筆
+GET http://localhost:8080/api/product/1
+
+### 條件分頁查詢：關鍵字（code、sku 或 name）、分類 IN、價格區間、上架中，新的在前
+POST http://localhost:8080/api/product/queryPage
+Content-Type: application/json
+
+{
+  "keyword": "Spring",
+  "categories": ["BOOK", "ELECTRONICS"],
+  "minPrice": 100,
+  "maxPrice": 1000,
+  "onSale": true,
+  "page": 1,
+  "size": 20,
+  "sort": [{ "field": "transTime", "direction": "desc" }]
+}
+
+### 驗證失敗：minPrice 大於 maxPrice → 400
+POST http://localhost:8080/api/product/query
+Content-Type: application/json
+
+{
+  "minPrice": 500,
+  "maxPrice": 100
+}
+
+### 修改（只改有給的欄位）
+PATCH http://localhost:8080/api/product/1
+Content-Type: application/json
+
+{
+  "price": 599
+}
+
+### 出庫 3 件；庫存不足時回 400
+POST http://localhost:8080/api/product/1/stock?quantity=-3
+
+### 批次查詢
+POST http://localhost:8080/api/product/batch
+Content-Type: application/json
+
+[1, 2, 3]
+
+### 刪除
+DELETE http://localhost:8080/api/product/1

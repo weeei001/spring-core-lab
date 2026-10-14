@@ -20,7 +20,8 @@
         <module>common</module>
         <module>common-api</module>
         <module>eureka-server</module>
-        <module>equipment-borrow</module>
+        <module>basic-data</module>
+        <module>product-service</module>
         <module>web-server</module>
     </modules>
 
