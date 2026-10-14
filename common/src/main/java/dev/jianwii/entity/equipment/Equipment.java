@@ -5,7 +5,6 @@ import dev.jianwii.common.validation.ValidGroup;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,9 +28,4 @@ public class Equipment extends BaseEntity {
     @Pattern(regexp = "(?sU).*\\S.*")
     @Column(name = "name", nullable = false, length = 100)
     private String name;
-
-    /** 保管人，user-service 的 User id；只存 id，需要名稱等資料時再呼叫 UserApi。 */
-    @Positive
-    @Column(name = "keeper_id")
-    private Long keeperId;
 }

@@ -1,6 +1,7 @@
 package dev.jianwii.common.service;
 
 import dev.jianwii.common.dao.BaseDAO;
+import dev.jianwii.common.dao.QuerySpecifications;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
@@ -11,6 +12,7 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.beans.PropertyDescriptor;
@@ -47,7 +49,7 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
     @Transactional(readOnly = true)
     public PageResponse<E> queryPage(Q parameter) {
         beforeList();
-        return new PageResponse<>(dao.findAll(parameter.toSpecification(),
+        return new PageResponse<>(dao.findAll(toSpecification(parameter),
                 PageResponse.pageable(parameter, sortableFields())));
     }
 
@@ -100,6 +102,14 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
                         name) || source.getPropertyValue(name) == null)
                 .toArray(String[]::new);
         BeanUtils.copyProperties(request, entity, ignored);
+    }
+
+    /**
+     * 查詢條件，預設由 {@link QueryParameter#toQueryConditions} 轉換。
+     * 需要子查詢、join 等條件清單表達不了的情況時覆寫，以 {@code super.toSpecification(parameter).and(...)} 補上。
+     */
+    protected Specification<E> toSpecification(Q parameter) {
+        return QuerySpecifications.of(parameter.toQueryConditions());
     }
 
     /** queryPage 允許的排序欄位；未指定排序時固定以 id 遞增。 */

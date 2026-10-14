@@ -5,19 +5,6 @@ spring:
   application:
     name: web-server
   cloud:
-    gateway:
-      server:
-        webflux:
-          # 操作者只能由 gateway（登入後）或內部服務設定，外部送來的一律移除，避免偽造
-          default-filters:
-            - RemoveRequestHeader=X-Operator
-          routes:
-            # 透過 Eureka 以服務名稱做負載平衡轉發
-            - id: equipment-borrow
-              uri: lb://EQUIPMENT-BORROW
-              predicates:
-                - Path=/api/equipment/**
-            # 各服務的 /internal/** 只給服務之間呼叫，刻意不設路由
     # LoadBalancer 實例快取
     loadbalancer:
       cache:

@@ -1,5 +1,7 @@
 package dev.jianwii.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.query.QueryParameter;
 import lombok.Getter;
@@ -32,6 +34,16 @@ public class PageResponse<T> {
     /** 不轉型，直接回傳查到的物件（例如 Entity）。 */
     public PageResponse(Page<T> source) {
         this(source, Function.identity());
+    }
+
+    /** 呼叫端透過 XxxApi 收到 JSON 時還原用。 */
+    @JsonCreator
+    public PageResponse(@JsonProperty("items") List<T> items, @JsonProperty("page") int page,
+            @JsonProperty("size") int size, @JsonProperty("total") long total) {
+        this.items = items;
+        this.page = page;
+        this.size = size;
+        this.total = total;
     }
 
     public static Pageable pageable(QueryParameter<?> parameter, Set<String> allowed) {

@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
  * 目前操作者，透過 {@value #HEADER} header 在服務之間傳遞（值經 URL 編碼，可含中文）。
  *
  * <p>
- * 外部請求的這個 header 會被 gateway 移除，只能由 gateway（登入驗證後）或內部服務呼叫設定；
+ * 外部請求的這個 header 會被 web-server 的 OperatorHeaderFilter 忽略，只能由 web-server（登入驗證後）或內部服務呼叫設定；
  * 沒有 header、或不在 HTTP 請求內（排程、啟動程序）時視為 {@value #SYSTEM}。
  */
 public final class Operator {

@@ -1,7 +1,7 @@
 package dev.jianwii.api.equipment;
 
-import dev.jianwii.common.query.NameLikeQuery;
-import dev.jianwii.common.query.QueryIgnore;
+import dev.jianwii.common.query.QueryField;
+import dev.jianwii.common.query.QueryOperator;
 import dev.jianwii.common.query.QueryParameter;
 import dev.jianwii.entity.equipment.Equipment;
 import jakarta.validation.constraints.Pattern;
@@ -14,12 +14,12 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class EquipmentQueryParameter extends QueryParameter<Equipment> implements NameLikeQuery {
+public class EquipmentQueryParameter extends QueryParameter<Equipment> {
 
     @Size(max = 50)
     private String code;
 
-    @QueryIgnore
+    @QueryField(property = "name", operator = QueryOperator.STARTS_WITH)
     @Size(max = 100)
     @Pattern(regexp = "(?sU).*\\S.*")
     private String namePrefix;

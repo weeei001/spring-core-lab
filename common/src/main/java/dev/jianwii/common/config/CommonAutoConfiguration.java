@@ -4,10 +4,13 @@ import dev.jianwii.common.remote.OperatorForwardingInterceptor;
 import dev.jianwii.common.remote.RemoteErrorHandler;
 import dev.jianwii.common.web.ExceptionHandleController;
 import dev.jianwii.common.web.Operator;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.restclient.RestClientCustomizer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -21,16 +24,23 @@ import java.util.Optional;
  * 呼叫其他服務時的操作者傳遞與錯誤還原。
  * 透過 META-INF/spring/...AutoConfiguration.imports 載入，服務的 @SpringBootApplication 不必掃描 dev.jianwii.common。
  */
-@AutoConfiguration
-@EnableJpaAuditing
+// 排在 JPA 之後，才判斷得到有沒有 EntityManagerFactory
+@AutoConfiguration(afterName = "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration")
 @Import(ExceptionHandleController.class)
 public class CommonAutoConfiguration {
 
-    /** 操作者取自 {@link Operator#HEADER}，沒有時記為 system；服務自行定義 AuditorAware bean 即可覆蓋。 */
-    @Bean
-    @ConditionalOnMissingBean(AuditorAware.class)
-    AuditorAware<String> operatorAuditor() {
-        return () -> Optional.of(Operator.current());
+    /** 有資料庫的服務才啟用；web-server 沒有 DataSource，不套用。 */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnBean(EntityManagerFactory.class)
+    @EnableJpaAuditing
+    static class JpaAuditingConfiguration {
+
+        /** 操作者取自 {@link Operator#HEADER}，沒有時記為 system；服務自行定義 AuditorAware bean 即可覆蓋。 */
+        @Bean
+        @ConditionalOnMissingBean(AuditorAware.class)
+        AuditorAware<String> operatorAuditor() {
+            return () -> Optional.of(Operator.current());
+        }
     }
 
     /**

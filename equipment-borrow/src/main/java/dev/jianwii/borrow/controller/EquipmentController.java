@@ -1,67 +1,55 @@
 package dev.jianwii.borrow.controller;
 
+import dev.jianwii.api.equipment.EquipmentApi;
 import dev.jianwii.api.equipment.EquipmentQueryParameter;
 import dev.jianwii.borrow.service.EquipmentService;
 import dev.jianwii.common.dto.PageResponse;
-import dev.jianwii.common.validation.ValidGroup;
-import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.equipment.Equipment;
-import dev.jianwii.entity.user.User;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * 內部 API，路徑、參數與驗證都定義在 {@link EquipmentApi}，這裡只實作。
+ */
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = "/api/equipment")
-public class EquipmentController {
+public class EquipmentController implements EquipmentApi {
     private final EquipmentService equipmentService;
 
-    @GetMapping
-    public Result<List<Equipment>> getAll() {
-        return Result.success(equipmentService.getAll());
+    @Override
+    public List<Equipment> getAll() {
+        return equipmentService.getAll();
     }
 
-    @GetMapping("/{id}")
-    public Result<Equipment> getById(@PathVariable Long id) {
-        return Result.success(equipmentService.getById(id));
+    @Override
+    public Equipment getById(Long id) {
+        return equipmentService.getById(id);
     }
 
-    /** 跨服務查詢範例：從 user-service 取得保管人資料。 */
-    @GetMapping("/{id}/keeper")
-    public Result<User> getKeeper(@PathVariable Long id) {
-        return Result.success(equipmentService.getKeeper(id));
+    @Override
+    public List<Equipment> query(EquipmentQueryParameter parameter) {
+        return equipmentService.query(parameter);
     }
 
-    @PostMapping("/query")
-    public Result<List<Equipment>> query(@Valid @RequestBody EquipmentQueryParameter parameter) {
-        return Result.success(equipmentService.query(parameter));
+    @Override
+    public PageResponse<Equipment> queryPage(EquipmentQueryParameter parameter) {
+        return equipmentService.queryPage(parameter);
     }
 
-    @PostMapping("/queryPage")
-    public Result<PageResponse<Equipment>> queryPage(
-            @Valid @RequestBody EquipmentQueryParameter parameter) {
-        return Result.success(equipmentService.queryPage(parameter));
+    @Override
+    public Equipment create(Equipment equipment) {
+        return equipmentService.create(equipment);
     }
 
-    @PostMapping
-    public Result<Equipment> create(
-            @Validated(ValidGroup.Create.class) @RequestBody Equipment equipment) {
-        return Result.success(equipmentService.create(equipment));
+    @Override
+    public Equipment update(Long id, Equipment equipment) {
+        return equipmentService.update(id, equipment);
     }
 
-    @PatchMapping("/{id}")
-    public Result<Equipment> update(@PathVariable Long id,
-            @Validated(ValidGroup.Update.class) @RequestBody Equipment equipment) {
-        return Result.success(equipmentService.update(id, equipment));
-    }
-
-    @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
+    @Override
+    public void delete(Long id) {
         equipmentService.deleteById(id);
-        return Result.success();
     }
 }
