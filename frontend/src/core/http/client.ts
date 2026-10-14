@@ -1,7 +1,7 @@
 import axios, { type AxiosResponse } from 'axios';
 import type { Result } from './types';
 
-/** 開始登入的網址；整頁跳轉，由 web-server 導向 authentik */
+/** 開始登入的網址；使用者按登入按鈕時整頁跳轉，由 web-server 導向 authentik */
 export const LOGIN_URL = '/auth/login/authentik';
 
 /** 後端回傳的錯誤；message 可以直接給使用者看 */
@@ -21,19 +21,12 @@ export class ApiError extends Error {
  */
 export const http = axios.create({ headers: { 'Content-Type': 'application/json' } });
 
-/** 未登入或 session 過期時導向登入；從登入失敗頁回來時不導，否則會一直重新登入 */
-export function redirectToLogin(): void {
-  if (!new URLSearchParams(window.location.search).has('loginError')) {
-    window.location.href = LOGIN_URL;
-  }
-}
-
 function isResult(value: unknown): value is Result<unknown> {
   return typeof value === 'object' && value !== null && 'result' in value && 'message' in value;
 }
 
 /**
- * 送出請求並取出 Result 的 data。失敗時丟 ApiError，401 時順便導向登入。
+ * 送出請求並取出 Result 的 data。失敗時丟 ApiError（含 HTTP 狀態，401 由 query-client 處理）。
  * 用法：send(http.get<Result<Product>>(url))，回應型別由 axios 的泛型宣告。
  */
 export async function send<T>(request: Promise<AxiosResponse<Result<T>>>): Promise<T> {
@@ -45,9 +38,6 @@ export async function send<T>(request: Promise<AxiosResponse<Result<T>>>): Promi
       throw error;
     }
     const status = error.response?.status;
-    if (status === 401) {
-      redirectToLogin();
-    }
     // 回應不一定是 Result（例如 web-server 沒啟動時是 proxy 的錯誤頁）
     const body: unknown = error.response?.data;
     const fallback = status === undefined ? '無法連線到伺服器' : `請求失敗（HTTP ${String(status)}）`;

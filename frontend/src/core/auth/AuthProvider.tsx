@@ -14,34 +14,39 @@ function FullPageSpin({ text }: { text: string }) {
   );
 }
 
+/** 未登入時的首頁；按登入才整頁跳轉到 authentik。error 是 web-server 帶回來的登入失敗原因 */
+function LoginPage({ error }: { error: string | null }) {
+  return (
+    <Result
+      status={error === null ? 'info' : 'warning'}
+      title={error === null ? '請先登入' : '登入失敗'}
+      subTitle={error}
+      extra={
+        <Button type="primary" href={LOGIN_URL}>
+          {error === null ? '登入' : '重新登入'}
+        </Button>
+      }
+    />
+  );
+}
+
 /**
- * 啟動時取得目前登入者；未登入時 http 層會整頁導向 authentik 登入。
- * 登入失敗時 web-server 會帶 ?loginError= 導回來，這時顯示錯誤，不再自動導向登入。
+ * 啟動時取得目前登入者；未登入（含登出後 authentik 導回來）時顯示登入頁，由使用者自己按登入。
+ * 登入失敗時 web-server 會帶 ?loginError= 導回來，這時顯示錯誤原因。
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const loginError = new URLSearchParams(window.location.search).get('loginError');
   const me = useQuery({ queryKey: ['me'], queryFn: authApi.me, enabled: loginError === null });
 
   if (loginError !== null) {
-    return (
-      <Result
-        status="warning"
-        title="登入失敗"
-        subTitle={loginError}
-        extra={
-          <Button type="primary" href={LOGIN_URL}>
-            重新登入
-          </Button>
-        }
-      />
-    );
+    return <LoginPage error={loginError} />;
   }
   if (me.isPending) {
     return <FullPageSpin text="載入中…" />;
   }
   if (me.isError) {
     if (me.error instanceof ApiError && me.error.status === 401) {
-      return <FullPageSpin text="導向登入頁…" />;
+      return <LoginPage error={null} />;
     }
     return (
       <Result
