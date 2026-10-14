@@ -59,6 +59,14 @@ public class ProductQueryParameter extends QueryParameter<Product> {
     @QueryField(property = "createTime", operator = QueryOperator.LESS_THAN)
     private LocalDateTime toTime;
 
+    /** 多對一：屬於此品牌，同名 EQUAL。 */
+    @Size(max = 50)
+    private String brandCode;
+
+    /** 多對多：含有此標籤。tagIds 是集合，條件清單表達不了，由 ProductService.toSpecification 處理。 */
+    @QueryIgnore
+    private Long tagId;
+
     @Override
     public QueryConditions toQueryConditions() {
         return super.toQueryConditions().keyword(keyword, "code", "sku", "name");

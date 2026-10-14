@@ -10,6 +10,7 @@ import dev.jianwii.common.query.QueryParameter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,7 @@ import java.util.stream.Stream;
  * <p>
  * 用法：XxxService 繼承此類別並加 @Service，建構子把 DAO 傳給 super。
  * 需要額外檢查時覆寫 before* 方法（丟例外即中止，交易會 rollback）；可排序欄位覆寫 {@link #sortableFields()}；
- * 其他業務方法直接寫在 XxxService。
+ * 有 LAZY 關聯要帶回前端時覆寫 {@link #initialize}；其他業務方法直接寫在 XxxService。
  *
  * @param <E>
  *            Entity
@@ -61,8 +62,10 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
         beforeList();
         Specification<E> valid =
                 (root, query, builder) -> builder.equal(root.get("dbMark"), BaseEntity.VALID);
-        return new PageResponse<>(dao.findAll(valid.and(toSpecification(parameter)),
-                PageResponse.pageable(parameter, sortableFields())));
+        Page<E> page = dao.findAll(valid.and(toSpecification(parameter)),
+                PageResponse.pageable(parameter, sortableFields()));
+        page.forEach(this::initialize);
+        return new PageResponse<>(page);
     }
 
     /** 新增；id 與 dbMark 由系統設定。 */
@@ -71,7 +74,9 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
         request.setId(null);
         request.setDbMark(BaseEntity.VALID);
         beforeCreate(request);
-        return dao.saveAndFlush(request);
+        E saved = dao.saveAndFlush(request);
+        initialize(saved);
+        return saved;
     }
 
     /** 部分更新：只複製 request 中非 null 的欄位，見 {@link #applyUpdate}。 */
@@ -79,7 +84,9 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
         E entity = find(id);
         beforeUpdate(entity, request);
         applyUpdate(request, entity);
-        return dao.saveAndFlush(entity);
+        E saved = dao.saveAndFlush(entity);
+        initialize(saved);
+        return saved;
     }
 
     /** 軟刪除：只把 dbMark 改為 INVALID，資料仍在資料表中。 */
@@ -120,6 +127,14 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
     /** queryPage 允許的排序欄位；未指定排序時固定以 id 遞增。 */
     protected Set<String> sortableFields() {
         return Set.of("id", "createTime", "transTime");
+    }
+
+    /**
+     * 回傳前載入要帶給前端的 LAZY 關聯，例如 {@code Hibernate.initialize(product.getBrand())}。
+     * 交易結束後就不能再查資料庫，轉 JSON 時讀到沒載入的關聯會出錯，所以必須在 Service 內載入。
+     * query、queryPage、create、update 回傳前都會呼叫；XxxService 自己的方法要自行呼叫。
+     */
+    protected void initialize(E entity) {
     }
 
     /** 新增前的檢查或補值，例如檢查代碼重複、填入系統編號。 */

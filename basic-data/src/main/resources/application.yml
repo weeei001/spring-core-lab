@@ -8,6 +8,8 @@ spring:
   profiles:
     active: local
   jpa:
+    # 交易結束就歸還連線，不讓連線一路占到 JSON 輸出完（Spring Boot 預設 true）；Entity 回傳前須載入完成
+    open-in-view: false
     hibernate:
       # 依 Entity 自動建立／更新資料表（開發用）
       ddl-auto: update

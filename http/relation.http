@@ -1,0 +1,180 @@
+### 關聯範例：品牌（多對一，以 code 關聯）、標籤（多對多，以 id 關聯）
+### 由上往下執行；新增取得的代碼、id 會存成變數，後面的請求直接使用，可重複執行
+
+### 1. 新增兩個品牌（代碼不可重複，用時間戳記產生）
+POST http://localhost:8080/api/brand
+Content-Type: application/json
+
+{
+  "code": "APPLE_{{$timestamp}}",
+  "name": "Apple"
+}
+
+> {%
+    client.global.set("brandId", response.body.data.id);
+    client.global.set("brandCode", response.body.data.code);
+%}
+
+###
+POST http://localhost:8080/api/brand
+Content-Type: application/json
+
+{
+  "code": "SAMSUNG_{{$timestamp}}",
+  "name": "Samsung"
+}
+
+> {%
+    client.global.set("brandId2", response.body.data.id);
+    client.global.set("brandCode2", response.body.data.code);
+%}
+
+### 2. 新增兩個標籤
+POST http://localhost:8080/api/tag
+Content-Type: application/json
+
+{
+  "name": "新品"
+}
+
+> {%
+    client.global.set("tagId1", response.body.data.id);
+%}
+
+###
+POST http://localhost:8080/api/tag
+Content-Type: application/json
+
+{
+  "name": "熱銷"
+}
+
+> {%
+    client.global.set("tagId2", response.body.data.id);
+%}
+
+### 3. 新增商品：送 brandCode、tagIds；回傳會帶出完整的 brand 物件
+POST http://localhost:8080/api/product
+Content-Type: application/json
+
+{
+  "sku": "IP-{{$timestamp}}",
+  "name": "iPhone",
+  "category": "ELECTRONICS",
+  "price": 29900,
+  "stock": 5,
+  "onSale": true,
+  "brandCode": "{{brandCode}}",
+  "tagIds": [{{tagId1}}, {{tagId2}}]
+}
+
+> {%
+    client.global.set("productId", response.body.data.id);
+%}
+
+### 品牌不存在 → 400
+POST http://localhost:8080/api/product
+Content-Type: application/json
+
+{
+  "sku": "XX-{{$timestamp}}",
+  "name": "不存在的品牌",
+  "category": "OTHER",
+  "price": 100,
+  "stock": 1,
+  "onSale": true,
+  "brandCode": "NOT_EXISTS"
+}
+
+### 標籤不存在 → 400，訊息列出不存在的 id
+POST http://localhost:8080/api/product
+Content-Type: application/json
+
+{
+  "sku": "XX-{{$timestamp}}",
+  "name": "不存在的標籤",
+  "category": "OTHER",
+  "price": 100,
+  "stock": 1,
+  "onSale": true,
+  "tagIds": [{{tagId1}}, 999999]
+}
+
+### 4. 依品牌、標籤查詢商品；每筆商品都帶出 brand
+POST http://localhost:8080/api/product/queryPage
+Content-Type: application/json
+
+{
+  "brandCode": "{{brandCode}}",
+  "tagId": {{tagId1}}
+}
+
+### 5. 標籤只回 id，前端用 ids 換成名稱
+POST http://localhost:8080/api/tag/query
+Content-Type: application/json
+
+{
+  "ids": [{{tagId1}}, {{tagId2}}]
+}
+
+### 品牌下拉選單：依關鍵字查詢
+POST http://localhost:8080/api/brand/query
+Content-Type: application/json
+
+{
+  "keyword": "Apple"
+}
+
+### 6. 換品牌：以 brandCode 為準，送來的 brand 物件會被忽略；回傳的 brand 變成 Samsung
+PATCH http://localhost:8080/api/product/{{productId}}
+Content-Type: application/json
+
+{
+  "brandCode": "{{brandCode2}}",
+  "brand": { "code": "IGNORED", "name": "會被忽略" }
+}
+
+### 7. 換標籤：整批取代為只剩「熱銷」；給 [] 為清空，不給則不改
+PATCH http://localhost:8080/api/product/{{productId}}
+Content-Type: application/json
+
+{
+  "tagIds": [{{tagId2}}]
+}
+
+### 8. 品牌可改名稱
+PATCH http://localhost:8080/api/brand/{{brandId2}}
+Content-Type: application/json
+
+{
+  "name": "Samsung Electronics"
+}
+
+### 品牌代碼建立後不可修改 → 400
+PATCH http://localhost:8080/api/brand/{{brandId2}}
+Content-Type: application/json
+
+{
+  "code": "OTHER"
+}
+
+### 9. 仍有商品使用時不可刪除 → 409
+DELETE http://localhost:8080/api/brand/{{brandId2}}
+
+###
+DELETE http://localhost:8080/api/tag/{{tagId2}}
+
+### 10. 沒有商品使用的可以刪除：第一個品牌（已換掉）、「新品」標籤（已移除）
+DELETE http://localhost:8080/api/brand/{{brandId}}
+
+###
+DELETE http://localhost:8080/api/tag/{{tagId1}}
+
+### 11. 刪除商品後，品牌、標籤就能刪除
+DELETE http://localhost:8080/api/product/{{productId}}
+
+###
+DELETE http://localhost:8080/api/brand/{{brandId2}}
+
+###
+DELETE http://localhost:8080/api/tag/{{tagId2}}

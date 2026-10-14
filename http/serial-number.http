@@ -1,19 +1,26 @@
+### 由上往下執行；新增取得的 id、serialKey 會存成變數，後面的請求直接使用，可重複執行
+
 ### 編號規則分頁列表（PRODUCT 由 basic-data 啟動時建立）
 POST http://localhost:8080/api/basic-data/serial-number/queryPage
 Content-Type: application/json
 
 {}
 
-### 新增規則：每日歸零，例如 ORD-20261014-001
+### 新增規則：每日歸零，例如 ORD-20261014-001（serialKey 不可重複，用時間戳記產生）
 POST http://localhost:8080/api/basic-data/serial-number
 Content-Type: application/json
 
 {
-  "serialKey": "ORDER",
+  "serialKey": "ORDER_{{$timestamp}}",
   "name": "訂單編號",
   "rule": "ORD-{yyyyMMdd}-{000}",
   "resetCycle": "DAY"
 }
+
+> {%
+    client.global.set("serialId", response.body.data.id);
+    client.global.set("serialKey", response.body.data.serialKey);
+%}
 
 ### 驗證失敗：rule 沒有流水號 → 400
 POST http://localhost:8080/api/basic-data/serial-number
@@ -31,8 +38,22 @@ POST http://localhost:8080/api/basic-data/serial-number/query
 Content-Type: application/json
 
 {
-  "keyword": "PRODUCT"
+  "keyword": "ORDER"
 }
 
 ### 取號（服務之間用，web-server 不開放；直接打 basic-data 測試）
-POST http://localhost:8081/api/basic-data/serial-number/ORDER/next
+POST http://localhost:8081/api/basic-data/serial-number/{{serialKey}}/next
+
+### 修改規則名稱
+PATCH http://localhost:8080/api/basic-data/serial-number/{{serialId}}
+Content-Type: application/json
+
+{
+  "name": "訂單編號（新）"
+}
+
+### 刪除後無法再取號 → 404
+DELETE http://localhost:8080/api/basic-data/serial-number/{{serialId}}
+
+###
+POST http://localhost:8081/api/basic-data/serial-number/{{serialKey}}/next

@@ -1,5 +1,6 @@
 package dev.jianwii.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,6 +23,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @MappedSuperclass
+// LAZY 關聯載入的是 Hibernate 產生的代理物件（proxy），多了這兩個內部欄位，轉 JSON 時略過
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 

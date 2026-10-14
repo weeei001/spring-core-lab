@@ -1,15 +1,21 @@
-### 新增商品（code 由 basic-data 自動產生，例如 P2026100001）
+### 由上往下執行；新增取得的 id 會存成變數 {{productId}}，後面的請求直接使用，可重複執行
+
+### 新增商品（code 由 basic-data 自動產生，例如 P2026100001；sku 不可重複，用時間戳記產生）
 POST http://localhost:8080/api/product
 Content-Type: application/json
 
 {
-  "sku": "BK-0001",
+  "sku": "BK-{{$timestamp}}",
   "name": "Spring 實戰",
   "category": "BOOK",
   "price": 680,
   "stock": 10,
   "onSale": true
 }
+
+> {%
+    client.global.set("productId", response.body.data.id);
+%}
 
 ### 條件分頁查詢：關鍵字（code、sku 或 name）、分類 IN、價格區間、上架中，新的在前
 POST http://localhost:8080/api/product/queryPage
@@ -36,7 +42,7 @@ Content-Type: application/json
 }
 
 ### 修改（只改有給的欄位）
-PATCH http://localhost:8080/api/product/1
+PATCH http://localhost:8080/api/product/{{productId}}
 Content-Type: application/json
 
 {
@@ -44,13 +50,21 @@ Content-Type: application/json
 }
 
 ### 出庫 3 件；庫存不足時回 400
-POST http://localhost:8080/api/product/1/stock?quantity=-3
+POST http://localhost:8080/api/product/{{productId}}/stock?quantity=-3
 
-### 批次查詢
+### 批次查詢；不存在的 id 直接略過
 POST http://localhost:8080/api/product/batch
 Content-Type: application/json
 
-[1, 2, 3]
+[{{productId}}, 999999]
 
-### 刪除
-DELETE http://localhost:8080/api/product/1
+### 刪除（軟刪除）
+DELETE http://localhost:8080/api/product/{{productId}}
+
+### 已刪除 → 404
+PATCH http://localhost:8080/api/product/{{productId}}
+Content-Type: application/json
+
+{
+  "price": 500
+}
