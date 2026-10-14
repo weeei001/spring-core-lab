@@ -1,8 +1,11 @@
 ### 關聯範例：品牌（多對一，以 code 關聯）、標籤（多對多，以 id 關聯）
-### 由上往下執行；新增取得的代碼、id 會存成變數，後面的請求直接使用，可重複執行
+### 先依 auth.http 的說明登入並設定 session、xsrf；由上往下執行；新增取得的代碼、id 會存成變數，後面的請求直接使用，可重複執行
 
 ### 1. 新增兩個品牌（代碼不可重複，用時間戳記產生）
+# @no-cookie-jar
 POST http://localhost:8080/api/brand
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -16,7 +19,10 @@ Content-Type: application/json
 %}
 
 ###
+# @no-cookie-jar
 POST http://localhost:8080/api/brand
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -30,7 +36,10 @@ Content-Type: application/json
 %}
 
 ### 2. 新增兩個標籤
+# @no-cookie-jar
 POST http://localhost:8080/api/tag
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -42,7 +51,10 @@ Content-Type: application/json
 %}
 
 ###
+# @no-cookie-jar
 POST http://localhost:8080/api/tag
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -54,7 +66,10 @@ Content-Type: application/json
 %}
 
 ### 3. 新增商品：送 brandCode、tagIds；回傳會帶出完整的 brand 物件
+# @no-cookie-jar
 POST http://localhost:8080/api/product
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -73,7 +88,10 @@ Content-Type: application/json
 %}
 
 ### 品牌不存在 → 400
+# @no-cookie-jar
 POST http://localhost:8080/api/product
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -87,7 +105,10 @@ Content-Type: application/json
 }
 
 ### 標籤不存在 → 400，訊息列出不存在的 id
+# @no-cookie-jar
 POST http://localhost:8080/api/product
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -101,7 +122,10 @@ Content-Type: application/json
 }
 
 ### 4. 依品牌、標籤查詢商品；每筆商品都帶出 brand
+# @no-cookie-jar
 POST http://localhost:8080/api/product/queryPage
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -110,7 +134,10 @@ Content-Type: application/json
 }
 
 ### 5. 標籤只回 id，前端用 ids 換成名稱
+# @no-cookie-jar
 POST http://localhost:8080/api/tag/query
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -118,7 +145,10 @@ Content-Type: application/json
 }
 
 ### 品牌下拉選單：依關鍵字查詢
+# @no-cookie-jar
 POST http://localhost:8080/api/brand/query
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -126,7 +156,10 @@ Content-Type: application/json
 }
 
 ### 6. 換品牌：以 brandCode 為準，送來的 brand 物件會被忽略；回傳的 brand 變成 Samsung
+# @no-cookie-jar
 PATCH http://localhost:8080/api/product/{{productId}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -135,7 +168,10 @@ Content-Type: application/json
 }
 
 ### 7. 換標籤：整批取代為只剩「熱銷」；給 [] 為清空，不給則不改
+# @no-cookie-jar
 PATCH http://localhost:8080/api/product/{{productId}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -143,7 +179,10 @@ Content-Type: application/json
 }
 
 ### 8. 品牌可改名稱
+# @no-cookie-jar
 PATCH http://localhost:8080/api/brand/{{brandId2}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -151,7 +190,10 @@ Content-Type: application/json
 }
 
 ### 品牌代碼建立後不可修改 → 400
+# @no-cookie-jar
 PATCH http://localhost:8080/api/brand/{{brandId2}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
 {
@@ -159,22 +201,43 @@ Content-Type: application/json
 }
 
 ### 9. 仍有商品使用時不可刪除 → 409
+# @no-cookie-jar
 DELETE http://localhost:8080/api/brand/{{brandId2}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 
 ###
+# @no-cookie-jar
 DELETE http://localhost:8080/api/tag/{{tagId2}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 
 ### 10. 沒有商品使用的可以刪除：第一個品牌（已換掉）、「新品」標籤（已移除）
+# @no-cookie-jar
 DELETE http://localhost:8080/api/brand/{{brandId}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 
 ###
+# @no-cookie-jar
 DELETE http://localhost:8080/api/tag/{{tagId1}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 
 ### 11. 刪除商品後，品牌、標籤就能刪除
+# @no-cookie-jar
 DELETE http://localhost:8080/api/product/{{productId}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 
 ###
+# @no-cookie-jar
 DELETE http://localhost:8080/api/brand/{{brandId2}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
 
 ###
+# @no-cookie-jar
 DELETE http://localhost:8080/api/tag/{{tagId2}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
