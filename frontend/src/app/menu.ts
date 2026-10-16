@@ -32,6 +32,7 @@ export const MENU: MenuGroup[] = [
     pages: [
       { path: '/roles', label: '角色', permission: PERMISSIONS.ROLE_MANAGE },
       { path: '/users', label: '使用者', permission: PERMISSIONS.ROLE_MANAGE },
+      { path: '/announcements', label: '發送公告', permission: PERMISSIONS.NOTIFICATION_SEND },
     ],
   },
 ];

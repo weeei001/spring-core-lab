@@ -24,14 +24,15 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/notification?createDatabaseIfNotExist=true&serverTimezone=Asia/Taipei&characterEncoding=utf-8&useSSL=false
     username: root
-  # SMTP 連線。預設連本機的 Mailpit（開發用假信箱，信不會真的寄出，在 http://localhost:8025 看）：
-  #   docker run -d --name mailpit -p 8025:8025 -p 1025:1025 axllent/mailpit
-  # 要寄真的信時，在 application-local.yml 改 host、port，並填 username、password（例如 Gmail 用應用程式密碼）
+  # SMTP 連線，預設用 Gmail（STARTTLS）；username、password 寫在 application-local.yml，
+  # password 是 Google 帳戶的應用程式密碼，不是登入密碼。換別的 SMTP 時一併在 application-local.yml 改 host、port
   mail:
-    host: localhost
-    port: 1025
+    host: smtp.gmail.com
+    port: 587
     default-encoding: UTF-8
     properties:
+      "[mail.smtp.auth]": true
+      "[mail.smtp.starttls.enable]": true
       # 連線、讀取、寫入逾時（毫秒）；預設是無限等待，SMTP 卡住會一直占著執行緒
       "[mail.smtp.connectiontimeout]": 5000
       "[mail.smtp.timeout]": 10000

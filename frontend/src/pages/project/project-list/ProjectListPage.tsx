@@ -22,7 +22,6 @@ import { PROJECT_LIST_TOUR } from './tour';
 type ViewMode = 'card' | 'table';
 
 const VIEW_KEY = 'project-list-view';
-const OPEN_STATUSES: ProjectStatus[] = ['PLANNING', 'ACTIVE', 'ON_HOLD'];
 
 /** 記住上次選的檢視；瀏覽器不允許存取 localStorage 時用預設值 */
 function loadView(): ViewMode {
@@ -49,7 +48,7 @@ export function ProjectListPage() {
   const invalidate = useInvalidateProjectData();
   const myId = String(user.id);
   const [view, setView] = useState<ViewMode>(loadView);
-  const [filters, setFilters] = useState<ProjectQuery>({ statuses: OPEN_STATUSES });
+  const [filters, setFilters] = useState<ProjectQuery>({});
   const [creating, setCreating] = useState(false);
   const list = usePagedList<Project, ProjectQuery>('project', projectApi.queryPage, filters);
 

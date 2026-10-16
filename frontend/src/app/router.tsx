@@ -8,6 +8,7 @@ import { MyTasksPage } from '@/pages/project/my-tasks/MyTasksPage';
 import { ProjectDetailPage } from '@/pages/project/project-detail/ProjectDetailPage';
 import { ProjectListPage } from '@/pages/project/project-list/ProjectListPage';
 import { TimesheetPage } from '@/pages/project/timesheet/TimesheetPage';
+import { AnnouncementPage } from '@/pages/system/announcement/AnnouncementPage';
 import { RolePage } from '@/pages/system/role/RolePage';
 import { UserPage } from '@/pages/system/user/UserPage';
 import { HomePage } from './HomePage';
@@ -81,6 +82,14 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission={PERMISSIONS.ROLE_MANAGE}>
             <UserPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'announcements',
+        element: (
+          <RequirePermission permission={PERMISSIONS.NOTIFICATION_SEND}>
+            <AnnouncementPage />
           </RequirePermission>
         ),
       },

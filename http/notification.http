@@ -1,6 +1,6 @@
 ### 通知 API 範例
 ### 先依 auth.http 的說明登入並設定 session、xsrf，並執行一次「目前登入者」取得 {{userId}}
-### 寄信預設連本機 Mailpit（見 notification-service 的 application.yml），寄出的信在 http://localhost:8025 看
+### 寄信設定見 notification-service 的 application.yml；帳號密碼寫在 application-local.yml
 
 ### 1. 發公告給自己並寄信（需要 notification:send，或列在 super-admin-subjects）
 # @no-cookie-jar

@@ -19,3 +19,13 @@ export interface NotificationQuery {
   /** true 只查未讀 */
   unread?: boolean;
 }
+
+/** 發公告（POST /api/notification/announce，需要 notification:send） */
+export interface AnnouncementRequest {
+  /** 收件人 user id，最多 100 位 */
+  recipientIds: string[];
+  title: string;
+  content?: string;
+  /** true 時同時寄信給有 Email 的收件人 */
+  email: boolean;
+}
