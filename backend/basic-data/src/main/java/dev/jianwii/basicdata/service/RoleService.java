@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** 角色 CRUD；權限 code 必須是 {@link Permission} 定義過的，有使用者擁有時不可刪除。 */
+/** 角色 CRUD；權限 code 必須是 {@link Permission} 定義過的，有使用者擁有時與預設角色不可刪除。 */
 @Service
 public class RoleService extends BaseService<Role, RoleQueryParameter> {
     private final RoleDAO roleDAO;
@@ -54,6 +54,10 @@ public class RoleService extends BaseService<Role, RoleQueryParameter> {
 
     @Override
     protected void beforeDelete(Role entity) {
+        // 刪了就不會再建立（代碼含已刪除的也不可重複），新使用者會變成沒有任何權限
+        if (Role.DEFAULT_CODE.equals(entity.getCode())) {
+            throw new BusinessException("預設角色不可刪除，可以調整它的權限");
+        }
         if (userDAO.existsByRoleIdsContainingAndDbMark(entity.getId(), User.VALID)) {
             throw new ConflictException("仍有使用者擁有此角色：" + entity.getName());
         }

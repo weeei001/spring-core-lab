@@ -9,6 +9,9 @@ export interface Role extends BaseEntity {
   permissionCodes: string[];
 }
 
+/** 預設角色的代碼（後端 Role.DEFAULT_CODE）：新使用者自動擁有，不可刪除 */
+export const DEFAULT_ROLE_CODE = 'USER';
+
 export interface RoleQuery {
   keyword?: string;
   ids?: number[];

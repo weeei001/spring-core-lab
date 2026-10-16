@@ -15,7 +15,7 @@ import java.util.Set;
 
 /**
  * basic-data 的使用者 API（Spring HTTP Interface），用法同 {@link SerialNumberApi}。
- * 使用者由登入自動建立，所以沒有新增、修改；權限透過指派角色（{@link #updateRoles}）管理。
+ * 使用者由登入自動建立（帶預設角色 {@code Role.DEFAULT_CODE}），所以沒有新增、修改；權限透過指派角色（{@link #updateRoles}）管理。
  */
 @HttpExchange("/api/basic-data/user")
 public interface UserApi {

@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -34,7 +35,7 @@ public class UserService extends BaseService<User, UserQueryParameter> {
     }
 
     /**
-     * 登入同步：依 subject 找使用者，沒有就建立（沒有任何角色）；有就以 authentik 的資料更新。
+     * 登入同步：依 subject 找使用者，沒有就建立（只有預設角色）；有就以 authentik 的資料更新。
      * 資料沒變時 JPA 不會送出 UPDATE，transTime 也不會變。
      */
     @Transactional
@@ -44,8 +45,10 @@ public class UserService extends BaseService<User, UserQueryParameter> {
         User user = userDAO.findBySubject(login.getSubject()).orElse(null);
         if (user == null) {
             login.setName(name);
-            // 角色只能由管理員指派，忽略呼叫端帶來的值
-            login.setRoleIds(new HashSet<>());
+            // 其他角色只能由管理員指派，忽略呼叫端帶來的值
+            Set<Long> roleIds = new HashSet<>();
+            defaultRoleId().ifPresent(roleIds::add);
+            login.setRoleIds(roleIds);
             return create(login);
         }
         if (user.getDbMark() != User.VALID) {
@@ -73,6 +76,19 @@ public class UserService extends BaseService<User, UserQueryParameter> {
         return saved;
     }
 
+    /** 把預設角色指派給還沒有任何角色的有效使用者，回傳人數；預設角色已刪除時不做事。 */
+    @Transactional
+    public int assignDefaultRoleToUsersWithoutRoles() {
+        Long roleId = defaultRoleId().orElse(null);
+        if (roleId == null) {
+            return 0;
+        }
+        List<User> users = userDAO.findAllByRoleIdsIsEmptyAndDbMark(User.VALID);
+        // 只改中間表，交易結束時寫入
+        users.forEach(user -> user.getRoleIds().add(roleId));
+        return users.size();
+    }
+
     /** 使用者所有有效角色的權限 code 聯集；已從 {@link Permission} 移除的 code 不回傳。 */
     @Transactional(readOnly = true)
     public Set<String> permissions(Long id) {
@@ -90,6 +106,10 @@ public class UserService extends BaseService<User, UserQueryParameter> {
     @Override
     protected void initialize(User user) {
         Hibernate.initialize(user.getRoleIds());
+    }
+
+    private Optional<Long> defaultRoleId() {
+        return roleDAO.findByCodeAndDbMark(Role.DEFAULT_CODE, Role.VALID).map(Role::getId);
     }
 
     /** roleIds 必須都是有效角色，否則列出不存在的 id。 */

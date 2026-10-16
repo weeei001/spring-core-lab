@@ -28,6 +28,9 @@ import java.util.Set;
 @Setter
 public class Role extends BaseEntity {
 
+    /** 預設角色的代碼：新使用者第一次登入時自動擁有，啟動時建立；可調整權限，不可刪除。 */
+    public static final String DEFAULT_CODE = "USER";
+
     /** 角色代碼，例如 WAREHOUSE；建立後不可修改。 */
     @NotBlank(groups = ValidGroup.Create.class)
     @Size(max = 50)

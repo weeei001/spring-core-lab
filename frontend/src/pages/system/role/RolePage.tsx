@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button, Checkbox, Flex, Form, Input, Popconfirm, Table, Tag, Typography, type TableColumnsType } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { roleApi } from '@/api/basic-data/role-api';
-import type { Permission, Role, RoleQuery } from '@/api/basic-data/role.types';
+import { DEFAULT_ROLE_CODE, type Permission, type Role, type RoleQuery } from '@/api/basic-data/role.types';
 import { useUserNames } from '@/components/user/useUserNames';
 import { usePagedList } from '@/shared/hooks/usePagedList';
 import { useSaveDelete } from '@/shared/hooks/useSaveDelete';
@@ -59,7 +59,17 @@ export function RolePage() {
 
   const columns: TableColumnsType<Role> = [
     { title: '代碼', dataIndex: 'code', width: 160 },
-    { title: '名稱', dataIndex: 'name', width: 160 },
+    {
+      title: '名稱',
+      key: 'name',
+      width: 200,
+      render: (_value, role) => (
+        <Flex gap={4} align="center" wrap>
+          {role.name}
+          {role.code === DEFAULT_ROLE_CODE && <Tag color="blue">新使用者預設</Tag>}
+        </Flex>
+      ),
+    },
     {
       title: '功能權限',
       key: 'permissions',
@@ -87,19 +97,21 @@ export function RolePage() {
           >
             編輯
           </Button>
-          <Popconfirm
-            title="確定刪除這個角色？"
-            description="仍有使用者擁有此角色時無法刪除。"
-            okText="刪除"
-            cancelText="取消"
-            onConfirm={() => {
-              remove.mutate(role.id);
-            }}
-          >
-            <Button type="link" size="small" danger>
-              刪除
-            </Button>
-          </Popconfirm>
+          {role.code !== DEFAULT_ROLE_CODE && (
+            <Popconfirm
+              title="確定刪除這個角色？"
+              description="仍有使用者擁有此角色時無法刪除。"
+              okText="刪除"
+              cancelText="取消"
+              onConfirm={() => {
+                remove.mutate(role.id);
+              }}
+            >
+              <Button type="link" size="small" danger>
+                刪除
+              </Button>
+            </Popconfirm>
+          )}
         </Flex>
       ),
     },
