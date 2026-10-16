@@ -13,7 +13,7 @@ export interface CrudApi<T, Q> {
 }
 
 // T、Q 只出現在回傳型別：由呼叫端宣告這個資源的型別，對應後端 API 規格
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+ 
 export function createCrudApi<T, Q extends object>(base: string): CrudApi<T, Q> {
   return {
     // 後端 query 的 page 必須為 1，size 最多 100

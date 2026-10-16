@@ -131,7 +131,7 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
     }
 
     /**
-     * 回傳前載入要帶給前端的 LAZY 關聯，例如 {@code Hibernate.initialize(product.getBrand())}。
+     * 回傳前載入要帶給前端的 LAZY 關聯，例如 {@code Hibernate.initialize(task.getPredecessorIds())}。
      * 交易結束後就不能再查資料庫，轉 JSON 時讀到沒載入的關聯會出錯，所以必須在 Service 內載入。
      * query、queryPage、create、update 回傳前都會呼叫；XxxService 自己的方法要自行呼叫。
      */
@@ -139,7 +139,7 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
     }
 
     /**
-     * 只改了 @ElementCollection（中間表，例如商品標籤、角色權限）時，主表沒有欄位變動，
+     * 只改了 @ElementCollection（中間表，例如任務的前置任務、角色權限）時，主表沒有欄位變動，
      * JPA 不會 UPDATE 主表，transId、transTime 也就不會更新。改一下 transTime 讓主表一起 UPDATE，
      * JPA Auditing 會再填入正確的修改者與時間。
      */

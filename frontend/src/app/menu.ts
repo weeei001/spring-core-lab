@@ -15,11 +15,12 @@ export interface MenuGroup {
 /** 側邊選單，依模組分組；沒有權限的頁面不顯示 */
 export const MENU: MenuGroup[] = [
   {
-    label: '商品',
+    label: '專案',
     pages: [
-      { path: '/products', label: '商品', permission: PERMISSIONS.PRODUCT_READ },
-      { path: '/brands', label: '品牌', permission: PERMISSIONS.PRODUCT_READ },
-      { path: '/tags', label: '標籤', permission: PERMISSIONS.PRODUCT_READ },
+      { path: '/dashboard', label: '儀表板', permission: PERMISSIONS.PROJECT_READ },
+      { path: '/projects', label: '專案', permission: PERMISSIONS.PROJECT_READ },
+      { path: '/my-tasks', label: '我的任務', permission: PERMISSIONS.PROJECT_READ },
+      { path: '/timesheet', label: '工時', permission: PERMISSIONS.PROJECT_READ },
     ],
   },
   {

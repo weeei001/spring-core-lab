@@ -27,7 +27,7 @@ function isResult(value: unknown): value is Result<unknown> {
 
 /**
  * 送出請求並取出 Result 的 data。失敗時丟 ApiError（含 HTTP 狀態，401 由 query-client 處理）。
- * 用法：send(http.get<Result<Product>>(url))，回應型別由 axios 的泛型宣告。
+ * 用法：send(http.get<Result<Project>>(url))，回應型別由 axios 的泛型宣告。
  */
 export async function send<T>(request: Promise<AxiosResponse<Result<T>>>): Promise<T> {
   try {

@@ -6,7 +6,11 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     // 與 tsconfig.app.json 的 paths 一致
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // frappe-gantt 的 exports 把 import 條件排在 style 前面，CSS @import 'frappe-gantt' 會解析到 JS；子路徑又被 exports 擋住，只好直接指到檔案
+      'frappe-gantt/style.css': fileURLToPath(new URL('./node_modules/frappe-gantt/dist/frappe-gantt.css', import.meta.url)),
+    },
   },
   server: {
     port: 3000,

@@ -3,7 +3,7 @@ import { Result } from 'antd';
 import { RequirePermission } from '@/core/auth/RequirePermission';
 import { PERMISSIONS } from '@/core/auth/permissions';
 import { RolePage, SerialNumberPage, UserPage } from '@/modules/basic-data';
-import { BrandPage, ProductPage, TagPage } from '@/modules/product';
+import { DashboardPage, MyTasksPage, ProjectDetailPage, ProjectListPage, TimesheetPage } from '@/modules/project';
 import { AppLayout } from './layout/AppLayout';
 import { HomePage } from './pages/HomePage';
 
@@ -15,26 +15,42 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       {
-        path: 'products',
+        path: 'dashboard',
         element: (
-          <RequirePermission permission={PERMISSIONS.PRODUCT_READ}>
-            <ProductPage />
+          <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
+            <DashboardPage />
           </RequirePermission>
         ),
       },
       {
-        path: 'brands',
+        path: 'projects',
         element: (
-          <RequirePermission permission={PERMISSIONS.PRODUCT_READ}>
-            <BrandPage />
+          <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
+            <ProjectListPage />
           </RequirePermission>
         ),
       },
       {
-        path: 'tags',
+        path: 'projects/:id',
         element: (
-          <RequirePermission permission={PERMISSIONS.PRODUCT_READ}>
-            <TagPage />
+          <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
+            <ProjectDetailPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'my-tasks',
+        element: (
+          <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
+            <MyTasksPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'timesheet',
+        element: (
+          <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
+            <TimesheetPage />
           </RequirePermission>
         ),
       },

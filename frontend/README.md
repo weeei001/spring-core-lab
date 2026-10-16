@@ -13,7 +13,7 @@ yarn install
 yarn dev          # http://localhost:3000，/api、/auth 會轉給 localhost:8080
 ```
 
-後端要先啟動 eureka-server、basic-data、product-service、web-server。
+後端要先啟動 eureka-server、basic-data、project-service、web-server。
 
 | 指令 | 用途 |
 |---|---|
@@ -36,11 +36,11 @@ src/
 │  ├─ hooks/           分頁列表、儲存刪除
 │  └─ lib/             格式化工具
 └─ modules/            業務模組，一個資料夾對應一個後端服務
-   ├─ product/         ↔ backend/product-service（商品、品牌、標籤）
+   ├─ project/         ↔ backend/project-service（儀表板、專案、任務看板／甘特、我的任務、工時）
    └─ basic-data/      ↔ backend/basic-data（編號規則、使用者、角色）
 ```
 
-每個功能資料夾（例如 `modules/product/brand/`）內的檔案：
+每個功能資料夾（例如 `modules/basic-data/role/`）內的檔案：
 
 | 檔案 | 內容 |
 |---|---|
@@ -69,3 +69,15 @@ src/
 4. 在模組的 `index.ts` 匯出頁面。
 5. `app/router.tsx` 加路由並用 `RequirePermission` 包住；`app/menu.ts` 加選單。
 6. 需要新的功能權限時，後端 `Permission` enum 與 `core/auth/permissions.ts` 一起加。
+
+## 操作導覽
+
+每個頁面第一次進入時會自動播放導覽（antd `Tour`），之後可從上方列的「?」重看，或重設所有頁面的導覽。
+
+新頁面要加導覽時：
+
+1. 在要介紹的元素加上 `data-tour="key"`；只想框住裡面的一部分（例如分頁列）時，再加 `data-tour-inner=".ant-tabs-nav"`。
+2. 在模組的 `guide/tours.tsx` 寫步驟（`GuideStep[]`），`target` 填上面的 key；不填 `target` 則置中顯示。
+3. 頁面裡放 `<PageTour id="頁面代號" steps={...} />`。畫面上找不到的步驟（例如沒有權限而沒顯示的按鈕）會自動略過。
+
+「看過」的紀錄存在瀏覽器的 localStorage（`tour-seen:頁面代號`）。

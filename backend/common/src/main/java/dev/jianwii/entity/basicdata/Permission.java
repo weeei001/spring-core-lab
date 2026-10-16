@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  * 功能權限清單。由工程師定義、跟著程式走；管理員只能把它們組合成角色（{@link Role}），不能新增。
  *
  * <ul>
- * <li>web-server 的 Controller 以 {@code @PreAuthorize("hasAuthority('product:write')")} 檢查 code，
+ * <li>web-server 的 Controller 以 {@code @PreAuthorize("hasAuthority('task:write')")} 檢查 code，
  * 程式只檢查功能權限，不檢查角色名稱。</li>
  * <li>新增功能時在這裡加一項，再到 Controller 標上；code 寫錯會變成所有人都沒權限（只有超級管理員能用）。</li>
  * <li>移除某一項後，角色裡留著的舊 code 會被忽略，不必清資料。</li>
@@ -22,11 +22,11 @@ import java.util.stream.Collectors;
 @Getter
 public enum Permission {
 
-    PRODUCT_READ("product:read", "商品", "查詢商品、品牌、標籤"),
-    PRODUCT_WRITE("product:write", "商品", "新增、修改、刪除商品"),
-    PRODUCT_STOCK("product:stock", "商品", "調整庫存"),
-    BRAND_WRITE("brand:write", "商品", "維護品牌"),
-    TAG_WRITE("tag:write", "商品", "維護標籤"),
+    PROJECT_READ("project:read", "專案", "查詢自己參與的專案、任務、留言與工時"),
+    PROJECT_WRITE("project:write", "專案", "建立專案；擔任經理時維護專案、成員與里程碑"),
+    PROJECT_ADMIN("project:admin", "專案", "不受成員限制，可存取所有專案；能否修改看其他權限"),
+    TASK_WRITE("task:write", "專案", "新增、修改、刪除任務與留言"),
+    WORK_LOG_WRITE("work-log:write", "專案", "登記自己的工時"),
     SERIAL_NUMBER_READ("serial-number:read", "基本資料", "查詢編號規則"),
     SERIAL_NUMBER_WRITE("serial-number:write", "基本資料", "維護編號規則"),
     ROLE_MANAGE("role:manage", "系統管理", "維護角色、指派使用者角色");

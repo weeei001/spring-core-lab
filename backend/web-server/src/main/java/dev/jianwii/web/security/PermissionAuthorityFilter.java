@@ -20,7 +20,7 @@ import java.util.Set;
 
 /**
  * 每個請求把登入者的功能權限放進 Spring Security，
- * {@code @PreAuthorize("hasAuthority('product:write')")} 才判斷得到。
+ * {@code @PreAuthorize("hasAuthority('task:write')")} 才判斷得到。
  * 權限從 PermissionCache 取（快取 1 分鐘），所以管理員調整權限後不必重新登入。
  * 只換掉這個請求的 Authentication，不寫回 session。由 SecurityConfig 加進 Spring Security 的 filter 鏈，不是 bean。
  */

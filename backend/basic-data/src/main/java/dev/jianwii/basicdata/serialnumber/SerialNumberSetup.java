@@ -19,8 +19,9 @@ public class SerialNumberSetup implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        // 例：P2026100001，每月從 0001 開始
-        createIfAbsent("PRODUCT", "商品系統編號", "P{yyyyMM}{0000}", ResetCycle.MONTH);
+        // 例：PRJ2610001、T26100001，每月從 1 開始
+        createIfAbsent("PROJECT", "專案系統編號", "PRJ{yyMM}{000}", ResetCycle.MONTH);
+        createIfAbsent("TASK", "任務系統編號", "T{yyMM}{0000}", ResetCycle.MONTH);
     }
 
     private void createIfAbsent(String serialKey, String name, String rule,

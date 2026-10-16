@@ -5,7 +5,7 @@ export interface Role extends BaseEntity {
   /** 例如 WAREHOUSE；建立後不可修改 */
   code: string;
   name: string;
-  /** 功能權限代碼，例如 product:write */
+  /** 功能權限代碼，例如 task:write */
   permissionCodes: string[];
 }
 

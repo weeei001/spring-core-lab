@@ -12,6 +12,7 @@ import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.ClassUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -58,8 +59,9 @@ public final class QuerySpecifications {
             case LIKE, STARTS_WITH -> like(builder, path, property, typed(property, type, value),
                     operator == QueryOperator.LIKE);
             case GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL -> {
-                if (!Number.class.isAssignableFrom(type) && type != LocalDateTime.class) {
-                    throw new IllegalStateException("範圍查詢條件必須對應數字或時間：" + property);
+                if (!Number.class.isAssignableFrom(type) && type != LocalDateTime.class
+                        && type != LocalDate.class) {
+                    throw new IllegalStateException("範圍查詢條件必須對應數字、日期或時間：" + property);
                 }
                 yield range(builder, path, operator, typed(property, type, value));
             }
@@ -129,7 +131,7 @@ public final class QuerySpecifications {
     /** 可以當查詢條件的欄位型別。 */
     private static boolean supports(Class<?> type) {
         return type == String.class || type == Boolean.class || Number.class.isAssignableFrom(type)
-                || type.isEnum() || type == LocalDateTime.class;
+                || type.isEnum() || type == LocalDateTime.class || type == LocalDate.class;
     }
 
     /** 依 {@code .} 逐層取得 property，例如 {@code category.code}。 */

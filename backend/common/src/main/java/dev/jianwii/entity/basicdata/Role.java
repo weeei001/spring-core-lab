@@ -19,7 +19,7 @@ import org.hibernate.annotations.BatchSize;
 import java.util.Set;
 
 /**
- * 角色：一組功能權限，由管理員在畫面上組合，例如「倉管 = 查詢商品 + 調整庫存」。
+ * 角色：一組功能權限，由管理員在畫面上組合，例如「專案經理 = 查詢專案 + 建立專案 + 維護任務」。
  * 使用者透過角色取得權限（{@link User#getRoleIds()}），不直接指派權限給個人。
  */
 @Entity

@@ -8,7 +8,7 @@ package dev.jianwii.common.query;
  * <li>{@link #EQUAL}／{@link #NOT_EQUAL}：等於／不等於。</li>
  * <li>{@link #LIKE}：包含（{@code LIKE '%x%'}），{@code %}、{@code _} 視為一般字元，不可為空白。</li>
  * <li>{@link #STARTS_WITH}：前綴（{@code LIKE 'x%'}），規則同 LIKE。</li>
- * <li>{@link #GREATER_THAN} 等四種範圍比較：只限數字或時間。</li>
+ * <li>{@link #GREATER_THAN} 等四種範圍比較：只限數字、日期或時間。</li>
  * <li>{@link #IN}：值為 Collection，任一相同即符合；空集合視為不篩選。</li>
  * </ul>
  */

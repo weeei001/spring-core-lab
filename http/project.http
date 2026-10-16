@@ -1,0 +1,303 @@
+### 專案控管 API 範例
+### 先依 auth.http 的說明登入並設定 session、xsrf；登入者的角色要有 project:read、project:write、task:write、work-log:write
+### （或列在 super-admin-subjects）。由上往下執行，新增取得的 id 會存成變數，後面的請求直接使用，可重複執行
+
+### 1. 新增專案（code 由 basic-data 產生，例如 PRJ2610001）；建立者自動成為經理
+# @no-cookie-jar
+POST http://localhost:8080/api/project
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "name": "官網改版",
+  "description": "首頁與會員中心改版",
+  "status": "ACTIVE",
+  "startDate": "2026-10-01",
+  "endDate": "2026-12-31",
+  "color": "#1677FF"
+}
+
+> {%
+    client.global.set("projectId", response.body.data.id);
+%}
+
+### 2. 查詢我參與的專案（沒有 project:admin 時只會查到自己是成員的），帶任務數、完成數、逾期數
+# @no-cookie-jar
+POST http://localhost:8080/api/project/queryPage
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "statuses": ["PLANNING", "ACTIVE"],
+  "page": 1,
+  "size": 20,
+  "sort": [{ "field": "transTime", "direction": "desc" }]
+}
+
+### 3. 專案成員（剛建立時只有自己，角色 MANAGER）
+# @no-cookie-jar
+POST http://localhost:8080/api/project-member/query
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "projectId": {{projectId}}
+}
+
+> {%
+    client.global.set("myUserId", response.body.data[0].userId);
+    client.global.set("memberId", response.body.data[0].id);
+%}
+
+### 4. 唯一的經理不能降為成員 → 400
+# @no-cookie-jar
+PATCH http://localhost:8080/api/project-member/{{memberId}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "role": "MEMBER"
+}
+
+### 5. 新增里程碑
+# @no-cookie-jar
+POST http://localhost:8080/api/milestone
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "projectId": {{projectId}},
+  "name": "設計定稿",
+  "dueDate": "2026-10-31"
+}
+
+> {%
+    client.global.set("milestoneId", response.body.data.id);
+%}
+
+### 6. 新增任務 A（指派給自己、掛在里程碑下）
+# @no-cookie-jar
+POST http://localhost:8080/api/task
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "projectId": {{projectId}},
+  "milestoneId": {{milestoneId}},
+  "title": "首頁版型設計",
+  "priority": "HIGH",
+  "assigneeId": "{{myUserId}}",
+  "startDate": "2026-10-15",
+  "dueDate": "2026-10-20",
+  "estimateHours": 16
+}
+
+> {%
+    client.global.set("taskA", response.body.data.id);
+%}
+
+### 7. 新增任務 B，前置任務為 A（A 完成後才開始）
+# @no-cookie-jar
+POST http://localhost:8080/api/task
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "projectId": {{projectId}},
+  "title": "首頁切版",
+  "startDate": "2026-10-21",
+  "dueDate": "2026-10-25",
+  "predecessorIds": [{{taskA}}]
+}
+
+> {%
+    client.global.set("taskB", response.body.data.id);
+%}
+
+### 8. 讓 A 以 B 為前置 → 形成循環，400
+# @no-cookie-jar
+PATCH http://localhost:8080/api/task/{{taskA}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "predecessorIds": [{{taskB}}]
+}
+
+### 9. 新增 A 的子任務
+# @no-cookie-jar
+POST http://localhost:8080/api/task
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "projectId": {{projectId}},
+  "parentId": {{taskA}},
+  "title": "手機版版型"
+}
+
+> {%
+    client.global.set("subtaskId", response.body.data.id);
+%}
+
+### 10. 看板拖曳：A 改為進行中，排在該欄第一個
+# @no-cookie-jar
+POST http://localhost:8080/api/task/{{taskA}}/move?status=IN_PROGRESS
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+
+### 11. 看板拖曳：B 也改為進行中，排在 A 之後
+# @no-cookie-jar
+POST http://localhost:8080/api/task/{{taskB}}/move?status=IN_PROGRESS&previousId={{taskA}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+
+### 12. 修改 A：延後到期日、清空預估工時與里程碑
+# @no-cookie-jar
+PATCH http://localhost:8080/api/task/{{taskA}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "dueDate": "2026-10-22",
+  "clearFields": ["estimateHours", "milestoneId"]
+}
+
+### 13. 專案的主任務（看板用），依排序；帶子任務數與已登記工時
+# @no-cookie-jar
+POST http://localhost:8080/api/task/query
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "projectId": {{projectId}},
+  "topLevel": true,
+  "size": 100,
+  "sort": [{ "field": "sortOrder", "direction": "asc" }]
+}
+
+### 14. 我的任務：不給 projectId 時只查得到指派給自己的
+# @no-cookie-jar
+POST http://localhost:8080/api/task/queryPage
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "statuses": ["TODO", "IN_PROGRESS", "REVIEW"],
+  "sort": [{ "field": "dueDate", "direction": "asc" }]
+}
+
+### 15. 留言
+# @no-cookie-jar
+POST http://localhost:8080/api/task-comment
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "taskId": {{taskA}},
+  "content": "版型初稿已上傳到設計稿"
+}
+
+### 16. 活動紀錄：建立、狀態、到期日、里程碑變更與留言
+# @no-cookie-jar
+POST http://localhost:8080/api/task-activity/query
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "taskId": {{taskA}},
+  "size": 100
+}
+
+### 17. 登記工時（userId 由系統填入登入者）
+# @no-cookie-jar
+POST http://localhost:8080/api/work-log
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "taskId": {{taskA}},
+  "workDate": "2026-10-15",
+  "hours": 3.5,
+  "note": "初稿"
+}
+
+### 18. 不是 0.5 的倍數 → 400
+# @no-cookie-jar
+POST http://localhost:8080/api/work-log
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "taskId": {{taskA}},
+  "workDate": "2026-10-15",
+  "hours": 1.2
+}
+
+### 19. 專案工時統計：依人、日合計
+# @no-cookie-jar
+POST http://localhost:8080/api/work-log/summary
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "projectId": {{projectId}},
+  "fromDate": "2026-10-01",
+  "toDate": "2026-10-31"
+}
+
+### 20. A 還有子任務，不能刪 → 409
+# @no-cookie-jar
+DELETE http://localhost:8080/api/task/{{taskA}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+
+### 21. 專案結案後唯讀：先結案，再改任務 → 400
+# @no-cookie-jar
+PATCH http://localhost:8080/api/project/{{projectId}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "status": "DONE"
+}
+
+###
+# @no-cookie-jar
+PATCH http://localhost:8080/api/task/{{taskB}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "title": "結案後不能改"
+}
+
+### 22. 重新開啟
+# @no-cookie-jar
+PATCH http://localhost:8080/api/project/{{projectId}}
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "status": "ACTIVE"
+}

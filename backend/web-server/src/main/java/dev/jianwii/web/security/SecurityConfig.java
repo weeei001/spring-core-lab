@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
  * <li>登出：前端 POST {@value #LOGOUT_URI}（要帶 CSRF header），回傳 authentik 的登出網址，
  * 前端再整頁跳轉過去，一併登出 authentik 後導回前端。</li>
  * <li>API：一律要登入，未登入回 401 Result，前端收到後導向登入網址。</li>
- * <li>權限：Controller 以 {@code @PreAuthorize("hasAuthority('product:write')")} 檢查功能權限，
+ * <li>權限：Controller 以 {@code @PreAuthorize("hasAuthority('task:write')")} 檢查功能權限，
  * 沒有權限回 403 Result；權限由 PermissionAuthorityFilter 每個請求載入。</li>
  * <li>CSRF：登入靠 cookie，所以要防 CSRF。後端把 token 放在 XSRF-TOKEN cookie，
  * 前端送出 POST／PATCH／DELETE 時放進 X-XSRF-TOKEN header（axios 會自動處理）。</li>

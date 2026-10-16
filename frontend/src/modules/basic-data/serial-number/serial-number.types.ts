@@ -4,7 +4,7 @@ export type ResetCycle = 'NONE' | 'YEAR' | 'MONTH' | 'DAY';
 
 /** 系統編號規則（後端 SerialNumber） */
 export interface SerialNumber extends BaseEntity {
-  /** 規則代碼，例如 PRODUCT；建立後不可修改 */
+  /** 規則代碼，例如 PROJECT；建立後不可修改 */
   serialKey: string;
   name: string;
   /** 編號格式，例如 P{yyyyMM}{0000} */

@@ -21,7 +21,7 @@
         <module>common-api</module>
         <module>eureka-server</module>
         <module>basic-data</module>
-        <module>product-service</module>
+        <module>project-service</module>
         <module>web-server</module>
     </modules>
 
