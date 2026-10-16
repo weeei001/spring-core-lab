@@ -27,47 +27,52 @@ yarn dev          # http://localhost:3000，/api、/auth 會轉給 localhost:808
 ```
 src/
 ├─ main.tsx            進入點，只負責掛載 App
-├─ app/                應用程式組裝：Provider、路由、版面、選單（唯一知道所有模組的地方）
+├─ app/                應用程式組裝：Provider、路由、版面、選單
+├─ pages/              畫面，層級與側邊選單一致；照選單就能找到檔案
+│  ├─ project/         「專案」：dashboard、project-list、project-detail、my-tasks、timesheet
+│  ├─ basic-data/      「基本資料」：serial-number
+│  └─ system/          「系統管理」：role、user
+├─ components/         兩個以上頁面共用的業務元件，依領域分
+│  ├─ project/         任務抽屜（task-drawer/）、專案卡片、標籤、專案共用的 hook 與工具
+│  ├─ user/            使用者頭像、選擇器、名稱查詢
+│  ├─ notification/    通知鈴鐺
+│  └─ search/          全站搜尋
+├─ api/                呼叫後端，一個資料夾對應一個後端服務
+│  ├─ project/         ↔ backend/project-service
+│  ├─ basic-data/      ↔ backend/basic-data
+│  └─ notification/    ↔ backend/notification-service
 ├─ core/               基礎設施，整個 app 只有一份
 │  ├─ http/            axios、Result 解析、錯誤處理、CRUD 工廠
 │  └─ auth/            登入者、功能權限、權限檢查
-├─ shared/             可重用、不含業務邏輯的元件與工具
-│  ├─ ui/              FormModal、表格欄位
-│  ├─ hooks/           分頁列表、儲存刪除
-│  └─ lib/             格式化工具
-└─ modules/            業務模組，一個資料夾對應一個後端服務
-   ├─ project/         ↔ backend/project-service（儀表板、專案、任務看板／甘特、我的任務、工時）
-   └─ basic-data/      ↔ backend/basic-data（編號規則、使用者、角色）
+└─ shared/             可重用、不含業務邏輯的元件與工具
+   ├─ ui/              FormModal、表格欄位、圖表、統計卡片
+   ├─ hooks/           分頁列表、儲存刪除
+   └─ lib/             格式化工具
 ```
 
-模組內依畫面分資料夾，不依資料表拆；要改哪個畫面就到同名資料夾找：
+結構參考 [Ant Design Pro](https://github.com/ant-design/ant-design-pro)：一頁一個資料夾，頁面專用的東西都放在裡面。
 
 ```
-modules/project/
-├─ index.ts            模組的公開 API
-├─ api/                所有資料表的 xxx-api.ts（呼叫後端）與 xxx.types.ts（對應 Entity 與查詢參數）
-├─ components/         兩個以上畫面共用的元件與 hook（例如 task-drawer/ 任務抽屜）
-├─ hooks.ts、labels.ts、project-utils.ts、tours.tsx   模組共用的 hook、標籤、工具、操作導覽
-├─ dashboard/          儀表板
-├─ project-list/       專案列表
-├─ project-detail/     專案詳情與各分頁（tasks/ 是任務分頁：看板、表格、甘特）
-├─ my-tasks/           我的任務
-├─ timesheet/          工時
-└─ search/             全域搜尋
+pages/project/project-detail/
+├─ ProjectDetailPage.tsx   頁面
+├─ tour.ts                 這一頁的操作導覽
+└─ components/             只有這一頁用的元件（各分頁；tasks/ 是任務分頁的看板、表格、甘特）
 ```
 
 | 放哪裡 | 內容 |
 |---|---|
-| `api/xxx.types.ts` | 對應後端 Entity 與查詢參數的型別 |
-| `api/xxx-api.ts` | 呼叫後端 API |
-| `<畫面>/XxxPage.tsx` | 頁面，以及只有這個畫面用的元件、hook |
-| `components/` | 多個畫面共用的元件、hook；只剩一個畫面使用時搬回該畫面資料夾 |
+| `api/<服務>/xxx.types.ts` | 對應後端 Entity 與查詢參數的型別 |
+| `api/<服務>/xxx-api.ts` | 呼叫後端 API |
+| `pages/<選單群組>/<頁面>/` | 頁面、`tour.ts`，以及只有這一頁用的元件（放 `components/`） |
+| `components/<領域>/` | 多個頁面共用的業務元件、hook；只剩一頁使用時搬回該頁 |
+| `shared/` | 和業務無關、任何地方都能用的元件與工具 |
 
 ### 引用規則
 
-- 依賴方向只能往下：`app` → `modules` → `shared`、`core`。`shared`、`core` 不可引用 `modules`。
-- 模組之間只能從對方的 `index.ts` 引用，例如 `import { useUserNames } from '@/modules/basic-data'`；ESLint 會擋下直接引用模組內部檔案。
-- 用 `@/` 代表 `src/`，不寫 `../../../`。
+- 依賴方向只能往下：`app` → `pages` → `components` → `api` → `shared`、`core`，ESLint 會擋下反方向的引用。
+- 頁面之間不互相引用；要共用就移到 `components/`。
+- 不用 `index.ts` 轉出，直接引用檔案。
+- 同一個頁面（或同一個 `components/<領域>/`）裡用相對路徑，跨資料夾用 `@/` 代表 `src/`，不寫 `../../../`。
 
 ### 型別嚴謹度
 
@@ -77,12 +82,11 @@ modules/project/
 
 ## 新增一個功能
 
-1. 在模組的 `api/` 寫 `xxx.types.ts`（對應後端 Entity）。
-2. `api/xxx-api.ts`：一般 CRUD 用 `createCrudApi<Xxx, XxxQuery>('/api/...')`。
-3. 為畫面建立資料夾，寫 `XxxPage.tsx`：用 `usePagedList`、`useSaveDelete`、`FormModal` 組出列表與表單。
-4. 在模組的 `index.ts` 匯出頁面。
-5. `app/router.tsx` 加路由並用 `RequirePermission` 包住；`app/menu.ts` 加選單。
-6. 需要新的功能權限時，後端 `Permission` enum 與 `core/auth/permissions.ts` 一起加。
+1. 在 `api/<服務>/` 寫 `xxx.types.ts`（對應後端 Entity）。
+2. `api/<服務>/xxx-api.ts`：一般 CRUD 用 `createCrudApi<Xxx, XxxQuery>('/api/...')`。
+3. 在 `pages/<選單群組>/` 建立頁面資料夾，寫 `XxxPage.tsx`：用 `usePagedList`、`useSaveDelete`、`FormModal` 組出列表與表單。
+4. `app/router.tsx` 加路由並用 `RequirePermission` 包住；`app/menu.ts` 加選單。
+5. 需要新的功能權限時，後端 `Permission` enum 與 `core/auth/permissions.ts` 一起加。
 
 ## 操作導覽
 
@@ -91,7 +95,7 @@ modules/project/
 新頁面要加導覽時：
 
 1. 在要介紹的元素加上 `data-tour="key"`；只想框住裡面的一部分（例如分頁列）時，再加 `data-tour-inner=".ant-tabs-nav"`。
-2. 在模組的 `tours.tsx` 寫步驟（`GuideStep[]`），`target` 填上面的 key；不填 `target` 則置中顯示。
+2. 在頁面資料夾的 `tour.ts` 寫步驟（內容有 JSX 時用 `tour.tsx`）（`GuideStep[]`），`target` 填上面的 key；不填 `target` 則置中顯示。
 3. 頁面裡放 `<PageTour id="頁面代號" steps={...} />`。畫面上找不到的步驟（例如沒有權限而沒顯示的按鈕）會自動略過。
 
 「看過」的紀錄存在瀏覽器的 localStorage（`tour-seen:頁面代號`）。

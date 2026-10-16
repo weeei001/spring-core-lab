@@ -1,9 +1,9 @@
 import { App, Button, Dropdown, Flex, Layout, Menu, Typography, theme, type MenuProps } from 'antd';
 import { LogoutOutlined, MoonOutlined, QuestionCircleOutlined, SunOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router';
+import { NotificationBell } from '@/components/notification/NotificationBell';
+import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { useAuth } from '@/core/auth/useAuth';
-import { NotificationBell } from '@/modules/notification';
-import { GlobalSearch } from '@/modules/project';
 import { openPageTour, resetPageTours } from '@/shared/ui/PageTour';
 import { MENU } from '../menu';
 import { useThemeMode } from '../theme-mode';

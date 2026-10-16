@@ -2,10 +2,16 @@ import { createBrowserRouter } from 'react-router';
 import { Result } from 'antd';
 import { RequirePermission } from '@/core/auth/RequirePermission';
 import { PERMISSIONS } from '@/core/auth/permissions';
-import { RolePage, SerialNumberPage, UserPage } from '@/modules/basic-data';
-import { DashboardPage, MyTasksPage, ProjectDetailPage, ProjectListPage, TimesheetPage } from '@/modules/project';
+import { SerialNumberPage } from '@/pages/basic-data/serial-number/SerialNumberPage';
+import { DashboardPage } from '@/pages/project/dashboard/DashboardPage';
+import { MyTasksPage } from '@/pages/project/my-tasks/MyTasksPage';
+import { ProjectDetailPage } from '@/pages/project/project-detail/ProjectDetailPage';
+import { ProjectListPage } from '@/pages/project/project-list/ProjectListPage';
+import { TimesheetPage } from '@/pages/project/timesheet/TimesheetPage';
+import { RolePage } from '@/pages/system/role/RolePage';
+import { UserPage } from '@/pages/system/user/UserPage';
+import { HomePage } from './HomePage';
 import { AppLayout } from './layout/AppLayout';
-import { HomePage } from './pages/HomePage';
 
 // 路徑不可用 /api、/auth 開頭，那些會被 vite 轉給 web-server
 export const router = createBrowserRouter([
