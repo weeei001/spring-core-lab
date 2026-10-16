@@ -166,7 +166,7 @@ export function GlobalSearch() {
                     {item.title}
                   </Typography.Text>
                   {item.extra}
-                  {index === active ? <Tag style={{ marginInlineEnd: 0 }}>Enter</Tag> : null}
+                  {index === active ? <Tag>Enter</Tag> : null}
                 </Flex>
               ))
             )}

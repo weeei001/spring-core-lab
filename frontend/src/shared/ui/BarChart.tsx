@@ -1,5 +1,4 @@
 import { Flex, Tooltip, Typography, theme } from 'antd';
-import { motion } from 'motion/react';
 
 export interface BarDatum {
   key: string;
@@ -20,8 +19,8 @@ interface BarChartProps {
 }
 
 /**
- * 單一數列的直條圖（例如每週工時）：一個顏色、上緣圓角貼齊基線、長條間留空隙，
- * 數值直接標在長條上，滑過顯示說明；長條從 0 長出來。
+ * 單一數列的直條圖（例如每週工時）：一個顏色、貼齊基線、長條間留空隙，
+ * 數值直接標在長條上，滑過顯示說明。
  */
 export function BarChart({ data, height = 160, format }: BarChartProps) {
   const { token } = theme.useToken();
@@ -29,7 +28,7 @@ export function BarChart({ data, height = 160, format }: BarChartProps) {
   return (
     <Flex vertical gap={4}>
       <Flex align="flex-end" gap={8} style={{ height, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
-        {data.map((datum, index) => {
+        {data.map((datum) => {
           const ratio = max === 0 ? 0 : datum.value / max;
           return (
             <Tooltip key={datum.key} title={datum.tooltip}>
@@ -39,15 +38,12 @@ export function BarChart({ data, height = 160, format }: BarChartProps) {
                     {format(datum.value)}
                   </Typography.Text>
                 ) : null}
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${String(Math.round(ratio * 80))}%` }}
-                  transition={{ duration: 0.6, delay: index * 0.03, ease: 'easeOut' }}
+                <div
                   style={{
+                    height: `${String(Math.round(ratio * 80))}%`,
                     width: '70%',
                     maxWidth: 36,
                     minHeight: datum.value > 0 ? 2 : 0,
-                    borderRadius: '4px 4px 0 0',
                     background: datum.highlight === true ? token.colorPrimary : token.colorPrimaryBorder,
                   }}
                 />

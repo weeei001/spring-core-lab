@@ -89,7 +89,6 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
         </Flex>
         <Typography.Title
           level={4}
-          style={{ margin: 0 }}
           editable={
             editable
               ? {

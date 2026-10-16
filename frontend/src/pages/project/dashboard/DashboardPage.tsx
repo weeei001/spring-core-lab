@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { Button, Card, Col, Empty, Flex, Row, Skeleton, Tag, Typography } from 'antd';
-import { ClockCircleOutlined, FieldTimeOutlined, FlagOutlined, ProjectOutlined, UnorderedListOutlined, WarningOutlined } from '@ant-design/icons';
+import { Badge, Button, Card, Col, Empty, Flex, Row, Skeleton, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { memberApi } from '@/api/project/member-api';
 import { milestoneApi } from '@/api/project/milestone-api';
@@ -87,19 +85,17 @@ export function DashboardPage() {
 
   return (
     <Flex vertical gap={20}>
-      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-        <Typography.Title level={3} style={{ margin: 0 }}>
+      <div>
+        <Typography.Title level={3}>
           {greeting()}，{user.name}
         </Typography.Title>
         <Typography.Text type="secondary">{dayjs().format('YYYY 年 M 月 D 日 dddd')}</Typography.Text>
-      </motion.div>
+      </div>
 
       <Flex gap={16} wrap data-tour="dashboard-stats">
         <StatTile
           title="我的待辦"
           value={myTasks.length}
-          icon={<UnorderedListOutlined />}
-          color="#1677ff"
           onClick={() => {
             void navigate('/my-tasks');
           }}
@@ -107,9 +103,6 @@ export function DashboardPage() {
         <StatTile
           title="逾期"
           value={overdue.length}
-          icon={<WarningOutlined />}
-          color="#f5222d"
-          delay={0.05}
           onClick={() => {
             void navigate('/my-tasks');
           }}
@@ -119,9 +112,6 @@ export function DashboardPage() {
           value={weekHours}
           decimals={1}
           suffix="h"
-          icon={<FieldTimeOutlined />}
-          color="#13c2c2"
-          delay={0.1}
           onClick={() => {
             void navigate('/timesheet');
           }}
@@ -129,9 +119,6 @@ export function DashboardPage() {
         <StatTile
           title="參與中的專案"
           value={projectIds.length}
-          icon={<ProjectOutlined />}
-          color="#722ed1"
-          delay={0.15}
           onClick={() => {
             void navigate('/projects');
           }}
@@ -142,11 +129,7 @@ export function DashboardPage() {
         <Col xs={24} lg={14}>
           <Card
             size="small"
-            title={
-              <span>
-                <ClockCircleOutlined /> 一週內到期
-              </span>
-            }
+            title="一週內到期"
             extra={
               <Button
                 type="link"
@@ -167,11 +150,10 @@ export function DashboardPage() {
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="一週內沒有到期的任務" />
             ) : (
               <Flex vertical gap={10}>
-                {dueSoon.map((task, index) => {
+                {dueSoon.map((task) => {
                   const project = projectName(task.projectId);
                   return (
-                    <motion.div key={task.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.04 }}>
-                      <Flex align="center" gap={8}>
+                    <Flex key={task.id} align="center" gap={8}>
                         <PriorityTag priority={task.priority} />
                         <Typography.Link
                           ellipsis
@@ -182,14 +164,9 @@ export function DashboardPage() {
                         >
                           {task.title}
                         </Typography.Link>
-                        {project === undefined ? null : (
-                          <Tag color={project.color ?? DEFAULT_PROJECT_COLOR} style={{ marginInlineEnd: 0 }}>
-                            {project.name}
-                          </Tag>
-                        )}
+                        {project === undefined ? null : <Badge color={project.color ?? DEFAULT_PROJECT_COLOR} text={project.name} />}
                         <DueDate task={task} />
-                      </Flex>
-                    </motion.div>
+                    </Flex>
                   );
                 })}
               </Flex>
@@ -219,7 +196,7 @@ export function DashboardPage() {
 
       <Flex vertical gap={12}>
         <Flex justify="space-between" align="center">
-          <Typography.Title level={5} style={{ margin: 0 }}>
+          <Typography.Title level={5}>
             參與中的專案
           </Typography.Title>
           <Button
@@ -237,11 +214,10 @@ export function DashboardPage() {
           <Empty description="還沒有參與任何專案" />
         ) : (
           <Row gutter={[16, 16]}>
-            {(projects.data ?? []).slice(0, 6).map((project, index) => (
+            {(projects.data ?? []).slice(0, 6).map((project) => (
               <Col key={project.id} xs={24} sm={12} xl={8}>
                 <ProjectCard
                   project={project}
-                  index={index}
                   myRole={roles.data?.find((member) => member.projectId === project.id)?.role}
                   onOpen={(id) => {
                     void navigate(`/projects/${String(id)}`);
@@ -255,11 +231,7 @@ export function DashboardPage() {
 
       <Card
         size="small"
-        title={
-          <span>
-            <FlagOutlined /> 兩週內到期的里程碑
-          </span>
-        }
+        title="兩週內到期的里程碑"
       >
         {(milestones.data ?? []).length === 0 ? (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="兩週內沒有到期的里程碑" />
@@ -273,15 +245,13 @@ export function DashboardPage() {
                     {milestone.name}
                   </Typography.Text>
                   {project === undefined ? null : (
-                    <Tag
-                      color={project.color ?? DEFAULT_PROJECT_COLOR}
-                      style={{ cursor: 'pointer' }}
+                    <Typography.Link
                       onClick={() => {
                         void navigate(`/projects/${String(project.id)}?tab=milestones`);
                       }}
                     >
-                      {project.name}
-                    </Tag>
+                      <Badge color={project.color ?? DEFAULT_PROJECT_COLOR} /> {project.name}
+                    </Typography.Link>
                   )}
                   <Typography.Text type={milestone.dueDate < today ? 'danger' : 'secondary'}>
                     {milestone.dueDate}（{dueText(milestone.dueDate)}）

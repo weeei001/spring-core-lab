@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Checkbox, Empty, Flex, Input, Progress, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { AnimatePresence, motion } from 'motion/react';
 import type { Task } from '@/api/project/task.types';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import type { UserDirectory } from '@/components/user/useUserDirectory';
@@ -35,40 +34,30 @@ export function TaskSubtasks({ parent, allTasks, directory, editable, onOpen }: 
       ) : null}
       {subtasks.length === 0 && !editable ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="沒有子任務" /> : null}
       <Flex vertical gap={4}>
-        <AnimatePresence initial={false}>
           {subtasks.map((task) => (
-            <motion.div
-              key={task.id}
-              layout
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 8 }}
-            >
-              <Flex align="center" gap={8} style={{ padding: '4px 0' }}>
-                <Checkbox
-                  checked={task.status === 'DONE'}
-                  disabled={!editable}
-                  onChange={(event) => {
-                    update.mutate({ id: task.id, values: { status: event.target.checked ? 'DONE' : 'TODO' } });
-                  }}
-                />
-                <Typography.Link
-                  delete={task.status === 'DONE'}
-                  style={{ flex: 1 }}
-                  ellipsis
-                  onClick={() => {
-                    onOpen(task.id);
-                  }}
-                >
-                  {task.title}
-                </Typography.Link>
-                <DueDate task={task} />
-                <TaskStatusTag status={task.status} />
-                {task.assigneeId === null ? null : <UserAvatar userId={task.assigneeId} user={directory.user(task.assigneeId)} />}
-              </Flex>
-            </motion.div>
+            <Flex key={task.id} align="center" gap={8} style={{ padding: '4px 0' }}>
+              <Checkbox
+                checked={task.status === 'DONE'}
+                disabled={!editable}
+                onChange={(event) => {
+                  update.mutate({ id: task.id, values: { status: event.target.checked ? 'DONE' : 'TODO' } });
+                }}
+              />
+              <Typography.Link
+                delete={task.status === 'DONE'}
+                style={{ flex: 1 }}
+                ellipsis
+                onClick={() => {
+                  onOpen(task.id);
+                }}
+              >
+                {task.title}
+              </Typography.Link>
+              <DueDate task={task} />
+              <TaskStatusTag status={task.status} />
+              {task.assigneeId === null ? null : <UserAvatar userId={task.assigneeId} user={directory.user(task.assigneeId)} />}
+            </Flex>
           ))}
-        </AnimatePresence>
       </Flex>
       {editable ? (
         <Input

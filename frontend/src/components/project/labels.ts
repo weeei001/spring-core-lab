@@ -43,7 +43,7 @@ export const TASK_STATUSES: TaskStatus[] = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DO
 /** 看板欄位、甘特圖的顏色 */
 export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
   TODO: '#8c8c8c',
-  IN_PROGRESS: '#1677ff',
+  IN_PROGRESS: '#1890ff',
   REVIEW: '#722ed1',
   DONE: '#52c41a',
   CANCELLED: '#bfbfbf',
@@ -60,7 +60,7 @@ export const TASK_PRIORITIES: TaskPriority[] = ['URGENT', 'HIGH', 'MEDIUM', 'LOW
 
 export const TASK_PRIORITY_COLORS: Record<TaskPriority, string> = {
   LOW: '#bfbfbf',
-  MEDIUM: '#1677ff',
+  MEDIUM: '#1890ff',
   HIGH: '#fa8c16',
   URGENT: '#f5222d',
 };

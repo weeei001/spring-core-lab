@@ -1,11 +1,10 @@
 import { Avatar, Card, Col, Empty, Flex, Progress, Row, Typography } from 'antd';
-import { CheckCircleOutlined, FlagOutlined, UnorderedListOutlined, WarningOutlined } from '@ant-design/icons';
 import type { ProjectMember } from '@/api/project/member.types';
 import type { Project } from '@/api/project/project.types';
 import { DueDate } from '@/components/project/DueDate';
 import { TaskStatusTag } from '@/components/project/Tags';
 import { useProjectMilestones, useProjectTasks } from '@/components/project/hooks';
-import { DEFAULT_PROJECT_COLOR, PROJECT_ROLE_LABELS, TASK_STATUSES, TASK_STATUS_COLORS, TASK_STATUS_LABELS } from '@/components/project/labels';
+import { PROJECT_ROLE_LABELS, TASK_STATUSES, TASK_STATUS_COLORS, TASK_STATUS_LABELS } from '@/components/project/labels';
 import { dueText, hasText, isOverdue, isTaskFinished, percent, todayText } from '@/components/project/project-utils';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import type { UserDirectory } from '@/components/user/useUserDirectory';
@@ -25,7 +24,6 @@ export function OverviewTab({ project, members, directory, onOpen }: OverviewTab
   const { user } = useAuth();
   const tasks = useProjectTasks(project.id);
   const milestones = useProjectMilestones(project.id);
-  const color = project.color ?? DEFAULT_PROJECT_COLOR;
 
   // 只算主任務，與後端的專案進度一致
   const mainTasks = (tasks.data ?? []).filter((task) => task.parentId === null);
@@ -43,10 +41,10 @@ export function OverviewTab({ project, members, directory, onOpen }: OverviewTab
   return (
     <Flex vertical gap={16}>
       <Flex gap={16} wrap>
-        <StatTile title="主任務" value={counted.length} icon={<UnorderedListOutlined />} color={color} />
-        <StatTile title="已完成" value={done} icon={<CheckCircleOutlined />} color="#52c41a" delay={0.05} />
-        <StatTile title="逾期" value={overdue} icon={<WarningOutlined />} color="#f5222d" delay={0.1} />
-        <StatTile title="里程碑" value={(milestones.data ?? []).length} icon={<FlagOutlined />} color="#faad14" delay={0.15} />
+        <StatTile title="主任務" value={counted.length} />
+        <StatTile title="已完成" value={done} />
+        <StatTile title="逾期" value={overdue} />
+        <StatTile title="里程碑" value={(milestones.data ?? []).length} />
       </Flex>
 
       <Row gutter={[16, 16]}>
@@ -54,7 +52,7 @@ export function OverviewTab({ project, members, directory, onOpen }: OverviewTab
           <Flex vertical gap={16}>
             <Card size="small" title="進度">
               <Flex align="center" gap={24} wrap>
-                <Progress type="circle" percent={progress} strokeColor={color} size={110} />
+                <Progress type="circle" percent={progress} size={110} />
                 <Flex vertical gap={12} style={{ flex: 1, minWidth: 240 }}>
                   <Typography.Text type="secondary">
                     主任務 {String(done)} / {String(counted.length)} 完成（取消的不計）
@@ -111,7 +109,7 @@ export function OverviewTab({ project, members, directory, onOpen }: OverviewTab
                     <Flex key={milestone.id} vertical gap={4}>
                       <Flex justify="space-between" gap={8}>
                         <Typography.Text strong ellipsis>
-                          <FlagOutlined /> {milestone.name}
+                          {milestone.name}
                         </Typography.Text>
                         <Typography.Text type={milestone.dueDate < today ? 'danger' : 'secondary'} style={{ whiteSpace: 'nowrap' }}>
                           {dueText(milestone.dueDate)}

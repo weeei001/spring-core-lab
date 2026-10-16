@@ -76,7 +76,7 @@ export function UserPage() {
 
   return (
     <Flex vertical gap={16}>
-      <Typography.Title level={4} style={{ margin: 0 }}>
+      <Typography.Title level={4}>
         使用者
       </Typography.Title>
       <Input.Search

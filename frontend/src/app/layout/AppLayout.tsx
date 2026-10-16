@@ -1,4 +1,4 @@
-import { App, Button, Dropdown, Flex, Layout, Menu, Typography, theme, type MenuProps } from 'antd';
+import { App, Button, Dropdown, Flex, Layout, Menu, Typography, type MenuProps } from 'antd';
 import { LogoutOutlined, MoonOutlined, QuestionCircleOutlined, SunOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { NotificationBell } from '@/components/notification/NotificationBell';
@@ -13,7 +13,6 @@ export function AppLayout() {
   const { user, can, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { token } = theme.useToken();
   const { mode, toggle } = useThemeMode();
   const { message } = App.useApp();
   // 子頁面（例如 /projects/12）也要亮起所屬的選單項目：取最長的前綴
@@ -37,7 +36,7 @@ export function AppLayout() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Layout.Sider width={200} theme="light" breakpoint="lg" collapsedWidth={0}>
-        <Typography.Title level={5} style={{ padding: '16px 24px', margin: 0 }}>
+        <Typography.Title level={5} style={{ padding: '16px 24px' }}>
           spring-core-lab
         </Typography.Title>
         <div data-tour="app-menu">
@@ -48,12 +47,11 @@ export function AppLayout() {
             onClick={({ key }) => {
               void navigate(key);
             }}
-            style={{ borderInlineEnd: 0 }}
           />
         </div>
       </Layout.Sider>
       <Layout>
-        <Layout.Header style={{ background: token.colorBgContainer, paddingInline: 24 }}>
+        <Layout.Header>
           <Flex justify="end" align="center" gap={12} style={{ height: '100%' }}>
             <div data-tour="global-search" style={{ marginInlineEnd: 'auto' }}>
               <GlobalSearch />

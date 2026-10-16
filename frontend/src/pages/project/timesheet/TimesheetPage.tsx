@@ -217,7 +217,7 @@ export function TimesheetPage() {
   return (
     <Flex vertical gap={16}>
       <Flex justify="space-between" align="center" wrap gap={12}>
-        <Typography.Title level={4} style={{ margin: 0 }}>
+        <Typography.Title level={4}>
           工時
         </Typography.Title>
         <Flex gap={8} align="center" data-tour="timesheet-week">

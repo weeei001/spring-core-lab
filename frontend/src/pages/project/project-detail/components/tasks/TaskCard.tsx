@@ -1,9 +1,8 @@
-import { Card, Flex, Tag, Tooltip, Typography, theme } from 'antd';
+import { Card, Flex, Tag, Typography, theme } from 'antd';
 import { BranchesOutlined, CheckCircleFilled, ClockCircleOutlined } from '@ant-design/icons';
-import { motion } from 'motion/react';
 import type { Task } from '@/api/project/task.types';
 import { DueDate } from '@/components/project/DueDate';
-import { TASK_PRIORITY_COLORS, TASK_PRIORITY_LABELS } from '@/components/project/labels';
+import { PriorityTag } from '@/components/project/Tags';
 import { hoursText } from '@/components/project/project-utils';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import type { UserDirectory } from '@/components/user/useUserDirectory';
@@ -16,66 +15,50 @@ interface TaskCardProps {
   onOpen?: (taskId: number) => void;
 }
 
-/** 看板卡片：左側色條是優先度，底部是到期日、子任務進度、工時與指派人 */
+/** 看板卡片：編號與優先度、標題，底部是到期日、子任務進度、工時與指派人 */
 export function TaskCard({ task, directory, overlay = false, onOpen }: TaskCardProps) {
   const { token } = theme.useToken();
   const done = task.status === 'DONE';
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2 }}>
-      <Card
-        size="small"
-        hoverable
-        onClick={() => {
-          onOpen?.(task.id);
-        }}
-        style={{
-          borderInlineStart: `4px solid ${TASK_PRIORITY_COLORS[task.priority]}`,
-          boxShadow: overlay ? token.boxShadowSecondary : undefined,
-          transform: overlay ? 'rotate(2deg)' : undefined,
-          cursor: overlay ? 'grabbing' : 'grab',
-        }}
-        styles={{ body: { padding: '10px 12px' } }}
-      >
-        <Flex vertical gap={6}>
-          <Flex justify="space-between" align="center">
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              {task.code}
-            </Typography.Text>
-            <Tooltip title={`優先度：${TASK_PRIORITY_LABELS[task.priority]}`}>
-              <span style={{ fontSize: 12, color: TASK_PRIORITY_COLORS[task.priority] }}>{TASK_PRIORITY_LABELS[task.priority]}</span>
-            </Tooltip>
-          </Flex>
-          <Typography.Text delete={task.status === 'CANCELLED'} style={{ fontWeight: 500 }}>
-            {done ? (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-                style={{ display: 'inline-block', marginInlineEnd: 6, color: token.colorSuccess }}
-              >
-                <CheckCircleFilled />
-              </motion.span>
-            ) : null}
-            {task.title}
+    <Card
+      size="small"
+      hoverable
+      onClick={() => {
+        onOpen?.(task.id);
+      }}
+      style={{
+        boxShadow: overlay ? token.boxShadowSecondary : undefined,
+        cursor: overlay ? 'grabbing' : 'grab',
+      }}
+    >
+      <Flex vertical gap={6}>
+        <Flex justify="space-between" align="center">
+          <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+            {task.code}
           </Typography.Text>
-          <Flex justify="space-between" align="center" gap={8}>
-            <Flex align="center" gap={8} wrap style={{ fontSize: 12 }}>
-              <DueDate task={task} />
-              {task.subtaskCount !== undefined && task.subtaskCount > 0 ? (
-                <Tag icon={<BranchesOutlined />} style={{ marginInlineEnd: 0 }}>
-                  {String(task.doneSubtaskCount ?? 0)}/{String(task.subtaskCount)}
-                </Tag>
-              ) : null}
-              {task.loggedHours !== undefined && task.loggedHours > 0 ? (
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  <ClockCircleOutlined /> {hoursText(task.loggedHours)}
-                </Typography.Text>
-              ) : null}
-            </Flex>
-            {task.assigneeId === null ? null : <UserAvatar userId={task.assigneeId} user={directory.user(task.assigneeId)} />}
-          </Flex>
+          <PriorityTag priority={task.priority} />
         </Flex>
-      </Card>
-    </motion.div>
+        <Typography.Text delete={task.status === 'CANCELLED'} strong>
+          {done ? <CheckCircleFilled style={{ marginInlineEnd: 6, color: token.colorSuccess }} /> : null}
+          {task.title}
+        </Typography.Text>
+        <Flex justify="space-between" align="center" gap={8}>
+          <Flex align="center" gap={8} wrap style={{ fontSize: token.fontSizeSM }}>
+            <DueDate task={task} />
+            {task.subtaskCount !== undefined && task.subtaskCount > 0 ? (
+              <Tag icon={<BranchesOutlined />}>
+                {String(task.doneSubtaskCount ?? 0)}/{String(task.subtaskCount)}
+              </Tag>
+            ) : null}
+            {task.loggedHours !== undefined && task.loggedHours > 0 ? (
+              <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+                <ClockCircleOutlined /> {hoursText(task.loggedHours)}
+              </Typography.Text>
+            ) : null}
+          </Flex>
+          {task.assigneeId === null ? null : <UserAvatar userId={task.assigneeId} user={directory.user(task.assigneeId)} />}
+        </Flex>
+      </Flex>
+    </Card>
   );
 }

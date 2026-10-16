@@ -97,11 +97,8 @@ function BoardColumn({ status, tasks, directory, editable, onOpen, onQuickAdd }:
       }}
     >
       <Flex align="center" justify="space-between" style={{ padding: '2px 4px' }}>
-        <Flex align="center" gap={8}>
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: TASK_STATUS_COLORS[status] }} />
-          <Typography.Text strong>{TASK_STATUS_LABELS[status]}</Typography.Text>
-        </Flex>
-        <Badge count={tasks.length} showZero color={TASK_STATUS_COLORS[status]} />
+        <Badge color={TASK_STATUS_COLORS[status]} text={<Typography.Text strong>{TASK_STATUS_LABELS[status]}</Typography.Text>} />
+        <Typography.Text type="secondary">{String(tasks.length)}</Typography.Text>
       </Flex>
       <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
         <div ref={setNodeRef} style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 80 }}>

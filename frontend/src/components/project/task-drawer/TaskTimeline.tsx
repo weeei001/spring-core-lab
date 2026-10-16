@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { App, Button, Flex, Input, Popconfirm, Skeleton, Typography, theme } from 'antd';
 import { EditOutlined, MessageOutlined, SendOutlined } from '@ant-design/icons';
-import { AnimatePresence, motion } from 'motion/react';
 import { activityApi } from '@/api/project/activity-api';
 import type { TaskActivity } from '@/api/project/activity.types';
 import { commentApi } from '@/api/project/comment-api';
@@ -128,110 +127,101 @@ export function TaskTimeline({ taskId, milestones, editable }: TaskTimelineProps
   return (
     <Flex vertical gap={16}>
       <Flex vertical>
-        <AnimatePresence initial={false}>
-          {entries.map((entry) => {
-            const actorId = entry.item.createId;
-            const mine = actorId === String(user.id);
-            return (
-              <motion.div
-                key={`${entry.kind}-${String(entry.item.id)}`}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-              >
-                <Flex gap={12} style={{ paddingBottom: 16, position: 'relative' }}>
-                  <UserAvatar userId={actorId} user={directory.user(actorId)} size={28} />
-                  <Flex vertical gap={4} style={{ flex: 1, minWidth: 0 }}>
-                    <Flex gap={8} align="baseline" wrap>
-                      <Typography.Text strong>{directory.name(actorId)}</Typography.Text>
-                      {entry.kind === 'activity' ? (
-                        <Typography.Text type="secondary">{describeActivity(entry.item, directory, milestones)}</Typography.Text>
-                      ) : (
-                        <Typography.Text type="secondary">
-                          <MessageOutlined /> 留言
-                        </Typography.Text>
-                      )}
-                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                        {formatTime(entry.item.createTime)}
-                      </Typography.Text>
-                    </Flex>
-                    {entry.kind === 'comment' ? (
-                      editing?.id === entry.item.id ? (
-                        <Flex vertical gap={8}>
-                          <Input.TextArea
-                            autoSize={{ minRows: 2, maxRows: 8 }}
-                            maxLength={2000}
-                            value={editing.content}
-                            onChange={(event) => {
-                              setEditing({ id: entry.item.id, content: event.target.value });
-                            }}
-                          />
-                          <Flex gap={8} justify="end">
-                            <Button
-                              size="small"
-                              onClick={() => {
-                                setEditing(null);
-                              }}
-                            >
-                              取消
-                            </Button>
-                            <Button
-                              size="small"
-                              type="primary"
-                              loading={update.isPending}
-                              disabled={editing.content.trim() === ''}
-                              onClick={() => {
-                                update.mutate({ id: entry.item.id, content: editing.content.trim() });
-                              }}
-                            >
-                              儲存
-                            </Button>
-                          </Flex>
-                        </Flex>
-                      ) : (
-                        <div
-                          style={{
-                            background: token.colorFillTertiary,
-                            borderRadius: token.borderRadiusLG,
-                            padding: '8px 12px',
-                            whiteSpace: 'pre-wrap',
-                            wordBreak: 'break-word',
+        {entries.map((entry) => {
+          const actorId = entry.item.createId;
+          const mine = actorId === String(user.id);
+          return (
+            <Flex key={`${entry.kind}-${String(entry.item.id)}`} gap={12} style={{ paddingBottom: 16, position: 'relative' }}>
+              <UserAvatar userId={actorId} user={directory.user(actorId)} size={28} />
+              <Flex vertical gap={4} style={{ flex: 1, minWidth: 0 }}>
+                <Flex gap={8} align="baseline" wrap>
+                  <Typography.Text strong>{directory.name(actorId)}</Typography.Text>
+                  {entry.kind === 'activity' ? (
+                    <Typography.Text type="secondary">{describeActivity(entry.item, directory, milestones)}</Typography.Text>
+                  ) : (
+                    <Typography.Text type="secondary">
+                      <MessageOutlined /> 留言
+                    </Typography.Text>
+                  )}
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    {formatTime(entry.item.createTime)}
+                  </Typography.Text>
+                </Flex>
+                {entry.kind === 'comment' ? (
+                  editing?.id === entry.item.id ? (
+                    <Flex vertical gap={8}>
+                      <Input.TextArea
+                        autoSize={{ minRows: 2, maxRows: 8 }}
+                        maxLength={2000}
+                        value={editing.content}
+                        onChange={(event) => {
+                          setEditing({ id: entry.item.id, content: event.target.value });
+                        }}
+                      />
+                      <Flex gap={8} justify="end">
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            setEditing(null);
                           }}
                         >
-                          {entry.item.content}
-                          {mine && editable ? (
-                            <Flex gap={4} justify="end">
-                              <Button
-                                type="text"
-                                size="small"
-                                icon={<EditOutlined />}
-                                onClick={() => {
-                                  setEditing({ id: entry.item.id, content: entry.item.content });
-                                }}
-                              />
-                              <Popconfirm
-                                title="刪除這則留言？"
-                                okText="刪除"
-                                cancelText="取消"
-                                onConfirm={() => {
-                                  remove.mutate(entry.item.id);
-                                }}
-                              >
-                                <Button type="text" size="small" danger>
-                                  刪除
-                                </Button>
-                              </Popconfirm>
-                            </Flex>
-                          ) : null}
-                        </div>
-                      )
-                    ) : null}
-                  </Flex>
-                </Flex>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
+                          取消
+                        </Button>
+                        <Button
+                          size="small"
+                          type="primary"
+                          loading={update.isPending}
+                          disabled={editing.content.trim() === ''}
+                          onClick={() => {
+                            update.mutate({ id: entry.item.id, content: editing.content.trim() });
+                          }}
+                        >
+                          儲存
+                        </Button>
+                      </Flex>
+                    </Flex>
+                  ) : (
+                    <div
+                      style={{
+                        background: token.colorFillTertiary,
+                        borderRadius: token.borderRadiusLG,
+                        padding: '8px 12px',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {entry.item.content}
+                      {mine && editable ? (
+                        <Flex gap={4} justify="end">
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={<EditOutlined />}
+                            onClick={() => {
+                              setEditing({ id: entry.item.id, content: entry.item.content });
+                            }}
+                          />
+                          <Popconfirm
+                            title="刪除這則留言？"
+                            okText="刪除"
+                            cancelText="取消"
+                            onConfirm={() => {
+                              remove.mutate(entry.item.id);
+                            }}
+                          >
+                            <Button type="text" size="small" danger>
+                              刪除
+                            </Button>
+                          </Popconfirm>
+                        </Flex>
+                      ) : null}
+                    </div>
+                  )
+                ) : null}
+              </Flex>
+            </Flex>
+          );
+        })}
       </Flex>
       {editable ? (
         <Flex vertical gap={8}>

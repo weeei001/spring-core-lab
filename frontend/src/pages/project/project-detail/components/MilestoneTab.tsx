@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { App, Button, Card, DatePicker, Empty, Flex, Form, Input, Popconfirm, Progress, Skeleton, Switch, Tag, Typography, theme } from 'antd';
-import { CheckOutlined, DeleteOutlined, EditOutlined, FlagOutlined, PlusOutlined } from '@ant-design/icons';
+import { App, Button, Card, DatePicker, Empty, Flex, Form, Input, Popconfirm, Progress, Skeleton, Switch, Tag, Timeline, Typography } from 'antd';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
-import { motion } from 'motion/react';
 import { milestoneApi } from '@/api/project/milestone-api';
 import type { Milestone } from '@/api/project/milestone.types';
 import { useInvalidateProjectData, useProjectMilestones, type ProjectAccess } from '@/components/project/hooks';
@@ -25,7 +24,6 @@ interface MilestoneTabProps {
 
 /** 里程碑時間軸：依到期日由上而下，進度是底下主任務的完成比例；經理可新增、修改、標記達成 */
 export function MilestoneTab({ projectId, access }: MilestoneTabProps) {
-  const { token } = theme.useToken();
   const { message } = App.useApp();
   const invalidate = useInvalidateProjectData();
   const milestones = useProjectMilestones(projectId);
@@ -73,92 +71,75 @@ export function MilestoneTab({ projectId, access }: MilestoneTabProps) {
       {items.length === 0 ? (
         <Empty description="還沒有里程碑" />
       ) : (
-        <Flex vertical>
-          {items.map((milestone, index) => {
+        <Timeline
+          items={items.map((milestone) => {
             const late = !milestone.achieved && milestone.dueDate < today;
-            const color = milestone.achieved ? token.colorSuccess : late ? token.colorError : token.colorPrimary;
             const progress = percent(milestone.doneTaskCount, milestone.taskCount);
-            return (
-              <motion.div
-                key={milestone.id}
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Flex gap={16}>
-                  {/* 時間軸：圓點 + 往下的線 */}
-                  <Flex vertical align="center" style={{ width: 28 }}>
-                    <Flex
-                      align="center"
-                      justify="center"
-                      style={{ width: 28, height: 28, borderRadius: '50%', background: color, color: '#fff', flexShrink: 0 }}
-                    >
-                      {milestone.achieved ? <CheckOutlined /> : <FlagOutlined />}
-                    </Flex>
-                    {index < items.length - 1 ? <div style={{ flex: 1, width: 2, background: token.colorBorderSecondary }} /> : null}
-                  </Flex>
-                  <Card size="small" style={{ flex: 1, marginBottom: 16 }}>
-                    <Flex vertical gap={8}>
-                      <Flex justify="space-between" align="center" wrap gap={8}>
-                        <Flex align="center" gap={8} wrap>
-                          <Typography.Text strong style={{ fontSize: 15 }}>
-                            {milestone.name}
-                          </Typography.Text>
-                          <Tag color={milestone.achieved ? 'success' : late ? 'error' : 'processing'}>
-                            {milestone.dueDate}（{milestone.achieved ? '已達成' : dueText(milestone.dueDate)}）
-                          </Tag>
-                        </Flex>
-                        {access.canManage ? (
-                          <Flex align="center" gap={8}>
-                            <Switch
-                              size="small"
-                              checkedChildren="已達成"
-                              unCheckedChildren="未達成"
-                              checked={milestone.achieved}
-                              onChange={(achieved) => {
-                                save.mutate({ id: milestone.id, values: { achieved } });
-                              }}
-                            />
-                            <Button
-                              type="text"
-                              size="small"
-                              icon={<EditOutlined />}
-                              onClick={() => {
-                                setEditing({ mode: 'edit', milestone });
-                              }}
-                            />
-                            <Popconfirm
-                              title="刪除這個里程碑？"
-                              description="仍有任務掛在底下時無法刪除。"
-                              okText="刪除"
-                              cancelText="取消"
-                              onConfirm={() => {
-                                remove.mutate(milestone.id);
-                              }}
-                            >
-                              <Button type="text" size="small" danger icon={<DeleteOutlined />} />
-                            </Popconfirm>
-                          </Flex>
-                        ) : null}
-                      </Flex>
-                      {hasText(milestone.description) ? (
-                        <Typography.Paragraph type="secondary" style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                          {milestone.description}
-                        </Typography.Paragraph>
-                      ) : null}
-                      <Flex align="center" gap={12}>
-                        <Progress percent={progress} strokeColor={color} style={{ flex: 1, margin: 0 }} />
-                        <Typography.Text type="secondary" style={{ whiteSpace: 'nowrap' }}>
-                          {String(milestone.doneTaskCount ?? 0)} / {String(milestone.taskCount ?? 0)} 個任務
+            return {
+              key: milestone.id,
+              color: milestone.achieved ? 'green' : late ? 'red' : 'blue',
+              content: (
+                <Card size="small">
+                  <Flex vertical gap={8}>
+                    <Flex justify="space-between" align="center" wrap gap={8}>
+                      <Flex align="center" gap={8} wrap>
+                        <Typography.Text strong>
+                          {milestone.name}
                         </Typography.Text>
+                        <Tag color={milestone.achieved ? 'success' : late ? 'error' : 'processing'}>
+                          {milestone.dueDate}（{milestone.achieved ? '已達成' : dueText(milestone.dueDate)}）
+                        </Tag>
                       </Flex>
+                      {access.canManage ? (
+                        <Flex align="center" gap={8}>
+                          <Switch
+                            size="small"
+                            checkedChildren="已達成"
+                            unCheckedChildren="未達成"
+                            checked={milestone.achieved}
+                            onChange={(achieved) => {
+                              save.mutate({ id: milestone.id, values: { achieved } });
+                            }}
+                          />
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={<EditOutlined />}
+                            onClick={() => {
+                              setEditing({ mode: 'edit', milestone });
+                            }}
+                          />
+                          <Popconfirm
+                            title="刪除這個里程碑？"
+                            description="仍有任務掛在底下時無法刪除。"
+                            okText="刪除"
+                            cancelText="取消"
+                            onConfirm={() => {
+                              remove.mutate(milestone.id);
+                            }}
+                          >
+                            <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+                          </Popconfirm>
+                        </Flex>
+                      ) : null}
                     </Flex>
-                  </Card>
-                </Flex>
-              </motion.div>
-            );
+                    {hasText(milestone.description) ? (
+                      <Typography.Paragraph type="secondary" style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                        {milestone.description}
+                      </Typography.Paragraph>
+                    ) : null}
+                    <Flex align="center" gap={12}>
+                      <Progress percent={progress} status={late ? 'exception' : undefined} style={{ flex: 1, margin: 0 }} />
+                      <Typography.Text type="secondary" style={{ whiteSpace: 'nowrap' }}>
+                        {String(milestone.doneTaskCount ?? 0)} / {String(milestone.taskCount ?? 0)} 個任務
+                      </Typography.Text>
+                    </Flex>
+                  </Flex>
+                </Card>
+              ),
+            };
           })}
-        </Flex>
+        />
       )}
 
       <FormModal<MilestoneFormValues>

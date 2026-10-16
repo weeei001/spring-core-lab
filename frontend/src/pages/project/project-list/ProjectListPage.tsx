@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { App, Button, Col, Empty, Flex, Input, Pagination, Progress, Row, Segmented, Select, Skeleton, Switch, Table, Typography, type TableColumnsType } from 'antd';
+import { App, Badge, Button, Col, Empty, Flex, Input, Pagination, Progress, Row, Segmented, Select, Skeleton, Switch, Table, Typography, type TableColumnsType } from 'antd';
 import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router';
 import { memberApi } from '@/api/project/member-api';
@@ -10,7 +10,7 @@ import { ProjectCard } from '@/components/project/ProjectCard';
 import { ProjectFormModal } from '@/components/project/ProjectFormModal';
 import { ProjectStatusTag } from '@/components/project/Tags';
 import { useInvalidateProjectData } from '@/components/project/hooks';
-import { PROJECT_ROLE_LABELS, PROJECT_STATUS_LABELS } from '@/components/project/labels';
+import { DEFAULT_PROJECT_COLOR, PROJECT_ROLE_LABELS, PROJECT_STATUS_LABELS } from '@/components/project/labels';
 import { percent } from '@/components/project/project-utils';
 import { PERMISSIONS } from '@/core/auth/permissions';
 import { useAuth } from '@/core/auth/useAuth';
@@ -87,7 +87,7 @@ export function ProjectListPage() {
       key: 'name',
       render: (_value, project) => (
         <Flex align="center" gap={8}>
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: project.color ?? '#1677FF', flexShrink: 0 }} />
+          <Badge color={project.color ?? DEFAULT_PROJECT_COLOR} />
           <Typography.Link
             onClick={() => {
               open(project.id);
@@ -140,7 +140,7 @@ export function ProjectListPage() {
   return (
     <Flex vertical gap={16}>
       <Flex justify="space-between" align="center" wrap gap={12}>
-        <Typography.Title level={4} style={{ margin: 0 }}>
+        <Typography.Title level={4}>
           專案
         </Typography.Title>
         {can(PERMISSIONS.PROJECT_WRITE) ? (
@@ -215,9 +215,9 @@ export function ProjectListPage() {
         ) : (
           <Flex vertical gap={16}>
             <Row gutter={[16, 16]}>
-              {list.rows.map((project, index) => (
+              {list.rows.map((project) => (
                 <Col key={project.id} xs={24} sm={12} xl={8} xxl={6}>
-                  <ProjectCard project={project} myRole={roleOf(project.id)} index={index} onOpen={open} />
+                  <ProjectCard project={project} myRole={roleOf(project.id)} onOpen={open} />
                 </Col>
               ))}
             </Row>

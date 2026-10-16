@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Badge, Card, Empty, Flex, Select, Skeleton, Switch, Tag, Typography, theme } from 'antd';
-import { AnimatePresence, motion } from 'motion/react';
+import { Badge, Card, Empty, Flex, Select, Skeleton, Switch, Typography, theme } from 'antd';
 import dayjs from 'dayjs';
 import { projectApi } from '@/api/project/project-api';
 import { taskApi } from '@/api/project/task-api';
@@ -23,7 +22,7 @@ type GroupKey = 'overdue' | 'today' | 'week' | 'later' | 'none' | 'finished';
 const GROUPS: { key: GroupKey; label: string; color: string }[] = [
   { key: 'overdue', label: '逾期', color: '#f5222d' },
   { key: 'today', label: '今天到期', color: '#fa8c16' },
-  { key: 'week', label: '本週到期', color: '#1677ff' },
+  { key: 'week', label: '本週到期', color: '#1890ff' },
   { key: 'later', label: '之後', color: '#8c8c8c' },
   { key: 'none', label: '未設到期日', color: '#bfbfbf' },
   { key: 'finished', label: '已完成', color: '#52c41a' },
@@ -84,7 +83,7 @@ export function MyTasksPage() {
   return (
     <Flex vertical gap={16}>
       <Flex justify="space-between" align="center" wrap gap={12}>
-        <Typography.Title level={4} style={{ margin: 0 }}>
+        <Typography.Title level={4}>
           我的任務
         </Typography.Title>
         <Flex gap={6} align="center" data-tour="my-tasks-finished">
@@ -105,57 +104,44 @@ export function MyTasksPage() {
               <Card
                 key={group.key}
                 size="small"
-                title={
-                  <Flex align="center" gap={8}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: group.color }} />
-                    {group.label}
-                    <Badge count={items.length} color={group.color} />
-                  </Flex>
-                }
+                title={<Badge color={group.color} text={`${group.label}（${String(items.length)}）`} />}
               >
                 <Flex vertical>
-                  <AnimatePresence initial={false}>
-                    {items.map((task) => {
-                      const project = projectOf(task.projectId);
-                      return (
-                        <motion.div key={task.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                          <Flex
-                            align="center"
-                            gap={12}
-                            wrap
-                            style={{ padding: '8px 0', borderBottom: `1px solid ${token.colorBorderSecondary}` }}
-                          >
-                            <Select<TaskStatus>
-                              size="small"
-                              variant="borderless"
-                              value={task.status}
-                              options={toOptions(TASK_STATUS_LABELS)}
-                              style={{ width: 100 }}
-                              onChange={(status) => {
-                                update.mutate({ id: task.id, values: { status } });
-                              }}
-                            />
-                            <Typography.Link
-                              ellipsis
-                              style={{ flex: 1, minWidth: 160 }}
-                              onClick={() => {
-                                drawer.open(task.id);
-                              }}
-                            >
-                              {task.title}
-                            </Typography.Link>
-                            {project === undefined ? null : (
-                              <Tag color={project.color ?? DEFAULT_PROJECT_COLOR} style={{ marginInlineEnd: 0 }}>
-                                {project.name}
-                              </Tag>
-                            )}
-                            <PriorityTag priority={task.priority} />
-                            <DueDate task={task} />
-                          </Flex>
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
+                  {items.map((task) => {
+                    const project = projectOf(task.projectId);
+                    return (
+                      <Flex
+                        key={task.id}
+                        align="center"
+                        gap={12}
+                        wrap
+                        style={{ padding: '8px 0', borderBottom: `1px solid ${token.colorBorderSecondary}` }}
+                      >
+                        <Select<TaskStatus>
+                          size="small"
+                          variant="borderless"
+                          value={task.status}
+                          options={toOptions(TASK_STATUS_LABELS)}
+                          style={{ width: 100 }}
+                          onChange={(status) => {
+                            update.mutate({ id: task.id, values: { status } });
+                          }}
+                        />
+                        <Typography.Link
+                          ellipsis
+                          style={{ flex: 1, minWidth: 160 }}
+                          onClick={() => {
+                            drawer.open(task.id);
+                          }}
+                        >
+                          {task.title}
+                        </Typography.Link>
+                        {project === undefined ? null : <Badge color={project.color ?? DEFAULT_PROJECT_COLOR} text={project.name} />}
+                        <PriorityTag priority={task.priority} />
+                        <DueDate task={task} />
+                      </Flex>
+                    );
+                  })}
                 </Flex>
               </Card>
             );

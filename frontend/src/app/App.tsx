@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router';
-import { App as AntdApp, ConfigProvider, theme } from 'antd';
+import { App as AntdApp, ConfigProvider } from 'antd';
 import zhTW from 'antd/locale/zh_TW';
 import dayjs from 'dayjs';
 import updateLocale from 'dayjs/plugin/updateLocale';
@@ -10,6 +10,7 @@ import { AuthProvider } from '@/core/auth/AuthProvider';
 import { queryClient } from './query-client';
 import { router } from './router';
 import { ThemeModeContext, loadThemeMode, saveThemeMode, type ThemeMode } from './theme-mode';
+import { getV4Theme } from './theme-v4';
 
 dayjs.extend(updateLocale);
 // zh-tw 語系沒有設定一週的第一天，週選擇器會從週日開始；工時統計都以週一為一週開始
@@ -27,13 +28,7 @@ export function App() {
 
   return (
     <ThemeModeContext.Provider value={{ mode, toggle }}>
-      <ConfigProvider
-        locale={zhTW}
-        theme={{
-          algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-          token: { borderRadius: 8 },
-        }}
-      >
+      <ConfigProvider locale={zhTW} theme={getV4Theme(mode)}>
         <AntdApp>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>

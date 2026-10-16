@@ -98,7 +98,7 @@ export function SerialNumberPage() {
   const creating = editing?.mode !== 'edit';
   return (
     <Flex vertical gap={16}>
-      <Typography.Title level={4} style={{ margin: 0 }}>
+      <Typography.Title level={4}>
         編號規則
       </Typography.Title>
       <Flex justify="space-between" wrap gap={12}>

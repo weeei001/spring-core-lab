@@ -8,7 +8,7 @@ import type { Project, ProjectStatus } from '@/api/project/project.types';
 import { ProjectFormModal } from '@/components/project/ProjectFormModal';
 import { ProjectStatusTag } from '@/components/project/Tags';
 import { useInvalidateProjectData, useProjectContext, useTaskDrawer } from '@/components/project/hooks';
-import { DEFAULT_PROJECT_COLOR, PROJECT_STATUS_LABELS, PROJECT_STATUS_NEXT } from '@/components/project/labels';
+import { PROJECT_STATUS_LABELS, PROJECT_STATUS_NEXT } from '@/components/project/labels';
 import { percent } from '@/components/project/project-utils';
 import { TaskDrawer } from '@/components/project/task-drawer/TaskDrawer';
 import { useMemberDirectory } from '@/components/project/useMemberDirectory';
@@ -74,7 +74,6 @@ function ProjectDetail({ projectId }: { projectId: number }) {
     return <Result status="404" title="找不到專案" subTitle="專案可能已刪除，或你不是這個專案的成員。" extra={<Link to="/projects">回專案列表</Link>} />;
   }
 
-  const color = project.color ?? DEFAULT_PROJECT_COLOR;
   const changeStatus = (status: ProjectStatus): void => {
     const run = (): void => {
       update.mutate({ status });
@@ -95,11 +94,11 @@ function ProjectDetail({ projectId }: { projectId: number }) {
   return (
     <Flex vertical gap={16}>
       <Breadcrumb items={[{ title: <Link to="/projects">專案</Link> }, { title: project.name }]} />
-      <Card style={{ borderTop: `4px solid ${color}` }} data-tour="project-header">
+      <Card data-tour="project-header">
         <Flex justify="space-between" align="center" wrap gap={16}>
           <Flex vertical gap={6} style={{ minWidth: 0 }}>
             <Flex align="center" gap={10} wrap>
-              <Typography.Title level={3} style={{ margin: 0 }}>
+              <Typography.Title level={3}>
                 {project.name}
               </Typography.Title>
               {access.canChangeStatus ? (
@@ -131,7 +130,7 @@ function ProjectDetail({ projectId }: { projectId: number }) {
             </Flex>
           </Flex>
           <Flex align="center" gap={16}>
-            <Progress type="circle" size={64} percent={percent(project.doneTaskCount, project.taskCount)} strokeColor={color} />
+            <Progress type="circle" size={64} percent={percent(project.doneTaskCount, project.taskCount)} />
             {access.canManage ? (
               <Flex gap={8}>
                 <Button
