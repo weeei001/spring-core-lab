@@ -1,5 +1,6 @@
 import type { BaseEntity } from '@/core/http/types';
 import type { ProjectRole } from './member.types';
+import type { TaskStatus } from './task.types';
 
 export type ProjectStatus = 'PLANNING' | 'ACTIVE' | 'ON_HOLD' | 'DONE' | 'CANCELLED';
 
@@ -15,6 +16,8 @@ export interface Project extends BaseEntity {
   endDate: string | null;
   /** 例如 #1677FF */
   color: string | null;
+  /** 看板 WIP 上限：該欄最多幾張主任務；只能設 IN_PROGRESS、REVIEW，超過時亮紅燈 */
+  wipLimits: Partial<Record<TaskStatus, number>>;
   /** 以下只有查詢結果有：主任務數、完成數、逾期數（不含取消） */
   taskCount?: number;
   doneTaskCount?: number;

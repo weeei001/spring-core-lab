@@ -182,6 +182,7 @@ function ProjectDetail({ projectId }: { projectId: number }) {
               children: (
                 <TasksTab
                   projectId={projectId}
+                  wipLimits={project.wipLimits}
                   access={access}
                   directory={directory}
                   memberOptions={memberOptions}

@@ -1,4 +1,4 @@
-import { DatePicker, Flex, Form, Input, Select } from 'antd';
+import { DatePicker, Flex, Form, Input, InputNumber, Select } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import type { Project, ProjectStatus } from '@/api/project/project.types';
 import { blankToUndefined } from '@/shared/lib/format';
@@ -14,6 +14,9 @@ interface ProjectFormValues {
   startDate?: Dayjs | null;
   endDate?: Dayjs | null;
   color: string;
+  /** 看板 WIP 上限，空白表示不限 */
+  wipInProgress?: number | null;
+  wipReview?: number | null;
 }
 
 interface ProjectFormModalProps {
@@ -41,6 +44,8 @@ export function ProjectFormModal({ open, project, saving, onCancel, onSubmit }: 
               startDate: project.startDate === null ? null : dayjs(project.startDate),
               endDate: project.endDate === null ? null : dayjs(project.endDate),
               color: project.color ?? DEFAULT_PROJECT_COLOR,
+              wipInProgress: project.wipLimits.IN_PROGRESS ?? null,
+              wipReview: project.wipLimits.REVIEW ?? null,
             }
       }
       saving={saving}
@@ -54,6 +59,11 @@ export function ProjectFormModal({ open, project, saving, onCancel, onSubmit }: 
           startDate: values.startDate?.format(DATE_FORMAT),
           endDate: values.endDate?.format(DATE_FORMAT),
           color: values.color,
+          // 一律整份送出，空白的欄位就是取消上限
+          wipLimits: {
+            ...(values.wipInProgress == null ? {} : { IN_PROGRESS: values.wipInProgress }),
+            ...(values.wipReview == null ? {} : { REVIEW: values.wipReview }),
+          },
         });
       }}
     >
@@ -92,6 +102,14 @@ export function ProjectFormModal({ open, project, saving, onCancel, onSubmit }: 
           ]}
         >
           <DatePicker allowClear={creating} style={{ width: '100%' }} />
+        </Form.Item>
+      </Flex>
+      <Flex gap={12}>
+        <Form.Item name="wipInProgress" label="WIP 上限：進行中" tooltip="看板「進行中」最多幾張，超過時亮紅燈；空白為不限" style={{ flex: 1 }}>
+          <InputNumber min={1} max={99} precision={0} placeholder="不限" style={{ width: '100%' }} />
+        </Form.Item>
+        <Form.Item name="wipReview" label="WIP 上限：審核中" tooltip="Code review 堆太多時提醒大家先消化；空白為不限" style={{ flex: 1 }}>
+          <InputNumber min={1} max={99} precision={0} placeholder="不限" style={{ width: '100%' }} />
         </Form.Item>
       </Flex>
       <Form.Item name="color" label="顏色">

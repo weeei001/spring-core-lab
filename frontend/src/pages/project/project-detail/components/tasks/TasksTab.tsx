@@ -61,6 +61,8 @@ interface Filters {
 
 interface TasksTabProps {
   projectId: number;
+  /** 專案的看板 WIP 上限 */
+  wipLimits: Partial<Record<TaskStatus, number>>;
   access: ProjectAccess;
   directory: UserDirectory;
   memberOptions: { value: string; label: string }[];
@@ -68,7 +70,7 @@ interface TasksTabProps {
 }
 
 /** 三種檢視共用同一份任務資料與篩選條件；篩選在前端做，切換檢視不必重查 */
-export function TasksTab({ projectId, access, directory, memberOptions, onOpen }: TasksTabProps) {
+export function TasksTab({ projectId, wipLimits, access, directory, memberOptions, onOpen }: TasksTabProps) {
   const { user } = useAuth();
   const { message } = App.useApp();
   const invalidate = useInvalidateProjectData();
@@ -274,6 +276,7 @@ export function TasksTab({ projectId, access, directory, memberOptions, onOpen }
             directory={directory}
             editable={access.canEditTasks}
             showCancelled={showCancelled}
+            wipLimits={wipLimits}
             onOpen={onOpen}
             onQuickAdd={(status, title) => {
               create.mutate({ projectId, status, title });

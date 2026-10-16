@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Badge, Flex, Input, Typography, theme } from 'antd';
+import { Badge, Flex, Input, Tooltip, Typography, theme } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { Task, TaskStatus } from '@/api/project/task.types';
 import { TASK_STATUSES, TASK_STATUS_COLORS, TASK_STATUS_LABELS } from '@/components/project/labels';
@@ -73,16 +73,21 @@ function SortableTask({ task, directory, disabled, onOpen }: SortableTaskProps) 
 interface BoardColumnProps {
   status: TaskStatus;
   tasks: Task[];
+  /** 這一欄實際的主任務數（不受篩選影響），和 WIP 上限比較 */
+  total: number;
+  wipLimit: number | undefined;
   directory: UserDirectory;
   editable: boolean;
   onOpen: (taskId: number) => void;
   onQuickAdd: (status: TaskStatus, title: string) => void;
 }
 
-function BoardColumn({ status, tasks, directory, editable, onOpen, onQuickAdd }: BoardColumnProps) {
+function BoardColumn({ status, tasks, total, wipLimit, directory, editable, onOpen, onQuickAdd }: BoardColumnProps) {
   const { token } = theme.useToken();
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const [title, setTitle] = useState('');
+  const over = wipLimit !== undefined && total > wipLimit;
+  const full = wipLimit !== undefined && total === wipLimit;
   return (
     <Flex
       vertical
@@ -92,13 +97,28 @@ function BoardColumn({ status, tasks, directory, editable, onOpen, onQuickAdd }:
         maxWidth: 340,
         padding: 10,
         borderRadius: token.borderRadiusLG,
-        background: isOver ? token.colorPrimaryBg : token.colorFillQuaternary,
+        background: isOver ? token.colorPrimaryBg : over ? token.colorErrorBg : token.colorFillQuaternary,
+        border: `1px solid ${over ? token.colorErrorBorder : 'transparent'}`,
         transition: 'background 0.2s',
       }}
     >
       <Flex align="center" justify="space-between" style={{ padding: '2px 4px' }}>
         <Badge color={TASK_STATUS_COLORS[status]} text={<Typography.Text strong>{TASK_STATUS_LABELS[status]}</Typography.Text>} />
-        <Typography.Text type="secondary">{String(tasks.length)}</Typography.Text>
+        {wipLimit === undefined ? (
+          <Typography.Text type="secondary">{String(tasks.length)}</Typography.Text>
+        ) : (
+          <Tooltip
+            title={
+              over
+                ? `超過 WIP 上限 ${String(total - wipLimit)} 張，先把手上的做完再拉新的`
+                : `WIP 上限 ${String(wipLimit)} 張${full ? '，已滿' : ''}`
+            }
+          >
+            <Typography.Text type={over ? 'danger' : full ? 'warning' : 'secondary'} strong={over}>
+              {String(total)} / {String(wipLimit)}
+            </Typography.Text>
+          </Tooltip>
+        )}
       </Flex>
       <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
         <div ref={setNodeRef} style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 80 }}>
@@ -136,6 +156,8 @@ interface TaskBoardViewProps {
   directory: UserDirectory;
   editable: boolean;
   showCancelled: boolean;
+  /** 專案的 WIP 上限 */
+  wipLimits: Partial<Record<TaskStatus, number>>;
   onOpen: (taskId: number) => void;
   onQuickAdd: (status: TaskStatus, title: string) => void;
 }
@@ -144,7 +166,7 @@ interface TaskBoardViewProps {
  * 看板：依狀態分欄，拖曳卡片改狀態與順序。拖曳中先改畫面（dragColumns），放開後呼叫 move，
  * 重新查詢完成才清掉暫存；失敗時畫面回到伺服器的資料。
  */
-export function TaskBoardView({ tasks, allTasks, directory, editable, showCancelled, onOpen, onQuickAdd }: TaskBoardViewProps) {
+export function TaskBoardView({ tasks, allTasks, directory, editable, showCancelled, wipLimits, onOpen, onQuickAdd }: TaskBoardViewProps) {
   const { move, confirmStatus } = useTaskActions();
   const sensors = useSensors(
     // 移動 5px 才算拖曳，單純點擊會打開任務
@@ -165,6 +187,16 @@ export function TaskBoardView({ tasks, allTasks, directory, editable, showCancel
     return columns;
   }, [boardTasks]);
   const columns = dragColumns ?? serverColumns;
+  // WIP 看的是整個專案的主任務，不受篩選影響
+  const totals = useMemo(() => {
+    const counts = new Map<TaskStatus, number>();
+    for (const task of allTasks) {
+      if (task.parentId === null) {
+        counts.set(task.status, (counts.get(task.status) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [allTasks]);
   const statuses = showCancelled ? TASK_STATUSES : TASK_STATUSES.filter((status) => status !== 'CANCELLED');
 
   const handleDragStart = ({ active }: DragStartEvent): void => {
@@ -261,6 +293,8 @@ export function TaskBoardView({ tasks, allTasks, directory, editable, showCancel
             key={status}
             status={status}
             tasks={columns[status].map((id) => tasksById.get(id)).filter((task): task is Task => task !== undefined)}
+            total={totals.get(status) ?? 0}
+            wipLimit={wipLimits[status]}
             directory={directory}
             editable={editable}
             onOpen={onOpen}

@@ -9,8 +9,10 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 /**
  * 專案。只有 project-service 會建這張表（它的 @EntityScan 只掃這個 package），其他服務透過 ProjectApi 取得。
@@ -56,6 +58,18 @@ public class Project extends BaseEntity {
     @Pattern(regexp = "#[0-9A-Fa-f]{6}")
     @Column(name = "color", length = 7)
     private String color;
+
+    /**
+     * 看板 WIP 上限：狀態 → 該欄最多幾張主任務，存在中間表 project_wip_limit；只能設 IN_PROGRESS、REVIEW，1–99。
+     * 超過時看板該欄亮紅燈，不擋操作。更新時不給（null）表示不改，給 {} 表示全部取消。
+     */
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "project_wip_limit", joinColumns = @JoinColumn(name = "project_id"))
+    @MapKeyEnumerated(EnumType.STRING)
+    @MapKeyColumn(name = "status", length = 20)
+    @Column(name = "max_tasks", nullable = false)
+    @BatchSize(size = 100)
+    private Map<TaskStatus, Integer> wipLimits;
 
     // ---- 以下為查詢時計算，不存資料庫；只算主任務（不含子任務），取消的任務不計 ----
 

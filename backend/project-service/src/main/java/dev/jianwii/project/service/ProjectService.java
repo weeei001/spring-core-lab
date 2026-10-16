@@ -12,6 +12,7 @@ import dev.jianwii.entity.project.Project;
 import dev.jianwii.entity.project.ProjectMember;
 import dev.jianwii.entity.project.ProjectRole;
 import dev.jianwii.entity.project.ProjectStatus;
+import dev.jianwii.entity.project.TaskStatus;
 import dev.jianwii.project.dao.ProjectDAO;
 import dev.jianwii.project.dao.ProjectMemberDAO;
 import dev.jianwii.project.dao.TaskCount;
@@ -19,12 +20,14 @@ import dev.jianwii.project.dao.TaskDAO;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import org.hibernate.Hibernate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -95,6 +98,9 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
             throw new BusinessException("新專案不能是結案或取消");
         }
         requireDateRange(request.getStartDate(), request.getEndDate());
+        request.setWipLimits(request.getWipLimits() == null ? new HashMap<>()
+                : new HashMap<>(request.getWipLimits()));
+        requireWipLimits(request.getWipLimits());
         // 號碼取走就不會退回，所以檢查都通過才取號，減少跳號
         request.setCode(serialNumberApi.next(SERIAL_KEY));
     }
@@ -115,6 +121,18 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
         requireDateRange(request.getStartDate() != null ? request.getStartDate()
                 : entity.getStartDate(), request.getEndDate() != null ? request.getEndDate()
                         : entity.getEndDate());
+        if (request.getWipLimits() != null) {
+            requireWipLimits(request.getWipLimits());
+            request.setWipLimits(new HashMap<>(request.getWipLimits()));
+            // 只改 WIP 上限時主表不會 UPDATE，強制更新修改者與時間
+            touch(entity);
+        }
+    }
+
+    /** 回傳前載入 WIP 上限（LAZY 的中間表）。 */
+    @Override
+    protected void initialize(Project project) {
+        Hibernate.initialize(project.getWipLimits());
     }
 
     @Override
@@ -151,6 +169,18 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
     @Override
     protected Set<String> sortableFields() {
         return Set.of("id", "createTime", "transTime", "code", "name", "startDate", "endDate");
+    }
+
+    /** 只有進行中、審核中可以設上限，值為 1–99。 */
+    private static void requireWipLimits(Map<TaskStatus, Integer> limits) {
+        for (Map.Entry<TaskStatus, Integer> limit : limits.entrySet()) {
+            if (limit.getKey() != TaskStatus.IN_PROGRESS && limit.getKey() != TaskStatus.REVIEW) {
+                throw new BusinessException("只有進行中、審核中可以設 WIP 上限：" + limit.getKey());
+            }
+            if (limit.getValue() == null || limit.getValue() < 1 || limit.getValue() > 99) {
+                throw new BusinessException("WIP 上限必須是 1–99：" + limit.getKey());
+            }
+        }
     }
 
     private static void requireDateRange(LocalDate startDate, LocalDate endDate) {
