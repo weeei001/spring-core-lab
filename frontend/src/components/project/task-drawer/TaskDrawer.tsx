@@ -1,15 +1,18 @@
 import type { ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, DatePicker, Drawer, Flex, InputNumber, Popconfirm, Result, Select, Skeleton, Tabs, Tag, Typography } from 'antd';
-import { DeleteOutlined, LinkOutlined } from '@ant-design/icons';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Alert, Avatar, Button, DatePicker, Drawer, Flex, InputNumber, Popconfirm, Result, Select, Skeleton, Tabs, Tag, Typography } from 'antd';
+import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, LinkOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Link } from 'react-router';
 import { taskApi } from '@/api/project/task-api';
-import type { ClearableTaskField, Task, TaskPriority, TaskStatus } from '@/api/project/task.types';
+import type { ClearableTaskField, Task, TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
 import { toOptions } from '@/shared/lib/format';
+import { UserAvatar } from '@/components/user/UserAvatar';
+import { useAuth } from '@/core/auth/useAuth';
 import { PageTour } from '@/shared/ui/PageTour';
-import { useProjectContext, useProjectMilestones, useProjectTasks } from '../hooks';
-import { TASK_PRIORITY_LABELS, TASK_STATUS_LABELS } from '../labels';
+import { useInvalidateProjectData, useProjectContext, useProjectLabels, useProjectMilestones, useProjectTasks } from '../hooks';
+import { LabelSelect } from '../LabelSelect';
+import { TASK_PRIORITY_LABELS, TASK_STATUS_LABELS, TASK_TYPE_LABELS } from '../labels';
 import { DATE_FORMAT, isTaskFinished } from '../project-utils';
 import { useMemberDirectory } from '../useMemberDirectory';
 import { useTaskActions } from '../useTaskActions';
@@ -42,8 +45,16 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
   const { project, members, access } = useProjectContext(task.projectId);
   const projectTasks = useProjectTasks(task.projectId);
   const milestones = useProjectMilestones(task.projectId);
-  const { directory, options: memberOptions } = useMemberDirectory(members, [task.assigneeId]);
+  const labels = useProjectLabels(task.projectId);
+  const { directory, options: memberOptions } = useMemberDirectory(members, [task.assigneeId, ...task.watcherIds]);
   const { update, remove, confirmStatus } = useTaskActions();
+  const { user } = useAuth();
+  const invalidate = useInvalidateProjectData();
+  const watching = task.watcherIds.includes(String(user.id));
+  const toggleWatch = useMutation({
+    mutationFn: () => (watching ? taskApi.unwatch(task.id) : taskApi.watch(task.id)),
+    onSettled: invalidate,
+  });
 
   const allTasks = projectTasks.data ?? [];
   const editable = access.canEditTasks;
@@ -128,6 +139,27 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
             }}
           />
         </Field>
+        <Field label="類型">
+          <Select<TaskType>
+            value={task.type}
+            disabled={!editable}
+            options={toOptions(TASK_TYPE_LABELS)}
+            style={{ width: 160 }}
+            onChange={(type) => {
+              save({ type });
+            }}
+          />
+        </Field>
+        <Field label="標籤">
+          <LabelSelect
+            labels={labels.data ?? []}
+            value={task.labelIds}
+            disabled={!editable}
+            onChange={(labelIds) => {
+              save({ labelIds });
+            }}
+          />
+        </Field>
         <Field label="優先度">
           <Select<TaskPriority>
             value={task.priority}
@@ -203,6 +235,31 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
                 }
               }}
             />
+          </Flex>
+        </Field>
+        <Field label="關注者">
+          <Flex align="center" gap={8} wrap>
+            {task.watcherIds.length === 0 ? (
+              <Typography.Text type="secondary">沒有人關注</Typography.Text>
+            ) : (
+              <Avatar.Group max={{ count: 8 }}>
+                {task.watcherIds.map((id) => (
+                  <UserAvatar key={id} userId={id} user={directory.user(id)} />
+                ))}
+              </Avatar.Group>
+            )}
+            {access.isMember && !access.closed ? (
+              <Button
+                size="small"
+                icon={watching ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                loading={toggleWatch.isPending}
+                onClick={() => {
+                  toggleWatch.mutate();
+                }}
+              >
+                {watching ? '取消關注' : '關注'}
+              </Button>
+            ) : null}
           </Flex>
         </Field>
         <Field label="預估工時">
@@ -298,7 +355,7 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
             {
               key: 'activity',
               label: '留言與活動',
-              children: <TaskTimeline taskId={task.id} milestones={milestones.data ?? []} editable={editable} />,
+              children: <TaskTimeline taskId={task.id} milestones={milestones.data ?? []} labels={labels.data ?? []} members={memberOptions} editable={editable} />,
             },
             {
               key: 'work-log',

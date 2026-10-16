@@ -48,4 +48,14 @@ public class TaskController implements TaskApi {
     public Task move(Long id, TaskStatus status, Long previousId) {
         return taskService.move(id, status, previousId);
     }
+
+    @Override
+    public Task watch(Long id) {
+        return taskService.watch(id);
+    }
+
+    @Override
+    public Task unwatch(Long id) {
+        return taskService.unwatch(id);
+    }
 }

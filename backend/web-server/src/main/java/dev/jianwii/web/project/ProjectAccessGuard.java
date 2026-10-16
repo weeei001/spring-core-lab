@@ -2,6 +2,8 @@ package dev.jianwii.web.project;
 
 import dev.jianwii.api.project.MilestoneApi;
 import dev.jianwii.api.project.MilestoneQueryParameter;
+import dev.jianwii.api.project.ProjectLabelApi;
+import dev.jianwii.api.project.ProjectLabelQueryParameter;
 import dev.jianwii.api.project.ProjectMemberApi;
 import dev.jianwii.api.project.ProjectMemberQueryParameter;
 import dev.jianwii.api.project.ProjectQueryParameter;
@@ -48,6 +50,7 @@ import java.util.stream.Collectors;
 public class ProjectAccessGuard {
     private final ProjectMemberApi projectMemberApi;
     private final MilestoneApi milestoneApi;
+    private final ProjectLabelApi projectLabelApi;
     private final TaskApi taskApi;
     private final TaskCommentApi taskCommentApi;
     private final WorkLogApi workLogApi;
@@ -75,20 +78,12 @@ public class ProjectAccessGuard {
 
     /** 必須指定專案，且都是自己參與的專案。 */
     public void scopeMilestones(MilestoneQueryParameter parameter) {
-        if (isAdmin()) {
-            return;
-        }
-        Set<Long> projectIds = new HashSet<>();
-        if (parameter.getProjectId() != null) {
-            projectIds.add(parameter.getProjectId());
-        }
-        if (parameter.getProjectIds() != null) {
-            projectIds.addAll(parameter.getProjectIds());
-        }
-        if (projectIds.isEmpty()) {
-            throw new BusinessException("請指定 projectId 或 projectIds");
-        }
-        requireMemberOfAll(projectIds);
+        requireMemberOfProjects(parameter.getProjectId(), parameter.getProjectIds());
+    }
+
+    /** 必須指定專案，且都是自己參與的專案。 */
+    public void scopeLabels(ProjectLabelQueryParameter parameter) {
+        requireMemberOfProjects(parameter.getProjectId(), parameter.getProjectIds());
     }
 
     /**
@@ -165,6 +160,12 @@ public class ProjectAccessGuard {
         return first(milestoneApi.query(parameter), milestoneId).getProjectId();
     }
 
+    public Long projectOfLabel(Long labelId) {
+        ProjectLabelQueryParameter parameter = new ProjectLabelQueryParameter();
+        parameter.setIds(List.of(labelId));
+        return first(projectLabelApi.query(parameter), labelId).getProjectId();
+    }
+
     public Long projectOfTask(Long taskId) {
         TaskQueryParameter parameter = new TaskQueryParameter();
         parameter.setIds(List.of(taskId));
@@ -183,6 +184,24 @@ public class ProjectAccessGuard {
         parameter.setIds(List.of(workLogId));
         WorkLog workLog = first(workLogApi.query(parameter), workLogId);
         return workLog.getProjectId();
+    }
+
+    /** 查詢必須指定 projectId 或 projectIds，且都是登入者參與的專案。 */
+    private void requireMemberOfProjects(Long projectId, List<Long> otherProjectIds) {
+        if (isAdmin()) {
+            return;
+        }
+        Set<Long> projectIds = new HashSet<>();
+        if (projectId != null) {
+            projectIds.add(projectId);
+        }
+        if (otherProjectIds != null) {
+            projectIds.addAll(otherProjectIds);
+        }
+        if (projectIds.isEmpty()) {
+            throw new BusinessException("請指定 projectId 或 projectIds");
+        }
+        requireMemberOfAll(projectIds);
     }
 
     /** 這些專案都必須是登入者參與的。 */

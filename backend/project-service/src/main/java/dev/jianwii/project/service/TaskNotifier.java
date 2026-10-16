@@ -25,7 +25,8 @@ import java.util.Set;
  * 任務異動時通知相關的人（不通知操作者自己）：
  * <ul>
  * <li>指派：通知新的指派人，並寄信。</li>
- * <li>狀態變更、新留言：通知指派人與任務建立者，只發站內通知。</li>
+ * <li>留言 @ 到：通知被 @ 的人，並寄信。</li>
+ * <li>狀態變更、新留言：通知指派人與關注者，只發站內通知；已因 @ 收到通知的人不重複通知。</li>
  * </ul>
  * 由 Service 在交易內呼叫，但交易 commit 後才真的送到 notification-service：
  * 異動 rollback 就不會發出通知；notification-service 沒啟動或失敗只記 log，不影響任務本身。
@@ -59,16 +60,19 @@ public class TaskNotifier {
     public void statusChanged(Task task, TaskStatus from) {
         publish(task, NotificationType.TASK_STATUS_CHANGED, "任務狀態變更：" + task.getTitle(),
                 "狀態：" + STATUS_LABELS.get(from) + " → " + STATUS_LABELS.get(task.getStatus()),
-                false, task.getAssigneeId(), task.getCreateId());
+                false, followers(task, Set.of()));
     }
 
+    /** 新留言：通知指派人與關注者；這次被 @ 的人另外收到 {@link #mentioned}，這裡排除。 */
     public void commented(Task task, TaskComment comment) {
-        String content = comment.getContent();
-        if (content.length() > EXCERPT_LENGTH) {
-            content = content.substring(0, EXCERPT_LENGTH) + "…";
-        }
-        publish(task, NotificationType.TASK_COMMENTED, "新留言：" + task.getTitle(), content, false,
-                task.getAssigneeId(), task.getCreateId());
+        publish(task, NotificationType.TASK_COMMENTED, "新留言：" + task.getTitle(),
+                excerpt(comment), false, followers(task, comment.getMentionIds()));
+    }
+
+    /** 留言 @ 到 userIds（只傳新被 @ 的人）。 */
+    public void mentioned(Task task, TaskComment comment, Set<String> userIds) {
+        publish(task, NotificationType.TASK_MENTIONED, "在留言中提到你：" + task.getTitle(),
+                excerpt(comment), true, userIds.toArray(String[]::new));
     }
 
     /** 交易 commit 後才呼叫 notification-service；仍在原本的請求執行緒，通知的 createId 會是操作者。 */
@@ -99,6 +103,23 @@ public class TaskNotifier {
         request.setLink("/projects/" + task.getProjectId() + "?tab=tasks&task=" + task.getId());
         request.setEmail(email);
         eventPublisher.publishEvent(new TaskNotificationEvent(request));
+    }
+
+    /** 指派人與關注者，扣掉 excluded。 */
+    private static String[] followers(Task task, Set<String> excluded) {
+        Set<String> recipients = new LinkedHashSet<>();
+        recipients.add(task.getAssigneeId());
+        if (task.getWatcherIds() != null) {
+            recipients.addAll(task.getWatcherIds());
+        }
+        recipients.removeAll(excluded == null ? Set.of() : excluded);
+        return recipients.toArray(String[]::new);
+    }
+
+    private static String excerpt(TaskComment comment) {
+        String content = comment.getContent();
+        return content.length() > EXCERPT_LENGTH ? content.substring(0, EXCERPT_LENGTH) + "…"
+                : content;
     }
 
     /** 專案名稱、任務編號，再接各通知自己的說明。 */

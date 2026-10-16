@@ -1,27 +1,43 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { App, Button, Flex, Input, Popconfirm, Skeleton, Typography, theme } from 'antd';
+import { App, Button, Flex, Popconfirm, Skeleton, Typography, theme } from 'antd';
 import { EditOutlined, MessageOutlined, SendOutlined } from '@ant-design/icons';
 import { activityApi } from '@/api/project/activity-api';
 import type { TaskActivity } from '@/api/project/activity.types';
 import { commentApi } from '@/api/project/comment-api';
 import type { TaskComment } from '@/api/project/comment.types';
+import type { ProjectLabel } from '@/api/project/label.types';
 import type { Milestone } from '@/api/project/milestone.types';
-import type { TaskPriority, TaskStatus } from '@/api/project/task.types';
+import type { TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import { useUserDirectory, type UserDirectory } from '@/components/user/useUserDirectory';
 import { useAuth } from '@/core/auth/useAuth';
 import { formatTime } from '@/shared/lib/format';
 import { useInvalidateProjectData } from '../hooks';
-import { ACTIVITY_FIELD_LABELS, TASK_PRIORITY_LABELS, TASK_STATUS_LABELS } from '../labels';
+import { ACTIVITY_FIELD_LABELS, TASK_PRIORITY_LABELS, TASK_STATUS_LABELS, TASK_TYPE_LABELS } from '../labels';
+import { MentionInput, MentionText, mentionIdsOf, type MentionCandidate } from './mentions';
 
 type Entry = { kind: 'comment'; item: TaskComment } | { kind: 'activity'; item: TaskActivity };
 
 interface TaskTimelineProps {
   taskId: number;
   milestones: readonly Milestone[];
+  labels: readonly ProjectLabel[];
+  /** 留言可以 @ 的專案成員 */
+  members: readonly MentionCandidate[];
   /** 可以留言 */
   editable: boolean;
+}
+
+/** 活動紀錄的 id 換成名稱時用 */
+interface Lookup {
+  directory: UserDirectory;
+  milestones: readonly Milestone[];
+  labels: readonly ProjectLabel[];
+}
+
+function isType(value: string): value is TaskType {
+  return value in TASK_TYPE_LABELS;
 }
 
 function isStatus(value: string): value is TaskStatus {
@@ -33,11 +49,19 @@ function isPriority(value: string): value is TaskPriority {
 }
 
 /** 活動紀錄的值轉成給人看的文字 */
-function describeValue(field: string | null, value: string | null, directory: UserDirectory, milestones: readonly Milestone[]): string {
+function describeValue(field: string | null, value: string | null, { directory, milestones, labels }: Lookup): string {
   if (value === null) {
     return '（空）';
   }
   switch (field) {
+    case 'type':
+      return isType(value) ? TASK_TYPE_LABELS[value] : value;
+    case 'labelIds':
+      // 以逗號分隔的標籤 id；已刪除的標籤顯示 id
+      return value
+        .split(',')
+        .map((id) => labels.find((label) => String(label.id) === id)?.name ?? `#${id}`)
+        .join('、');
     case 'status':
       return isStatus(value) ? TASK_STATUS_LABELS[value] : value;
     case 'priority':
@@ -51,7 +75,7 @@ function describeValue(field: string | null, value: string | null, directory: Us
   }
 }
 
-function describeActivity(activity: TaskActivity, directory: UserDirectory, milestones: readonly Milestone[]) {
+function describeActivity(activity: TaskActivity, lookup: Lookup) {
   if (activity.type === 'CREATED') {
     return '建立了任務';
   }
@@ -60,16 +84,16 @@ function describeActivity(activity: TaskActivity, directory: UserDirectory, mile
     <>
       修改了{ACTIVITY_FIELD_LABELS[field] ?? field}：
       <Typography.Text delete type="secondary">
-        {describeValue(activity.field, activity.oldValue, directory, milestones)}
+        {describeValue(activity.field, activity.oldValue, lookup)}
       </Typography.Text>
       {' → '}
-      <Typography.Text strong>{describeValue(activity.field, activity.newValue, directory, milestones)}</Typography.Text>
+      <Typography.Text strong>{describeValue(activity.field, activity.newValue, lookup)}</Typography.Text>
     </>
   );
 }
 
 /** 留言與活動紀錄依時間合成一條時間軸；底部輸入留言，Ctrl + Enter 送出 */
-export function TaskTimeline({ taskId, milestones, editable }: TaskTimelineProps) {
+export function TaskTimeline({ taskId, milestones, labels, members, editable }: TaskTimelineProps) {
   const { user } = useAuth();
   const { token } = theme.useToken();
   const { message } = App.useApp();
@@ -91,17 +115,20 @@ export function TaskTimeline({ taskId, milestones, editable }: TaskTimelineProps
     ...entries.flatMap((entry) =>
       entry.kind === 'activity' && entry.item.field === 'assigneeId' ? [entry.item.oldValue, entry.item.newValue] : [],
     ),
+    // 被 @ 的人可能已不是成員，名字仍要查得到
+    ...entries.flatMap((entry) => (entry.kind === 'comment' ? entry.item.mentionIds : [])),
   ]);
 
   const create = useMutation({
-    mutationFn: (content: string) => commentApi.create({ taskId, content }),
+    mutationFn: (content: string) => commentApi.create({ taskId, content, mentionIds: mentionIdsOf(content, members) }),
     onSuccess: () => {
       setDraft('');
     },
     onSettled: invalidate,
   });
   const update = useMutation({
-    mutationFn: ({ id, content }: { id: number; content: string }) => commentApi.update(id, { content }),
+    mutationFn: ({ id, content }: { id: number; content: string }) =>
+      commentApi.update(id, { content, mentionIds: mentionIdsOf(content, members) }),
     onSuccess: () => {
       setEditing(null);
       void message.success('已修改留言');
@@ -137,7 +164,7 @@ export function TaskTimeline({ taskId, milestones, editable }: TaskTimelineProps
                 <Flex gap={8} align="baseline" wrap>
                   <Typography.Text strong>{directory.name(actorId)}</Typography.Text>
                   {entry.kind === 'activity' ? (
-                    <Typography.Text type="secondary">{describeActivity(entry.item, directory, milestones)}</Typography.Text>
+                    <Typography.Text type="secondary">{describeActivity(entry.item, { directory, milestones, labels })}</Typography.Text>
                   ) : (
                     <Typography.Text type="secondary">
                       <MessageOutlined /> 留言
@@ -150,12 +177,12 @@ export function TaskTimeline({ taskId, milestones, editable }: TaskTimelineProps
                 {entry.kind === 'comment' ? (
                   editing?.id === entry.item.id ? (
                     <Flex vertical gap={8}>
-                      <Input.TextArea
-                        autoSize={{ minRows: 2, maxRows: 8 }}
-                        maxLength={2000}
+                      <MentionInput
+                        autoFocus
+                        candidates={members}
                         value={editing.content}
-                        onChange={(event) => {
-                          setEditing({ id: entry.item.id, content: event.target.value });
+                        onChange={(content) => {
+                          setEditing({ id: entry.item.id, content });
                         }}
                       />
                       <Flex gap={8} justify="end">
@@ -190,7 +217,7 @@ export function TaskTimeline({ taskId, milestones, editable }: TaskTimelineProps
                         wordBreak: 'break-word',
                       }}
                     >
-                      {entry.item.content}
+                      <MentionText content={entry.item.content} names={entry.item.mentionIds.map((id) => directory.name(id))} />
                       {mine && editable ? (
                         <Flex gap={4} justify="end">
                           <Button
@@ -225,14 +252,11 @@ export function TaskTimeline({ taskId, milestones, editable }: TaskTimelineProps
       </Flex>
       {editable ? (
         <Flex vertical gap={8}>
-          <Input.TextArea
-            placeholder="寫下留言…（Ctrl + Enter 送出）"
-            autoSize={{ minRows: 2, maxRows: 8 }}
-            maxLength={2000}
+          <MentionInput
+            placeholder="寫下留言…輸入 @ 提到成員（Ctrl + Enter 送出）"
+            candidates={members}
             value={draft}
-            onChange={(event) => {
-              setDraft(event.target.value);
-            }}
+            onChange={setDraft}
             onKeyDown={(event) => {
               if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
                 event.preventDefault();

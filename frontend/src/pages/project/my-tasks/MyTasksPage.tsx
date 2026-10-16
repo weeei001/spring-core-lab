@@ -6,7 +6,7 @@ import { projectApi } from '@/api/project/project-api';
 import { taskApi } from '@/api/project/task-api';
 import type { Task, TaskStatus } from '@/api/project/task.types';
 import { DueDate } from '@/components/project/DueDate';
-import { PriorityTag } from '@/components/project/Tags';
+import { PriorityTag, TaskTypeTag } from '@/components/project/Tags';
 import { useTaskDrawer } from '@/components/project/hooks';
 import { DEFAULT_PROJECT_COLOR, TASK_STATUS_LABELS } from '@/components/project/labels';
 import { DATE_FORMAT, isOverdue, isTaskFinished, todayText, weekStart } from '@/components/project/project-utils';
@@ -127,6 +127,7 @@ export function MyTasksPage() {
                             update.mutate({ id: task.id, values: { status } });
                           }}
                         />
+                        <TaskTypeTag type={task.type} iconOnly />
                         <Typography.Link
                           ellipsis
                           style={{ flex: 1, minWidth: 160 }}

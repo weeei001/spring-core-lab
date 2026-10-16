@@ -55,4 +55,12 @@ public interface TaskApi {
     @PostExchange("/{id}/move")
     Task move(@PathVariable("id") Long id, @RequestParam("status") TaskStatus status,
             @RequestParam(name = "previousId", required = false) Long previousId);
+
+    /** 操作者（X-Operator）關注任務，之後的狀態變更、新留言會通知他；必須是專案成員。 */
+    @PostExchange("/{id}/watch")
+    Task watch(@PathVariable("id") Long id);
+
+    /** 操作者取消關注；指派人不論是否關注都會收到通知。 */
+    @DeleteExchange("/{id}/watch")
+    Task unwatch(@PathVariable("id") Long id);
 }

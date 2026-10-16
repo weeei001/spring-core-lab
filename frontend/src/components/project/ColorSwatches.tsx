@@ -3,15 +3,17 @@ import { CheckOutlined } from '@ant-design/icons';
 import { PROJECT_COLORS } from './labels';
 
 interface ColorSwatchesProps {
+  /** 可選的顏色，預設為專案顏色 */
+  colors?: readonly string[];
   value?: string;
   onChange?: (value: string) => void;
 }
 
-/** 專案顏色選擇；可放在 Form.Item 內 */
-export function ColorSwatches({ value, onChange }: ColorSwatchesProps) {
+/** 顏色選擇（專案、標籤）；可放在 Form.Item 內 */
+export function ColorSwatches({ colors = PROJECT_COLORS, value, onChange }: ColorSwatchesProps) {
   return (
     <Flex gap={8} wrap>
-      {PROJECT_COLORS.map((color) => {
+      {colors.map((color) => {
         const selected = value?.toUpperCase() === color;
         return (
           <button

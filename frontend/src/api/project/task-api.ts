@@ -35,4 +35,7 @@ export const taskApi = {
   /** 看板拖曳：改成 status，排在 previousId 之後；previousId 不給表示排第一 */
   move: (id: number, status: TaskStatus, previousId?: number) =>
     send(http.post<Result<Task>>(`${BASE}/${String(id)}/move`, null, { params: { status, previousId } })),
+  /** 登入者關注任務：之後的狀態變更、新留言會收到通知 */
+  watch: (id: number) => send(http.post<Result<Task>>(`${BASE}/${String(id)}/watch`)),
+  unwatch: (id: number) => send(http.delete<Result<Task>>(`${BASE}/${String(id)}/watch`)),
 };

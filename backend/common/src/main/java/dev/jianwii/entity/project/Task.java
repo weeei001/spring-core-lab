@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,7 +21,8 @@ import java.util.Set;
 
 /**
  * 任務。parentId 有值的是子任務；子任務只有一層，子任務底下不能再有子任務。
- * 狀態、指派人、優先度、日期、里程碑的變更由 TaskService 自動寫進活動紀錄（{@link TaskActivity}）。
+ * 類型、標籤、狀態、指派人、優先度、日期、里程碑的變更由 TaskService 自動寫進活動紀錄（{@link TaskActivity}）。
+ * 狀態變更與新留言會通知指派人與關注者（{@link #watcherIds}）。
  *
  * <p>
  * 更新是部分更新（null 表示不改），要清空選填欄位時把欄位名稱放進 {@link #clearFields}。
@@ -58,6 +60,12 @@ public class Task extends BaseEntity {
     @Size(max = 5000)
     @Column(name = "description", length = 5000)
     private String description;
+
+    /** 新增時不給為 FEATURE；欄位預設值讓既有資料在加欄位時補成 FEATURE。 */
+    @Enumerated(EnumType.STRING)
+    @ColumnDefault("'FEATURE'")
+    @Column(name = "type", nullable = false, length = 20)
+    private TaskType type;
 
     /** 新增時不給為 TODO；看板拖曳請用 TaskApi.move，才會一併調整排序。 */
     @Enumerated(EnumType.STRING)
@@ -101,6 +109,29 @@ public class Task extends BaseEntity {
     @Column(name = "predecessor_id", nullable = false)
     @BatchSize(size = 100)
     private Set<@NotNull Long> predecessorIds;
+
+    /**
+     * 標籤 id（{@link ProjectLabel}），存在中間表 task_label；必須是同一專案的標籤。
+     * 更新時不給（null）表示不改，給 [] 表示清空。
+     */
+    @Size(max = 20)
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "task_label", joinColumns = @JoinColumn(name = "task_id"),
+            indexes = @Index(columnList = "label_id"))
+    @Column(name = "label_id", nullable = false)
+    @BatchSize(size = 100)
+    private Set<@NotNull Long> labelIds;
+
+    /**
+     * 關注者的 user id，存在中間表 task_watcher；由系統維護，新增、修改時前端送來的值會被忽略。
+     * 建立者、指派人、留言者、被 @ 的人會自動加入；自己關注、取消關注用 TaskApi.watch／unwatch。
+     */
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "task_watcher", joinColumns = @JoinColumn(name = "task_id"),
+            indexes = @Index(columnList = "user_id"))
+    @Column(name = "user_id", nullable = false, length = 100)
+    @BatchSize(size = 100)
+    private Set<String> watcherIds;
 
     /**
      * 只在更新時使用：要清空的選填欄位，可用 milestoneId、assigneeId、startDate、dueDate、estimateHours、description。

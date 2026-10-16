@@ -1,8 +1,10 @@
 import { DatePicker, Flex, Form, Input, InputNumber, Select } from 'antd';
 import type { Dayjs } from 'dayjs';
+import type { ProjectLabel } from '@/api/project/label.types';
 import type { Milestone } from '@/api/project/milestone.types';
-import type { Task, TaskPriority, TaskStatus } from '@/api/project/task.types';
-import { TASK_PRIORITY_LABELS, TASK_STATUS_LABELS } from '@/components/project/labels';
+import type { Task, TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
+import { LabelSelect } from '@/components/project/LabelSelect';
+import { TASK_PRIORITY_LABELS, TASK_STATUS_LABELS, TASK_TYPE_LABELS } from '@/components/project/labels';
 import { DATE_FORMAT } from '@/components/project/project-utils';
 import { toOptions } from '@/shared/lib/format';
 import { FormModal } from '@/shared/ui/FormModal';
@@ -10,6 +12,8 @@ import { FormModal } from '@/shared/ui/FormModal';
 interface TaskFormValues {
   title: string;
   description?: string;
+  type: TaskType;
+  labelIds: number[];
   status: TaskStatus;
   priority: TaskPriority;
   assigneeId?: string;
@@ -29,6 +33,7 @@ interface TaskFormModalProps {
   defaultStatus?: TaskStatus;
   memberOptions: { value: string; label: string }[];
   milestones: readonly Milestone[];
+  labels: readonly ProjectLabel[];
   saving: boolean;
   onCancel: () => void;
   onSubmit: (values: Partial<Task>) => void;
@@ -42,6 +47,7 @@ export function TaskFormModal({
   defaultStatus = 'TODO',
   memberOptions,
   milestones,
+  labels,
   saving,
   onCancel,
   onSubmit,
@@ -50,7 +56,13 @@ export function TaskFormModal({
     <FormModal<TaskFormValues>
       open={open}
       title={parent === undefined ? '新增任務' : `新增子任務：${parent.title}`}
-      initialValues={{ status: defaultStatus, priority: 'MEDIUM', milestoneId: parent?.milestoneId ?? undefined }}
+      initialValues={{
+        type: parent?.type ?? 'FEATURE',
+        labelIds: parent?.labelIds ?? [],
+        status: defaultStatus,
+        priority: 'MEDIUM',
+        milestoneId: parent?.milestoneId ?? undefined,
+      }}
       saving={saving}
       onCancel={onCancel}
       onSubmit={(values) => {
@@ -59,6 +71,8 @@ export function TaskFormModal({
           parentId: parent?.id ?? null,
           title: values.title,
           description: values.description,
+          type: values.type,
+          labelIds: values.labelIds,
           status: values.status,
           priority: values.priority,
           assigneeId: values.assigneeId,
@@ -75,6 +89,14 @@ export function TaskFormModal({
       <Form.Item name="description" label="說明" rules={[{ max: 5000 }]}>
         <Input.TextArea autoSize={{ minRows: 2, maxRows: 6 }} />
       </Form.Item>
+      <Flex gap={12}>
+        <Form.Item name="type" label="類型" style={{ flex: 1 }}>
+          <Select options={toOptions(TASK_TYPE_LABELS)} />
+        </Form.Item>
+        <Form.Item name="labelIds" label="標籤" style={{ flex: 2 }}>
+          <LabelSelect labels={labels} />
+        </Form.Item>
+      </Flex>
       <Flex gap={12}>
         <Form.Item name="status" label="狀態" style={{ flex: 1 }}>
           <Select options={toOptions(TASK_STATUS_LABELS)} />

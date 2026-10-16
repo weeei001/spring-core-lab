@@ -34,6 +34,13 @@ public interface TaskDAO extends BaseDAO<Task, Long> {
     /** 前置任務含此任務的有效任務；刪除任務時一併移除關聯。 */
     List<Task> findByPredecessorIdsContainingAndDbMark(Long predecessorId, Integer dbMark);
 
+    /** 移除成員時，找出該成員關注的任務。 */
+    List<Task> findByProjectIdAndWatcherIdsContainingAndDbMark(Long projectId, String watcherId,
+            Integer dbMark);
+
+    /** 標籤含此標籤的有效任務；刪除標籤時一併移除關聯。 */
+    List<Task> findByLabelIdsContainingAndDbMark(Long labelId, Integer dbMark);
+
     boolean existsByProjectIdAndDbMark(Long projectId, Integer dbMark);
 
     boolean existsByMilestoneIdAndDbMark(Long milestoneId, Integer dbMark);
@@ -76,6 +83,18 @@ public interface TaskDAO extends BaseDAO<Task, Long> {
             @Param("done") TaskStatus done, @Param("cancelled") TaskStatus cancelled,
             @Param("today") LocalDate today);
 
+    /** 各標籤的任務計數（含子任務）。 */
+    @Query("""
+            select l as groupId, count(t) as total,
+                   sum(case when t.status = :done then 1 else 0 end) as done,
+                   sum(case when t.status <> :done and t.dueDate < :today then 1 else 0 end) as overdue
+            from Task t join t.labelIds l
+            where l in :ids and t.status <> :cancelled and t.dbMark = 0
+            group by l""")
+    List<TaskCount> countByLabel(@Param("ids") Collection<Long> labelIds,
+            @Param("done") TaskStatus done, @Param("cancelled") TaskStatus cancelled,
+            @Param("today") LocalDate today);
+
     default List<TaskCount> projectCounts(Collection<Long> projectIds) {
         return countByProject(projectIds, TaskStatus.DONE, TaskStatus.CANCELLED, LocalDate.now());
     }
@@ -83,6 +102,10 @@ public interface TaskDAO extends BaseDAO<Task, Long> {
     default List<TaskCount> milestoneCounts(Collection<Long> milestoneIds) {
         return countByMilestone(milestoneIds, TaskStatus.DONE, TaskStatus.CANCELLED,
                 LocalDate.now());
+    }
+
+    default List<TaskCount> labelCounts(Collection<Long> labelIds) {
+        return countByLabel(labelIds, TaskStatus.DONE, TaskStatus.CANCELLED, LocalDate.now());
     }
 
     default List<TaskCount> subtaskCounts(Collection<Long> parentIds) {

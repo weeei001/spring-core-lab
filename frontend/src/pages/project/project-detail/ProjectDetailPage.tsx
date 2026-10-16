@@ -13,6 +13,7 @@ import { percent } from '@/components/project/project-utils';
 import { TaskDrawer } from '@/components/project/task-drawer/TaskDrawer';
 import { useMemberDirectory } from '@/components/project/useMemberDirectory';
 import { PageTour } from '@/shared/ui/PageTour';
+import { LabelTab } from './components/LabelTab';
 import { MemberTab } from './components/MemberTab';
 import { MilestoneTab } from './components/MilestoneTab';
 import { OverviewTab } from './components/OverviewTab';
@@ -20,7 +21,7 @@ import { WorkLogTab } from './components/WorkLogTab';
 import { TasksTab } from './components/tasks/TasksTab';
 import { PROJECT_DETAIL_TOUR } from './tour';
 
-const TABS = ['overview', 'tasks', 'milestones', 'members', 'work-log'] as const;
+const TABS = ['overview', 'tasks', 'milestones', 'labels', 'members', 'work-log'] as const;
 type TabKey = (typeof TABS)[number];
 
 function isTab(value: string | null): value is TabKey {
@@ -188,6 +189,7 @@ function ProjectDetail({ projectId }: { projectId: number }) {
               ),
             },
             { key: 'milestones', label: '里程碑', children: <MilestoneTab projectId={projectId} access={access} /> },
+            { key: 'labels', label: '標籤', children: <LabelTab projectId={projectId} access={access} /> },
             {
               key: 'members',
               label: `成員（${String(members.length)}）`,

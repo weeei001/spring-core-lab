@@ -4,9 +4,10 @@ import { App, Button, Flex, Input, Segmented, Select, Skeleton, Switch, Typograp
 import { BarsOutlined, PlusOutlined, ProjectOutlined, TableOutlined } from '@ant-design/icons';
 import { milestoneApi } from '@/api/project/milestone-api';
 import type { Milestone } from '@/api/project/milestone.types';
-import type { Task, TaskPriority, TaskStatus } from '@/api/project/task.types';
-import { useInvalidateProjectData, useProjectMilestones, useProjectTasks, type ProjectAccess } from '@/components/project/hooks';
-import { TASK_PRIORITY_LABELS } from '@/components/project/labels';
+import type { Task, TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
+import { useInvalidateProjectData, useProjectLabels, useProjectMilestones, useProjectTasks, type ProjectAccess } from '@/components/project/hooks';
+import { LabelSelect } from '@/components/project/LabelSelect';
+import { TASK_PRIORITY_LABELS, TASK_TYPE_LABELS } from '@/components/project/labels';
 import { useTaskActions } from '@/components/project/useTaskActions';
 import type { UserDirectory } from '@/components/user/useUserDirectory';
 import { useAuth } from '@/core/auth/useAuth';
@@ -47,6 +48,9 @@ interface Filters {
   /** user id，或 ME、NONE；undefined 表示全部 */
   assignee?: string;
   priorities: TaskPriority[];
+  types: TaskType[];
+  /** 掛了任一個標籤即符合 */
+  labelIds: number[];
   milestoneId?: number;
 }
 
@@ -65,9 +69,10 @@ export function TasksTab({ projectId, access, directory, memberOptions, onOpen }
   const invalidate = useInvalidateProjectData();
   const tasks = useProjectTasks(projectId);
   const milestones = useProjectMilestones(projectId);
+  const labels = useProjectLabels(projectId);
   const { create, update } = useTaskActions();
   const [view, setView] = useState<ViewMode>(loadView);
-  const [filters, setFilters] = useState<Filters>({ keyword: '', priorities: [] });
+  const [filters, setFilters] = useState<Filters>({ keyword: '', priorities: [], types: [], labelIds: [] });
   const [showCancelled, setShowCancelled] = useState(false);
   const [creating, setCreating] = useState<TaskStatus | null>(null);
 
@@ -100,6 +105,12 @@ export function TasksTab({ projectId, access, directory, memberOptions, onOpen }
       return false;
     }
     if (filters.priorities.length > 0 && !filters.priorities.includes(task.priority)) {
+      return false;
+    }
+    if (filters.types.length > 0 && !filters.types.includes(task.type)) {
+      return false;
+    }
+    if (filters.labelIds.length > 0 && !task.labelIds.some((id) => filters.labelIds.includes(id))) {
       return false;
     }
     if (filters.milestoneId !== undefined && task.milestoneId !== filters.milestoneId) {
@@ -146,6 +157,27 @@ export function TasksTab({ projectId, access, directory, memberOptions, onOpen }
             options={toOptions(TASK_PRIORITY_LABELS)}
             onChange={(priorities) => {
               setFilters({ ...filters, priorities });
+            }}
+          />
+          <Select<TaskType[]>
+            mode="multiple"
+            allowClear
+            placeholder="全部類型"
+            style={{ minWidth: 130 }}
+            maxTagCount="responsive"
+            value={filters.types}
+            options={toOptions(TASK_TYPE_LABELS)}
+            onChange={(types) => {
+              setFilters({ ...filters, types });
+            }}
+          />
+          <LabelSelect
+            labels={labels.data ?? []}
+            value={filters.labelIds}
+            placeholder="全部標籤"
+            style={{ width: 'auto', minWidth: 150 }}
+            onChange={(labelIds) => {
+              setFilters({ ...filters, labelIds });
             }}
           />
           <Select<number>
@@ -237,6 +269,7 @@ export function TasksTab({ projectId, access, directory, memberOptions, onOpen }
         defaultStatus={creating ?? 'TODO'}
         memberOptions={memberOptions}
         milestones={milestones.data ?? []}
+        labels={labels.data ?? []}
         saving={create.isPending}
         onCancel={() => {
           setCreating(null);

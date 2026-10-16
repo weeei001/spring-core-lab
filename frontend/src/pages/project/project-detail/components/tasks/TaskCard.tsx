@@ -2,7 +2,7 @@ import { Card, Flex, Tag, Typography, theme } from 'antd';
 import { BranchesOutlined, CheckCircleFilled, ClockCircleOutlined } from '@ant-design/icons';
 import type { Task } from '@/api/project/task.types';
 import { DueDate } from '@/components/project/DueDate';
-import { PriorityTag } from '@/components/project/Tags';
+import { PriorityTag, TaskLabelTags, TaskTypeTag } from '@/components/project/Tags';
 import { hoursText } from '@/components/project/project-utils';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import type { UserDirectory } from '@/components/user/useUserDirectory';
@@ -15,7 +15,7 @@ interface TaskCardProps {
   onOpen?: (taskId: number) => void;
 }
 
-/** 看板卡片：編號與優先度、標題，底部是到期日、子任務進度、工時與指派人 */
+/** 看板卡片：類型、編號與優先度、標題、標籤，底部是到期日、子任務進度、工時與指派人 */
 export function TaskCard({ task, directory, overlay = false, onOpen }: TaskCardProps) {
   const { token } = theme.useToken();
   const done = task.status === 'DONE';
@@ -33,15 +33,19 @@ export function TaskCard({ task, directory, overlay = false, onOpen }: TaskCardP
     >
       <Flex vertical gap={6}>
         <Flex justify="space-between" align="center">
-          <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
-            {task.code}
-          </Typography.Text>
+          <Flex align="center" gap={4}>
+            <TaskTypeTag type={task.type} iconOnly />
+            <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+              {task.code}
+            </Typography.Text>
+          </Flex>
           <PriorityTag priority={task.priority} />
         </Flex>
         <Typography.Text delete={task.status === 'CANCELLED'} strong>
           {done ? <CheckCircleFilled style={{ marginInlineEnd: 6, color: token.colorSuccess }} /> : null}
           {task.title}
         </Typography.Text>
+        <TaskLabelTags projectId={task.projectId} labelIds={task.labelIds} />
         <Flex justify="space-between" align="center" gap={8}>
           <Flex align="center" gap={8} wrap style={{ fontSize: token.fontSizeSM }}>
             <DueDate task={task} />

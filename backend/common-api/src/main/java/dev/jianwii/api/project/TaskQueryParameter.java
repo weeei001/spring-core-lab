@@ -8,6 +8,7 @@ import dev.jianwii.common.query.QueryParameter;
 import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskPriority;
 import dev.jianwii.entity.project.TaskStatus;
+import dev.jianwii.entity.project.TaskType;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -48,6 +49,15 @@ public class TaskQueryParameter extends QueryParameter<Task> {
     @QueryField(property = "priority", operator = QueryOperator.IN)
     @Size(max = 10)
     private List<@NotNull TaskPriority> priorities;
+
+    @QueryField(property = "type", operator = QueryOperator.IN)
+    @Size(max = 10)
+    private List<@NotNull TaskType> types;
+
+    /** 掛了任一個標籤即符合；標籤在中間表，由 TaskService.toSpecification 處理。 */
+    @QueryIgnore
+    @Size(max = 20)
+    private List<@NotNull Long> labelIds;
 
     @Size(max = 100)
     private String assigneeId;

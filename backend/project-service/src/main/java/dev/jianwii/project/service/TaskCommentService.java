@@ -10,11 +10,17 @@ import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskComment;
 import dev.jianwii.project.dao.TaskCommentDAO;
 import dev.jianwii.project.dao.TaskDAO;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
-/** 任務留言；只有作者能修改或刪除，新增時寫一筆活動紀錄並通知任務的指派人與建立者。 */
+/**
+ * 任務留言；只有作者能修改或刪除。新增時寫一筆活動紀錄、通知指派人與關注者，
+ * 被 @ 的人另外收到通知；留言者與被 @ 的人自動關注任務。
+ */
 @Service
 public class TaskCommentService extends BaseService<TaskComment, TaskCommentQueryParameter> {
     private final TaskDAO taskDAO;
@@ -35,21 +41,53 @@ public class TaskCommentService extends BaseService<TaskComment, TaskCommentQuer
     @Override
     public TaskComment create(TaskComment request) {
         TaskComment saved = super.create(request);
+        Task task = requireOpenTask(saved.getTaskId());
+        TaskService.addWatcher(task, saved.getCreateId());
+        saved.getMentionIds().forEach(userId -> TaskService.addWatcher(task, userId));
+        taskDAO.save(task);
         taskActivityRecorder.commented(saved.getTaskId());
-        taskNotifier.commented(requireOpenTask(saved.getTaskId()), saved);
+        taskNotifier.commented(task, saved);
+        if (!saved.getMentionIds().isEmpty()) {
+            taskNotifier.mentioned(task, saved, saved.getMentionIds());
+        }
+        return saved;
+    }
+
+    /** 修改留言時新 @ 到的人才通知，原本就 @ 過的不再通知。 */
+    @Override
+    public TaskComment update(Long id, TaskComment request) {
+        Set<String> before = Set.copyOf(find(id).getMentionIds());
+        TaskComment saved = super.update(id, request);
+        Set<String> added = new LinkedHashSet<>(saved.getMentionIds());
+        added.removeAll(before);
+        if (!added.isEmpty()) {
+            Task task = requireOpenTask(saved.getTaskId());
+            added.forEach(userId -> TaskService.addWatcher(task, userId));
+            taskDAO.save(task);
+            taskNotifier.mentioned(task, saved, added);
+        }
         return saved;
     }
 
     @Override
     protected void beforeCreate(TaskComment request) {
-        requireOpenTask(request.getTaskId());
+        Task task = requireOpenTask(request.getTaskId());
+        if (request.getMentionIds() == null) {
+            request.setMentionIds(new HashSet<>());
+        }
+        requireMembers(task.getProjectId(), request.getMentionIds());
     }
 
     @Override
     protected void beforeUpdate(TaskComment entity, TaskComment request) {
         request.setTaskId(null);
         requireAuthor(entity);
-        requireOpenTask(entity.getTaskId());
+        Task task = requireOpenTask(entity.getTaskId());
+        if (request.getMentionIds() != null) {
+            requireMembers(task.getProjectId(), request.getMentionIds());
+            // 只改 @ 的人時主表不會 UPDATE，強制更新修改者與時間
+            touch(entity);
+        }
     }
 
     @Override
@@ -61,6 +99,16 @@ public class TaskCommentService extends BaseService<TaskComment, TaskCommentQuer
     @Override
     protected Set<String> sortableFields() {
         return Set.of("id", "createTime");
+    }
+
+    /** 回傳前載入 @ 到的人（LAZY 的中間表）。 */
+    @Override
+    protected void initialize(TaskComment comment) {
+        Hibernate.initialize(comment.getMentionIds());
+    }
+
+    private void requireMembers(Long projectId, Set<String> userIds) {
+        userIds.forEach(userId -> projectRules.requireMember(projectId, userId));
     }
 
     /** 任務必須有效，且所屬專案未結案。 */

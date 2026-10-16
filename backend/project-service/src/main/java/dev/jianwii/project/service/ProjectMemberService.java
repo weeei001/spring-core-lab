@@ -58,7 +58,7 @@ public class ProjectMemberService extends BaseService<ProjectMember, ProjectMemb
         }
     }
 
-    /** 移除成員：指派給該成員的未完成任務改為未指派，並記在任務的活動紀錄。 */
+    /** 移除成員：指派給該成員的未完成任務改為未指派，並記在任務的活動紀錄；也不再關注專案內的任務。 */
     @Override
     protected void beforeDelete(ProjectMember entity) {
         projectRules.requireOpen(entity.getProjectId());
@@ -73,6 +73,10 @@ public class ProjectMemberService extends BaseService<ProjectMember, ProjectMemb
             task.setAssigneeId(null);
         }
         taskDAO.saveAll(tasks);
+        List<Task> watched = taskDAO.findByProjectIdAndWatcherIdsContainingAndDbMark(
+                entity.getProjectId(), entity.getUserId(), BaseEntity.VALID);
+        watched.forEach(task -> task.getWatcherIds().remove(entity.getUserId()));
+        taskDAO.saveAll(watched);
     }
 
     @Override

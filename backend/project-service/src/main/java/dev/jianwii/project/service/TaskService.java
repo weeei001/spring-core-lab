@@ -7,14 +7,21 @@ import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.service.BaseService;
+import dev.jianwii.common.web.Operator;
+import dev.jianwii.entity.project.ProjectLabel;
 import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskPriority;
 import dev.jianwii.entity.project.TaskStatus;
+import dev.jianwii.entity.project.TaskType;
 import dev.jianwii.project.dao.MilestoneDAO;
+import dev.jianwii.project.dao.ProjectLabelDAO;
 import dev.jianwii.project.dao.TaskCount;
 import dev.jianwii.project.dao.TaskDAO;
 import dev.jianwii.project.dao.TaskHours;
 import dev.jianwii.project.dao.WorkLogDAO;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.hibernate.Hibernate;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -36,7 +43,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 任務 CRUD 與看板排序；子任務、前置任務、指派人、里程碑的檢查，以及欄位變更的活動紀錄。
+ * 任務 CRUD 與看板排序；子任務、前置任務、指派人、里程碑、標籤的檢查，以及欄位變更的活動紀錄。
  */
 @Service
 public class TaskService extends BaseService<Task, TaskQueryParameter> {
@@ -50,18 +57,21 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
 
     private final TaskDAO taskDAO;
     private final MilestoneDAO milestoneDAO;
+    private final ProjectLabelDAO projectLabelDAO;
     private final WorkLogDAO workLogDAO;
     private final ProjectRules projectRules;
     private final TaskActivityRecorder taskActivityRecorder;
     private final TaskNotifier taskNotifier;
     private final SerialNumberApi serialNumberApi;
 
-    public TaskService(TaskDAO taskDAO, MilestoneDAO milestoneDAO, WorkLogDAO workLogDAO,
-            ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder,
-            TaskNotifier taskNotifier, SerialNumberApi serialNumberApi) {
+    public TaskService(TaskDAO taskDAO, MilestoneDAO milestoneDAO,
+            ProjectLabelDAO projectLabelDAO, WorkLogDAO workLogDAO, ProjectRules projectRules,
+            TaskActivityRecorder taskActivityRecorder, TaskNotifier taskNotifier,
+            SerialNumberApi serialNumberApi) {
         super(taskDAO);
         this.taskDAO = taskDAO;
         this.milestoneDAO = milestoneDAO;
+        this.projectLabelDAO = projectLabelDAO;
         this.workLogDAO = workLogDAO;
         this.projectRules = projectRules;
         this.taskActivityRecorder = taskActivityRecorder;
@@ -91,6 +101,39 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
             }
         }
         return page;
+    }
+
+    /** 登入者關注任務；已關注時不變。 */
+    public Task watch(Long id) {
+        Task task = find(id);
+        projectRules.requireOpen(task.getProjectId());
+        String operator = Operator.current();
+        projectRules.requireMember(task.getProjectId(), operator);
+        if (task.getWatcherIds().add(operator)) {
+            touch(task);
+        }
+        Task saved = taskDAO.saveAndFlush(task);
+        initialize(saved);
+        return saved;
+    }
+
+    /** 登入者取消關注；指派人仍會收到通知。 */
+    public Task unwatch(Long id) {
+        Task task = find(id);
+        projectRules.requireOpen(task.getProjectId());
+        if (task.getWatcherIds().remove(Operator.current())) {
+            touch(task);
+        }
+        Task saved = taskDAO.saveAndFlush(task);
+        initialize(saved);
+        return saved;
+    }
+
+    /** 把 userId 加入關注者（不檢查成員資格，呼叫端負責）；系統操作不加。 */
+    public static void addWatcher(Task task, String userId) {
+        if (userId != null && !userId.equals(Operator.SYSTEM)) {
+            task.getWatcherIds().add(userId);
+        }
     }
 
     @Override
@@ -181,6 +224,16 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
             request.setPredecessorIds(new HashSet<>());
         }
         requirePredecessors(null, projectId, request.getPredecessorIds());
+        if (request.getLabelIds() == null) {
+            request.setLabelIds(new HashSet<>());
+        }
+        requireLabels(projectId, request.getLabelIds());
+        if (request.getType() == null) {
+            request.setType(TaskType.FEATURE);
+        }
+        request.setWatcherIds(new HashSet<>());
+        addWatcher(request, Operator.current());
+        addWatcher(request, request.getAssigneeId());
         if (request.getStatus() == null) {
             request.setStatus(TaskStatus.TODO);
         }
@@ -203,6 +256,7 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         request.setProjectId(null);
         requireUnchanged("parentId", request.getParentId(), entity.getParentId());
         request.setParentId(null);
+        request.setWatcherIds(null);
 
         Set<String> clearFields =
                 request.getClearFields() == null ? Set.of() : request.getClearFields();
@@ -221,6 +275,7 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         }
         if (request.getAssigneeId() != null) {
             projectRules.requireMember(projectId, request.getAssigneeId());
+            addWatcher(entity, request.getAssigneeId());
         }
         LocalDate startDate = clearFields.contains("startDate") ? null
                 : request.getStartDate() != null ? request.getStartDate() : entity.getStartDate();
@@ -230,6 +285,10 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         if (request.getPredecessorIds() != null) {
             requirePredecessors(entity.getId(), projectId, request.getPredecessorIds());
             // 只改前置任務時主表不會 UPDATE，強制更新修改者與時間
+            touch(entity);
+        }
+        if (request.getLabelIds() != null) {
+            requireLabels(projectId, request.getLabelIds());
             touch(entity);
         }
         if (request.getStatus() != null && request.getStatus() != entity.getStatus()) {
@@ -265,16 +324,31 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         taskDAO.saveAll(dependents);
     }
 
-    /** topLevel：parentId 是否為 null，條件清單表達不了 IS NULL，在這裡補上。 */
+    /**
+     * 條件清單表達不了的條件在這裡補上：topLevel 是 parentId IS NULL；
+     * labelIds 在中間表，用 EXISTS 子查詢，同一個任務不會因多個標籤重複出現。
+     */
     @Override
     protected Specification<Task> toSpecification(TaskQueryParameter parameter) {
         Specification<Task> specification = super.toSpecification(parameter);
         Boolean topLevel = parameter.getTopLevel();
-        if (topLevel == null) {
-            return specification;
+        if (topLevel != null) {
+            specification = specification.and((root, query, builder) -> topLevel
+                    ? builder.isNull(root.get("parentId"))
+                    : builder.isNotNull(root.get("parentId")));
         }
-        return specification.and((root, query, builder) -> topLevel
-                ? builder.isNull(root.get("parentId")) : builder.isNotNull(root.get("parentId")));
+        List<Long> labelIds = parameter.getLabelIds();
+        if (labelIds != null && !labelIds.isEmpty()) {
+            specification = specification.and((root, query, builder) -> {
+                Subquery<Long> tagged = query.subquery(Long.class);
+                Root<Task> task = tagged.from(Task.class);
+                Join<Task, Long> label = task.join("labelIds");
+                tagged.select(task.get("id")).where(builder.equal(task.get("id"), root.get("id")),
+                        label.in(labelIds));
+                return builder.exists(tagged);
+            });
+        }
+        return specification;
     }
 
     @Override
@@ -283,10 +357,12 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
                 "dueDate");
     }
 
-    /** 回傳前載入前置任務（LAZY 的中間表）。 */
+    /** 回傳前載入前置任務、標籤與關注者（LAZY 的中間表）。 */
     @Override
     protected void initialize(Task task) {
         Hibernate.initialize(task.getPredecessorIds());
+        Hibernate.initialize(task.getLabelIds());
+        Hibernate.initialize(task.getWatcherIds());
     }
 
     /**
@@ -324,6 +400,19 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         }
     }
 
+    /** 標籤必須是同專案的有效標籤。 */
+    private void requireLabels(Long projectId, Set<Long> labelIds) {
+        if (labelIds.isEmpty()) {
+            return;
+        }
+        Set<Long> valid = projectLabelDAO.findByProjectIdAndDbMark(projectId, BaseEntity.VALID)
+                .stream().map(ProjectLabel::getId).collect(Collectors.toSet());
+        List<Long> missing = labelIds.stream().filter(id -> !valid.contains(id)).sorted().toList();
+        if (!missing.isEmpty()) {
+            throw new BusinessException("標籤不存在或不在同一專案：" + missing);
+        }
+    }
+
     private void requireMilestone(Long projectId, Long milestoneId) {
         milestoneDAO.findById(milestoneId)
                 .filter(milestone -> milestone.getDbMark() == BaseEntity.VALID
@@ -343,6 +432,9 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     private void recordChanges(Tracked before, Task after) {
         Long id = after.getId();
         taskActivityRecorder.changed(id, "title", before.title(), after.getTitle());
+        taskActivityRecorder.changed(id, "type", before.type(), after.getType());
+        taskActivityRecorder.changed(id, "labelIds", idsText(before.labelIds()),
+                idsText(after.getLabelIds()));
         taskActivityRecorder.changed(id, "status", before.status(), after.getStatus());
         taskActivityRecorder.changed(id, "priority", before.priority(), after.getPriority());
         taskActivityRecorder.changed(id, "assigneeId", before.assigneeId(), after.getAssigneeId());
@@ -358,6 +450,12 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         }
     }
 
+    /** 標籤的活動紀錄值：id 由小到大以逗號分隔，沒有標籤為 null。 */
+    private static String idsText(Set<Long> ids) {
+        return ids == null || ids.isEmpty() ? null
+                : ids.stream().sorted().map(String::valueOf).collect(Collectors.joining(","));
+    }
+
     private static void requireUnchanged(String field, Object requested, Object current) {
         if (requested != null && !requested.equals(current)) {
             throw new BusinessException(field + " 建立後不可修改");
@@ -371,13 +469,15 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     }
 
     /** 要記活動紀錄的欄位，在更新前先記下舊值（entity 更新後就會被覆蓋）。 */
-    private record Tracked(String title, TaskStatus status, TaskPriority priority,
-            String assigneeId, LocalDate startDate, LocalDate dueDate, Long milestoneId) {
+    private record Tracked(String title, TaskType type, Set<Long> labelIds, TaskStatus status,
+            TaskPriority priority, String assigneeId, LocalDate startDate, LocalDate dueDate,
+            Long milestoneId) {
 
         static Tracked of(Task task) {
-            return new Tracked(task.getTitle(), task.getStatus(), task.getPriority(),
-                    task.getAssigneeId(), task.getStartDate(), task.getDueDate(),
-                    task.getMilestoneId());
+            // 標籤要複製一份：更新時會換掉 entity 的集合
+            return new Tracked(task.getTitle(), task.getType(), Set.copyOf(task.getLabelIds()),
+                    task.getStatus(), task.getPriority(), task.getAssigneeId(),
+                    task.getStartDate(), task.getDueDate(), task.getMilestoneId());
         }
     }
 }

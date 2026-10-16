@@ -3,8 +3,8 @@ import { BranchesOutlined, LinkOutlined } from '@ant-design/icons';
 import type { Milestone } from '@/api/project/milestone.types';
 import type { Task, TaskStatus } from '@/api/project/task.types';
 import { DueDate } from '@/components/project/DueDate';
-import { PriorityTag, TaskStatusTag } from '@/components/project/Tags';
-import { TASK_PRIORITIES, TASK_STATUS_LABELS } from '@/components/project/labels';
+import { PriorityTag, TaskLabelTags, TaskStatusTag, TaskTypeTag } from '@/components/project/Tags';
+import { TASK_PRIORITIES, TASK_STATUS_LABELS, TASK_TYPES } from '@/components/project/labels';
 import { hoursText } from '@/components/project/project-utils';
 import { useTaskActions } from '@/components/project/useTaskActions';
 import { UserAvatar } from '@/components/user/UserAvatar';
@@ -63,6 +63,13 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, miles
       sorter: (a, b) => a.code.localeCompare(b.code),
     },
     {
+      title: '類型',
+      key: 'type',
+      width: 110,
+      sorter: (a, b) => TASK_TYPES.indexOf(a.type) - TASK_TYPES.indexOf(b.type),
+      render: (_value, task) => <TaskTypeTag type={task.type} />,
+    },
+    {
       title: '標題',
       key: 'title',
       render: (_value, task) => (
@@ -86,6 +93,7 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, miles
               <LinkOutlined style={{ color: '#8c8c8c' }} />
             </Tooltip>
           ) : null}
+          <TaskLabelTags projectId={task.projectId} labelIds={task.labelIds} />
         </Flex>
       ),
     },
@@ -188,7 +196,7 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, miles
       columns={columns}
       dataSource={toRows(tasks)}
       pagination={{ defaultPageSize: 20, showSizeChanger: true, showTotal: (total) => `共 ${String(total)} 筆` }}
-      scroll={{ x: 1000 }}
+      scroll={{ x: 1110 }}
     />
   );
 }

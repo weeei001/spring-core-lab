@@ -69,4 +69,19 @@ public class WebTaskController {
         projectAccessGuard.requireMember(projectAccessGuard.projectOfTask(id));
         return Result.success(taskApi.move(id, status, previousId));
     }
+
+    /** 關注、取消關注只影響自己，有 project:read 的成員即可。 */
+    @PreAuthorize("hasAuthority('project:read')")
+    @PostMapping("/{id}/watch")
+    public Result<Task> watch(@PathVariable Long id) {
+        projectAccessGuard.requireMember(projectAccessGuard.projectOfTask(id));
+        return Result.success(taskApi.watch(id));
+    }
+
+    @PreAuthorize("hasAuthority('project:read')")
+    @DeleteMapping("/{id}/watch")
+    public Result<Task> unwatch(@PathVariable Long id) {
+        projectAccessGuard.requireMember(projectAccessGuard.projectOfTask(id));
+        return Result.success(taskApi.unwatch(id));
+    }
 }
