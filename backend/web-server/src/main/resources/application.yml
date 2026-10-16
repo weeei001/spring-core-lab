@@ -7,7 +7,7 @@ spring:
   application:
     name: web-server
   profiles:
-    # 載入 application-local.yml（client-secret 等本機設定，不進 git）
+    # 載入 application-local.yml（authentik 連線設定等本機設定，不進 git）
     active: local
   cloud:
     # 服務實例清單快取 5 秒（預設 35 秒），服務重啟後較快恢復
@@ -19,16 +19,12 @@ spring:
       client:
         registration:
           authentik:
-            client-id: spring-cloud
-            # client-secret 放在 application-local.yml
+            # client-id、client-secret 依 authentik 環境不同，放在 application-local.yml
             authorization-grant-type: authorization_code
             scope: openid,profile,email
             # 要和 authentik 設定的 redirect URI 一致；{baseUrl} 是瀏覽器看到的網址（開發時經前端轉發為 localhost:3000）
             redirect-uri: "{baseUrl}/auth/callback"
-        provider:
-          authentik:
-            # 啟動時從這裡讀取授權、token、登出等網址
-            issuer-uri: https://authentik.example.com/application/o/spring-cloud/
+        # provider.authentik.issuer-uri 也放在 application-local.yml；啟動時從這裡讀取授權、token、登出等網址
 
 app:
   # 登入、登出完成後導回的前端網址
