@@ -54,7 +54,7 @@ export function TaskCard({ task, directory, overlay = false, onOpen }: TaskCardP
                 {String(task.doneSubtaskCount ?? 0)}/{String(task.subtaskCount)}
               </Tag>
             ) : null}
-            {task.storyPoints === null ? null : <Tag bordered={false}>{String(task.storyPoints)} 點</Tag>}
+            {task.storyPoints === null ? null : <Tag variant="filled">{String(task.storyPoints)} 點</Tag>}
             {task.loggedHours !== undefined && task.loggedHours > 0 ? (
               <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
                 <ClockCircleOutlined /> {hoursText(task.loggedHours)}
