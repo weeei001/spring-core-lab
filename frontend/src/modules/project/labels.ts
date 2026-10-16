@@ -1,7 +1,7 @@
-import type { TaskActivityType } from './activity/activity.types';
-import type { ProjectRole } from './member/member.types';
-import type { ProjectStatus } from './project/project.types';
-import type { TaskPriority, TaskStatus } from './task/task.types';
+import type { TaskActivityType } from './api/activity.types';
+import type { ProjectRole } from './api/member.types';
+import type { ProjectStatus } from './api/project.types';
+import type { TaskPriority, TaskStatus } from './api/task.types';
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   PLANNING: '規劃中',

@@ -6,10 +6,10 @@ import { useNavigate } from 'react-router';
 import { useAuth } from '@/core/auth/useAuth';
 import { PERMISSIONS } from '@/core/auth/permissions';
 import { useDebounced } from '@/shared/hooks/useDebounced';
+import { projectApi } from '../api/project-api';
+import { taskApi } from '../api/task-api';
+import { ProjectStatusTag, TaskStatusTag } from '../components/Tags';
 import { DEFAULT_PROJECT_COLOR } from '../labels';
-import { projectApi } from '../project/project-api';
-import { taskApi } from '../task/task-api';
-import { ProjectStatusTag, TaskStatusTag } from '../ui/Tags';
 
 interface Item {
   key: string;

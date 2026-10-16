@@ -4,9 +4,9 @@ import { Button, Flex, Form, Input, Select, Table, Tag, Typography, message, typ
 import { usePagedList } from '@/shared/hooks/usePagedList';
 import { blankToUndefined, formatTime } from '@/shared/lib/format';
 import { FormModal } from '@/shared/ui/FormModal';
-import { roleApi } from '../role/role-api';
-import { userApi } from './user-api';
-import type { User, UserQuery } from './user.types';
+import { roleApi } from '../api/role-api';
+import { userApi } from '../api/user-api';
+import type { User, UserQuery } from '../api/user.types';
 
 interface RoleFormValues {
   roleIds: number[];

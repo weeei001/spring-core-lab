@@ -40,14 +40,28 @@ src/
    └─ basic-data/      ↔ backend/basic-data（編號規則、使用者、角色）
 ```
 
-每個功能資料夾（例如 `modules/basic-data/role/`）內的檔案：
+模組內依畫面分資料夾，不依資料表拆；要改哪個畫面就到同名資料夾找：
 
-| 檔案 | 內容 |
+```
+modules/project/
+├─ index.ts            模組的公開 API
+├─ api/                所有資料表的 xxx-api.ts（呼叫後端）與 xxx.types.ts（對應 Entity 與查詢參數）
+├─ components/         兩個以上畫面共用的元件與 hook（例如 task-drawer/ 任務抽屜）
+├─ hooks.ts、labels.ts、project-utils.ts、tours.tsx   模組共用的 hook、標籤、工具、操作導覽
+├─ dashboard/          儀表板
+├─ project-list/       專案列表
+├─ project-detail/     專案詳情與各分頁（tasks/ 是任務分頁：看板、表格、甘特）
+├─ my-tasks/           我的任務
+├─ timesheet/          工時
+└─ search/             全域搜尋
+```
+
+| 放哪裡 | 內容 |
 |---|---|
-| `xxx.types.ts` | 對應後端 Entity 與查詢參數的型別 |
-| `xxx-api.ts` | 呼叫後端 API |
-| `XxxPage.tsx` | 頁面 |
-| `useXxx.ts`、其他元件 | 這個功能自己用的 hook 與元件 |
+| `api/xxx.types.ts` | 對應後端 Entity 與查詢參數的型別 |
+| `api/xxx-api.ts` | 呼叫後端 API |
+| `<畫面>/XxxPage.tsx` | 頁面，以及只有這個畫面用的元件、hook |
+| `components/` | 多個畫面共用的元件、hook；只剩一個畫面使用時搬回該畫面資料夾 |
 
 ### 引用規則
 
@@ -63,9 +77,9 @@ src/
 
 ## 新增一個功能
 
-1. 在對應的模組下建立資料夾，寫 `xxx.types.ts`（對應後端 Entity）。
-2. `xxx-api.ts`：一般 CRUD 用 `createCrudApi<Xxx, XxxQuery>('/api/...')`。
-3. `XxxPage.tsx`：用 `usePagedList`、`useSaveDelete`、`FormModal` 組出列表與表單。
+1. 在模組的 `api/` 寫 `xxx.types.ts`（對應後端 Entity）。
+2. `api/xxx-api.ts`：一般 CRUD 用 `createCrudApi<Xxx, XxxQuery>('/api/...')`。
+3. 為畫面建立資料夾，寫 `XxxPage.tsx`：用 `usePagedList`、`useSaveDelete`、`FormModal` 組出列表與表單。
 4. 在模組的 `index.ts` 匯出頁面。
 5. `app/router.tsx` 加路由並用 `RequirePermission` 包住；`app/menu.ts` 加選單。
 6. 需要新的功能權限時，後端 `Permission` enum 與 `core/auth/permissions.ts` 一起加。
@@ -77,7 +91,7 @@ src/
 新頁面要加導覽時：
 
 1. 在要介紹的元素加上 `data-tour="key"`；只想框住裡面的一部分（例如分頁列）時，再加 `data-tour-inner=".ant-tabs-nav"`。
-2. 在模組的 `guide/tours.tsx` 寫步驟（`GuideStep[]`），`target` 填上面的 key；不填 `target` 則置中顯示。
+2. 在模組的 `tours.tsx` 寫步驟（`GuideStep[]`），`target` 填上面的 key；不填 `target` 則置中顯示。
 3. 頁面裡放 `<PageTour id="頁面代號" steps={...} />`。畫面上找不到的步驟（例如沒有權限而沒顯示的按鈕）會自動略過。
 
 「看過」的紀錄存在瀏覽器的 localStorage（`tour-seen:頁面代號`）。

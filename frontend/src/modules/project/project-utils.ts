@@ -1,6 +1,6 @@
 import dayjs, { type Dayjs } from 'dayjs';
-import type { ProjectStatus } from './project/project.types';
-import type { Task, TaskStatus } from './task/task.types';
+import type { ProjectStatus } from './api/project.types';
+import type { Task, TaskStatus } from './api/task.types';
 
 export const DATE_FORMAT = 'YYYY-MM-DD';
 

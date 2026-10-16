@@ -8,10 +8,10 @@ import { useSaveDelete } from '@/shared/hooks/useSaveDelete';
 import { blankToUndefined, toOptions } from '@/shared/lib/format';
 import { transColumn } from '@/shared/ui/auditColumn';
 import { FormModal } from '@/shared/ui/FormModal';
-import { useUserNames } from '../user/useUserNames';
+import { serialNumberApi } from '../api/serial-number-api';
+import type { ResetCycle, SerialNumber, SerialNumberQuery } from '../api/serial-number.types';
+import { useUserNames } from '../components/useUserNames';
 import { RESET_CYCLE_LABELS } from './labels';
-import { serialNumberApi } from './serial-number-api';
-import type { ResetCycle, SerialNumber, SerialNumberQuery } from './serial-number.types';
 
 interface SerialNumberFormValues {
   serialKey: string;

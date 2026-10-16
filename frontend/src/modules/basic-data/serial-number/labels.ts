@@ -1,4 +1,4 @@
-import type { ResetCycle } from './serial-number.types';
+import type { ResetCycle } from '../api/serial-number.types';
 
 export const RESET_CYCLE_LABELS: Record<ResetCycle, string> = {
   NONE: '不歸零',

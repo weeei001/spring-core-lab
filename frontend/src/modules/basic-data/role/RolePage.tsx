@@ -7,9 +7,9 @@ import { useSaveDelete } from '@/shared/hooks/useSaveDelete';
 import { blankToUndefined } from '@/shared/lib/format';
 import { transColumn } from '@/shared/ui/auditColumn';
 import { FormModal } from '@/shared/ui/FormModal';
-import { useUserNames } from '../user/useUserNames';
-import { roleApi } from './role-api';
-import type { Permission, Role, RoleQuery } from './role.types';
+import { roleApi } from '../api/role-api';
+import type { Permission, Role, RoleQuery } from '../api/role.types';
+import { useUserNames } from '../components/useUserNames';
 
 interface RoleFormValues {
   code: string;

@@ -2,8 +2,8 @@
 export { SerialNumberPage } from './serial-number/SerialNumberPage';
 export { UserPage } from './user/UserPage';
 export { RolePage } from './role/RolePage';
-export { useUserNames } from './user/useUserNames';
-export { useUserDirectory, type UserDirectory } from './user/useUserDirectory';
-export { UserAvatar } from './user/UserAvatar';
-export { UserSelect } from './user/UserSelect';
-export type { User } from './user/user.types';
+export { useUserNames } from './components/useUserNames';
+export { useUserDirectory, type UserDirectory } from './components/useUserDirectory';
+export { UserAvatar } from './components/UserAvatar';
+export { UserSelect } from './components/UserSelect';
+export type { User } from './api/user.types';

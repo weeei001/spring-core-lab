@@ -2,13 +2,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
 import { useAuth } from '@/core/auth/useAuth';
 import { PERMISSIONS } from '@/core/auth/permissions';
-import { memberApi } from './member/member-api';
-import type { ProjectMember, ProjectRole } from './member/member.types';
-import { milestoneApi } from './milestone/milestone-api';
-import { projectApi } from './project/project-api';
-import type { Project } from './project/project.types';
+import { memberApi } from './api/member-api';
+import type { ProjectMember, ProjectRole } from './api/member.types';
+import { milestoneApi } from './api/milestone-api';
+import { projectApi } from './api/project-api';
+import type { Project } from './api/project.types';
+import { taskApi } from './api/task-api';
 import { isProjectClosed } from './project-utils';
-import { taskApi } from './task/task-api';
 
 /** 專案相關資料的 queryKey 開頭；任何異動後一起重新查詢，畫面上的統計、進度才會一致 */
 const PROJECT_KEYS = new Set(['project', 'project-member', 'milestone', 'task', 'task-comment', 'task-activity', 'work-log']);
