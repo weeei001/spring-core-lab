@@ -30,7 +30,7 @@ public class Sprint extends BaseEntity {
 
     @NotBlank(groups = ValidGroup.Create.class)
     @Size(max = 100)
-    @Pattern(regexp = "(?sU).*\S.*")
+    @Pattern(regexp = "(?sU).*\\S.*")
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
