@@ -10,6 +10,8 @@ import dev.jianwii.api.project.ProjectQueryParameter;
 import dev.jianwii.api.project.SprintApi;
 import dev.jianwii.api.project.SprintQueryParameter;
 import dev.jianwii.api.project.TaskApi;
+import dev.jianwii.api.project.TaskAttachmentApi;
+import dev.jianwii.api.project.TaskAttachmentQueryParameter;
 import dev.jianwii.api.project.TaskCommentApi;
 import dev.jianwii.api.project.TaskCommentQueryParameter;
 import dev.jianwii.api.project.TaskQueryParameter;
@@ -23,6 +25,7 @@ import dev.jianwii.entity.basicdata.Permission;
 import dev.jianwii.entity.project.ProjectMember;
 import dev.jianwii.entity.project.ProjectRole;
 import dev.jianwii.entity.project.Task;
+import dev.jianwii.entity.project.TaskAttachment;
 import dev.jianwii.entity.project.TaskComment;
 import dev.jianwii.entity.project.WorkLog;
 import lombok.AllArgsConstructor;
@@ -56,6 +59,7 @@ public class ProjectAccessGuard {
     private final SprintApi sprintApi;
     private final TaskApi taskApi;
     private final TaskCommentApi taskCommentApi;
+    private final TaskAttachmentApi taskAttachmentApi;
     private final WorkLogApi workLogApi;
 
     // ---- 查詢 ----
@@ -117,6 +121,17 @@ public class ProjectAccessGuard {
 
     /** 必須指定任務，且是該任務所屬專案的成員。 */
     public void scopeComments(TaskCommentQueryParameter parameter) {
+        if (isAdmin()) {
+            return;
+        }
+        if (parameter.getTaskId() == null) {
+            throw new BusinessException("請指定 taskId");
+        }
+        requireMember(projectOfTask(parameter.getTaskId()));
+    }
+
+    /** 必須指定任務，且是該任務所屬專案的成員。 */
+    public void scopeAttachments(TaskAttachmentQueryParameter parameter) {
         if (isAdmin()) {
             return;
         }
@@ -191,6 +206,13 @@ public class ProjectAccessGuard {
         parameter.setIds(List.of(commentId));
         TaskComment comment = first(taskCommentApi.query(parameter), commentId);
         return projectOfTask(comment.getTaskId());
+    }
+
+    public Long projectOfAttachment(Long attachmentId) {
+        TaskAttachmentQueryParameter parameter = new TaskAttachmentQueryParameter();
+        parameter.setIds(List.of(attachmentId));
+        TaskAttachment attachment = first(taskAttachmentApi.query(parameter), attachmentId);
+        return projectOfTask(attachment.getTaskId());
     }
 
     public Long projectOfWorkLog(Long workLogId) {

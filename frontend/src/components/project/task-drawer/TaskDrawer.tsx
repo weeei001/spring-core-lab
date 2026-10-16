@@ -16,6 +16,7 @@ import { SPRINT_STATUS_LABELS, STORY_POINT_OPTIONS, TASK_PRIORITY_LABELS, TASK_S
 import { DATE_FORMAT, isTaskFinished } from '../project-utils';
 import { useMemberDirectory } from '../useMemberDirectory';
 import { useTaskActions } from '../useTaskActions';
+import { TaskAttachments } from './TaskAttachments';
 import { TaskSubtasks } from './TaskSubtasks';
 import { TaskTimeline } from './TaskTimeline';
 import { TaskWorkLogs } from './TaskWorkLogs';
@@ -402,6 +403,11 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
               key: 'activity',
               label: '留言與活動',
               children: <TaskTimeline taskId={task.id} milestones={milestones.data ?? []} labels={labels.data ?? []} sprints={sprints.data ?? []} members={memberOptions} editable={editable} />,
+            },
+            {
+              key: 'attachments',
+              label: '附件',
+              children: <TaskAttachments taskId={task.id} editable={editable} />,
             },
             {
               key: 'work-log',

@@ -4,6 +4,11 @@ server:
   forward-headers-strategy: framework
 
 spring:
+  servlet:
+    multipart:
+      # 任務附件單檔上限；web-server 與 project-service 要一致
+      max-file-size: 10MB
+      max-request-size: 11MB
   application:
     name: web-server
   profiles:

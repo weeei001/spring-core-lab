@@ -13,7 +13,7 @@ import { useAuth } from '@/core/auth/useAuth';
 import { isProjectClosed } from './project-utils';
 
 /** 專案相關資料的 queryKey 開頭；任何異動後一起重新查詢，畫面上的統計、進度才會一致 */
-const PROJECT_KEYS = new Set(['project', 'project-member', 'milestone', 'project-label', 'sprint', 'task', 'task-comment', 'task-activity', 'work-log']);
+const PROJECT_KEYS = new Set(['project', 'project-member', 'milestone', 'project-label', 'sprint', 'task', 'task-comment', 'task-activity', 'task-attachment', 'work-log']);
 
 export function useInvalidateProjectData(): () => Promise<void> {
   const queryClient = useQueryClient();
