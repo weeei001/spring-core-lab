@@ -3,6 +3,7 @@ package dev.jianwii.web;
 import dev.jianwii.api.basicdata.RoleApi;
 import dev.jianwii.api.basicdata.SerialNumberApi;
 import dev.jianwii.api.basicdata.UserApi;
+import dev.jianwii.api.notification.NotificationApi;
 import dev.jianwii.api.project.MilestoneApi;
 import dev.jianwii.api.project.ProjectApi;
 import dev.jianwii.api.project.ProjectMemberApi;
@@ -24,6 +25,7 @@ import org.springframework.web.service.registry.ImportHttpServices;
 @ImportHttpServices(group = "project-service", types = {ProjectApi.class, ProjectMemberApi.class,
         MilestoneApi.class, TaskApi.class, TaskCommentApi.class, TaskActivityApi.class,
         WorkLogApi.class})
+@ImportHttpServices(group = "notification-service", types = NotificationApi.class)
 public class WebServerApplication {
 
     public static void main(String[] args) {

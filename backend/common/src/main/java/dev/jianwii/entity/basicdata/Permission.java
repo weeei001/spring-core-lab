@@ -29,7 +29,8 @@ public enum Permission {
     WORK_LOG_WRITE("work-log:write", "專案", "登記自己的工時"),
     SERIAL_NUMBER_READ("serial-number:read", "基本資料", "查詢編號規則"),
     SERIAL_NUMBER_WRITE("serial-number:write", "基本資料", "維護編號規則"),
-    ROLE_MANAGE("role:manage", "系統管理", "維護角色、指派使用者角色");
+    ROLE_MANAGE("role:manage", "系統管理", "維護角色、指派使用者角色"),
+    NOTIFICATION_SEND("notification:send", "系統管理", "發送公告通知給指定的使用者");
 
     private static final Set<String> CODES =
             Arrays.stream(values()).map(Permission::getCode).collect(Collectors.toUnmodifiableSet());

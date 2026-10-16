@@ -1,0 +1,43 @@
+# 換行統一：文字檔在 git 裡一律存 LF，checkout 也是 LF，不受各人 core.autocrlf 設定影響。
+# git 自動判斷文字或二進位；判斷不準的類型在下面明確指定。
+* text=auto eol=lf
+
+# ---- 必須固定換行的腳本 ----
+# Windows 批次檔要 CRLF，否則 cmd 可能讀錯行
+*.cmd text eol=crlf
+*.bat text eol=crlf
+# shell script 要 LF，否則 Linux／macOS 執行時會出現 $'\r': command not found
+mvnw text eol=lf
+*.sh text eol=lf
+
+# ---- 原始碼：diff 的區塊標題顯示所在的方法、函式 ----
+*.java text diff=java
+*.ts text
+*.tsx text
+*.js text
+*.css text diff=css
+*.html text diff=html
+*.md text diff=markdown
+*.xml text
+*.yml text
+*.yaml text
+*.json text
+*.properties text
+*.http text
+
+# ---- 自動產生的檔案：GitHub 預設摺疊、不算進語言統計 ----
+yarn.lock text linguist-generated=true
+
+# ---- 二進位：不轉換換行、不顯示文字 diff ----
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.jar binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

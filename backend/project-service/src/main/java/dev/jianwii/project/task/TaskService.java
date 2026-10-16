@@ -12,6 +12,7 @@ import dev.jianwii.entity.project.TaskPriority;
 import dev.jianwii.entity.project.TaskStatus;
 import dev.jianwii.project.activity.TaskActivityRecorder;
 import dev.jianwii.project.milestone.MilestoneDAO;
+import dev.jianwii.project.notification.TaskNotifier;
 import dev.jianwii.project.project.ProjectRules;
 import dev.jianwii.project.worklog.TaskHours;
 import dev.jianwii.project.worklog.WorkLogDAO;
@@ -53,17 +54,19 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     private final WorkLogDAO workLogDAO;
     private final ProjectRules projectRules;
     private final TaskActivityRecorder taskActivityRecorder;
+    private final TaskNotifier taskNotifier;
     private final SerialNumberApi serialNumberApi;
 
     public TaskService(TaskDAO taskDAO, MilestoneDAO milestoneDAO, WorkLogDAO workLogDAO,
             ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder,
-            SerialNumberApi serialNumberApi) {
+            TaskNotifier taskNotifier, SerialNumberApi serialNumberApi) {
         super(taskDAO);
         this.taskDAO = taskDAO;
         this.milestoneDAO = milestoneDAO;
         this.workLogDAO = workLogDAO;
         this.projectRules = projectRules;
         this.taskActivityRecorder = taskActivityRecorder;
+        this.taskNotifier = taskNotifier;
         this.serialNumberApi = serialNumberApi;
     }
 
@@ -95,10 +98,13 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     public Task create(Task request) {
         Task saved = super.create(request);
         taskActivityRecorder.created(saved.getId());
+        if (saved.getAssigneeId() != null) {
+            taskNotifier.assigned(saved);
+        }
         return saved;
     }
 
-    /** 更新後比對新舊值，有變的欄位寫進活動紀錄。 */
+    /** 更新後比對新舊值，有變的欄位寫進活動紀錄，並通知相關的人。 */
     @Override
     public Task update(Long id, Task request) {
         Tracked before = Tracked.of(find(id));
@@ -345,6 +351,12 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         taskActivityRecorder.changed(id, "dueDate", before.dueDate(), after.getDueDate());
         taskActivityRecorder.changed(id, "milestoneId", before.milestoneId(),
                 after.getMilestoneId());
+        if (after.getAssigneeId() != null && !after.getAssigneeId().equals(before.assigneeId())) {
+            taskNotifier.assigned(after);
+        }
+        if (after.getStatus() != before.status()) {
+            taskNotifier.statusChanged(after, before.status());
+        }
     }
 
     private static void requireUnchanged(String field, Object requested, Object current) {

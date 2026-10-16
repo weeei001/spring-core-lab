@@ -11,6 +11,7 @@ export const PERMISSIONS = {
   SERIAL_NUMBER_READ: 'serial-number:read',
   SERIAL_NUMBER_WRITE: 'serial-number:write',
   ROLE_MANAGE: 'role:manage',
+  NOTIFICATION_SEND: 'notification:send',
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

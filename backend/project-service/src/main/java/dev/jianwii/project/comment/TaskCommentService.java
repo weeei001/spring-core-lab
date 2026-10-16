@@ -9,31 +9,36 @@ import dev.jianwii.common.web.Operator;
 import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskComment;
 import dev.jianwii.project.activity.TaskActivityRecorder;
+import dev.jianwii.project.notification.TaskNotifier;
 import dev.jianwii.project.project.ProjectRules;
 import dev.jianwii.project.task.TaskDAO;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
-/** 任務留言；只有作者能修改或刪除，新增時寫一筆活動紀錄。 */
+/** 任務留言；只有作者能修改或刪除，新增時寫一筆活動紀錄並通知任務的指派人與建立者。 */
 @Service
 public class TaskCommentService extends BaseService<TaskComment, TaskCommentQueryParameter> {
     private final TaskDAO taskDAO;
     private final ProjectRules projectRules;
     private final TaskActivityRecorder taskActivityRecorder;
+    private final TaskNotifier taskNotifier;
 
     public TaskCommentService(TaskCommentDAO taskCommentDAO, TaskDAO taskDAO,
-            ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder) {
+            ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder,
+            TaskNotifier taskNotifier) {
         super(taskCommentDAO);
         this.taskDAO = taskDAO;
         this.projectRules = projectRules;
         this.taskActivityRecorder = taskActivityRecorder;
+        this.taskNotifier = taskNotifier;
     }
 
     @Override
     public TaskComment create(TaskComment request) {
         TaskComment saved = super.create(request);
         taskActivityRecorder.commented(saved.getTaskId());
+        taskNotifier.commented(requireOpenTask(saved.getTaskId()), saved);
         return saved;
     }
 
@@ -61,10 +66,11 @@ public class TaskCommentService extends BaseService<TaskComment, TaskCommentQuer
     }
 
     /** 任務必須有效，且所屬專案未結案。 */
-    private void requireOpenTask(Long taskId) {
+    private Task requireOpenTask(Long taskId) {
         Task task = taskDAO.findById(taskId).filter(entity -> entity.getDbMark() == BaseEntity.VALID)
                 .orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
         projectRules.requireOpen(task.getProjectId());
+        return task;
     }
 
     private static void requireAuthor(TaskComment comment) {

@@ -2,6 +2,7 @@ import { App, Button, Dropdown, Flex, Layout, Menu, Typography, theme, type Menu
 import { LogoutOutlined, MoonOutlined, QuestionCircleOutlined, SunOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '@/core/auth/useAuth';
+import { NotificationBell } from '@/modules/notification';
 import { GlobalSearch } from '@/modules/project';
 import { openPageTour, resetPageTours } from '@/shared/ui/PageTour';
 import { MENU } from '../menu';
@@ -57,6 +58,7 @@ export function AppLayout() {
             <div data-tour="global-search" style={{ marginInlineEnd: 'auto' }}>
               <GlobalSearch />
             </div>
+            <NotificationBell />
             <Dropdown
               menu={{
                 items: [

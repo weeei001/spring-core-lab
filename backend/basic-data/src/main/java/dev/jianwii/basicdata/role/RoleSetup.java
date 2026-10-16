@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static dev.jianwii.entity.basicdata.Permission.NOTIFICATION_SEND;
 import static dev.jianwii.entity.basicdata.Permission.PROJECT_ADMIN;
 import static dev.jianwii.entity.basicdata.Permission.PROJECT_READ;
 import static dev.jianwii.entity.basicdata.Permission.PROJECT_WRITE;
@@ -34,8 +35,9 @@ public class RoleSetup implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        // 系統設定：帳號角色、編號規則；不含專案資料
-        createIfAbsent("ADMIN", "系統管理員", ROLE_MANAGE, SERIAL_NUMBER_READ, SERIAL_NUMBER_WRITE);
+        // 系統設定：帳號角色、編號規則、公告；不含專案資料
+        createIfAbsent("ADMIN", "系統管理員", ROLE_MANAGE, SERIAL_NUMBER_READ, SERIAL_NUMBER_WRITE,
+                NOTIFICATION_SEND);
         // 跨專案管理：看得到並能維護所有專案，不必是成員
         createIfAbsent("PMO", "專案管理辦公室", PROJECT_READ, PROJECT_ADMIN, PROJECT_WRITE, TASK_WRITE);
         // 可建立專案；只在自己擔任經理的專案維護成員、里程碑

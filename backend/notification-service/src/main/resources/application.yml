@@ -1,0 +1,59 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    # 服務名稱，也是向 Eureka 登記的名稱，呼叫端 @ImportHttpServices 的 group 要用這個
+    name: notification-service
+  profiles:
+    active: local
+  devtools:
+    restart:
+      # 改 common 時好幾個模組會一起重新編譯；classpath 靜止 1 秒才重啟，避免編譯到一半就重啟或一次改動重啟好幾次
+      poll-interval: 2s
+      quiet-period: 1s
+    livereload:
+      # 前端熱更新由 vite 負責；每個服務都開 LiveReload 會搶同一個 port（35729）
+      enabled: false
+  jpa:
+    # 交易結束就歸還連線，不讓連線一路占到 JSON 輸出完（Spring Boot 預設 true）；Entity 回傳前須載入完成
+    open-in-view: false
+    hibernate:
+      # 依 Entity 自動建立／更新資料表（開發用）
+      ddl-auto: update
+  datasource:
+    url: jdbc:mysql://localhost:3306/notification?createDatabaseIfNotExist=true&serverTimezone=Asia/Taipei&characterEncoding=utf-8&useSSL=false
+    username: root
+  # SMTP 連線。預設連本機的 Mailpit（開發用假信箱，信不會真的寄出，在 http://localhost:8025 看）：
+  #   docker run -d --name mailpit -p 8025:8025 -p 1025:1025 axllent/mailpit
+  # 要寄真的信時，在 application-local.yml 改 host、port，並填 username、password（例如 Gmail 用應用程式密碼）
+  mail:
+    host: localhost
+    port: 1025
+    default-encoding: UTF-8
+    properties:
+      # 連線、讀取、寫入逾時（毫秒）；預設是無限等待，SMTP 卡住會一直占著執行緒
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 10000
+      "[mail.smtp.writetimeout]": 10000
+
+app:
+  # 通知信裡「前往查看」連結的前端網址
+  frontend-url: http://localhost:3000
+  mail:
+    # 寄件者；真的 SMTP 通常要和登入帳號相同，否則會被拒絕或當成垃圾信
+    from: "spring-core-lab <no-reply@localhost>"
+    # 每封信最多嘗試幾次，超過就停在 FAILED
+    max-attempts: 3
+    # 排程多久檢查一次要重試的信（ISO-8601 時間長度）
+    retry-interval: PT1M
+
+eureka:
+  client:
+    # Eureka Server 位址
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    # 以 127.0.0.1 登記，本機開發時避免主機名稱解析不到
+    prefer-ip-address: true
+    ip-address: 127.0.0.1

@@ -1,0 +1,68 @@
+### 通知 API 範例
+### 先依 auth.http 的說明登入並設定 session、xsrf，並執行一次「目前登入者」取得 {{userId}}
+### 寄信預設連本機 Mailpit（見 notification-service 的 application.yml），寄出的信在 http://localhost:8025 看
+
+### 1. 發公告給自己並寄信（需要 notification:send，或列在 super-admin-subjects）
+# @no-cookie-jar
+POST http://localhost:8080/api/notification/announce
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "recipientIds": ["{{userId}}"],
+  "title": "系統維護公告",
+  "content": "本週六 22:00～24:00 系統維護，期間暫停服務。",
+  "email": true
+}
+
+> {%
+    client.global.set("notificationId", response.body.data[0].id);
+%}
+
+### 2. 收件人不存在 → 400
+# @no-cookie-jar
+POST http://localhost:8080/api/notification/announce
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "recipientIds": ["999999999"],
+  "title": "不會送出"
+}
+
+### 3. 我的未讀數
+# @no-cookie-jar
+GET http://localhost:8080/api/notification/unread-count
+Cookie: JSESSIONID={{session}}
+
+### 4. 我的未讀通知，新的在前（recipientId 由 web-server 設為登入者，給了也會被覆蓋）
+# @no-cookie-jar
+POST http://localhost:8080/api/notification/queryPage
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+Content-Type: application/json
+
+{
+  "unread": true,
+  "page": 1,
+  "size": 20,
+  "sort": [{ "field": "createTime", "direction": "desc" }]
+}
+
+### 5. 標記一則已讀（別人的通知 → 403）
+# @no-cookie-jar
+POST http://localhost:8080/api/notification/{{notificationId}}/read
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+
+### 6. 全部標記已讀，回傳這次標記的筆數
+# @no-cookie-jar
+POST http://localhost:8080/api/notification/read-all
+Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}
+
+### 任務相關的通知由 project-service 自動發出（不通知操作者自己），用另一個帳號操作 project.http 即可看到：
+### - 任務指派給你（新增時給 assigneeId，或修改 assigneeId）：站內通知 + Email
+### - 你負責或建立的任務狀態變更、有新留言：站內通知

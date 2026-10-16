@@ -22,6 +22,7 @@
         <module>eureka-server</module>
         <module>basic-data</module>
         <module>project-service</module>
+        <module>notification-service</module>
         <module>web-server</module>
     </modules>
 
