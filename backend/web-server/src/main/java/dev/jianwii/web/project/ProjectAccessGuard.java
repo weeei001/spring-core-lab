@@ -7,6 +7,8 @@ import dev.jianwii.api.project.ProjectLabelQueryParameter;
 import dev.jianwii.api.project.ProjectMemberApi;
 import dev.jianwii.api.project.ProjectMemberQueryParameter;
 import dev.jianwii.api.project.ProjectQueryParameter;
+import dev.jianwii.api.project.SprintApi;
+import dev.jianwii.api.project.SprintQueryParameter;
 import dev.jianwii.api.project.TaskApi;
 import dev.jianwii.api.project.TaskCommentApi;
 import dev.jianwii.api.project.TaskCommentQueryParameter;
@@ -51,6 +53,7 @@ public class ProjectAccessGuard {
     private final ProjectMemberApi projectMemberApi;
     private final MilestoneApi milestoneApi;
     private final ProjectLabelApi projectLabelApi;
+    private final SprintApi sprintApi;
     private final TaskApi taskApi;
     private final TaskCommentApi taskCommentApi;
     private final WorkLogApi workLogApi;
@@ -83,6 +86,11 @@ public class ProjectAccessGuard {
 
     /** 必須指定專案，且都是自己參與的專案。 */
     public void scopeLabels(ProjectLabelQueryParameter parameter) {
+        requireMemberOfProjects(parameter.getProjectId(), parameter.getProjectIds());
+    }
+
+    /** 必須指定專案，且都是自己參與的專案。 */
+    public void scopeSprints(SprintQueryParameter parameter) {
         requireMemberOfProjects(parameter.getProjectId(), parameter.getProjectIds());
     }
 
@@ -158,6 +166,12 @@ public class ProjectAccessGuard {
         MilestoneQueryParameter parameter = new MilestoneQueryParameter();
         parameter.setIds(List.of(milestoneId));
         return first(milestoneApi.query(parameter), milestoneId).getProjectId();
+    }
+
+    public Long projectOfSprint(Long sprintId) {
+        SprintQueryParameter parameter = new SprintQueryParameter();
+        parameter.setIds(List.of(sprintId));
+        return first(sprintApi.query(parameter), sprintId).getProjectId();
     }
 
     public Long projectOfLabel(Long labelId) {

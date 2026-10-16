@@ -5,6 +5,7 @@ import { memberApi } from '@/api/project/member-api';
 import type { ProjectMember, ProjectRole } from '@/api/project/member.types';
 import { milestoneApi } from '@/api/project/milestone-api';
 import { projectApi } from '@/api/project/project-api';
+import { sprintApi } from '@/api/project/sprint-api';
 import type { Project } from '@/api/project/project.types';
 import { taskApi } from '@/api/project/task-api';
 import { PERMISSIONS } from '@/core/auth/permissions';
@@ -12,7 +13,7 @@ import { useAuth } from '@/core/auth/useAuth';
 import { isProjectClosed } from './project-utils';
 
 /** 專案相關資料的 queryKey 開頭；任何異動後一起重新查詢，畫面上的統計、進度才會一致 */
-const PROJECT_KEYS = new Set(['project', 'project-member', 'milestone', 'project-label', 'task', 'task-comment', 'task-activity', 'work-log']);
+const PROJECT_KEYS = new Set(['project', 'project-member', 'milestone', 'project-label', 'sprint', 'task', 'task-comment', 'task-activity', 'work-log']);
 
 export function useInvalidateProjectData(): () => Promise<void> {
   const queryClient = useQueryClient();
@@ -26,7 +27,7 @@ export interface ProjectAccess {
   myRole: ProjectRole | undefined;
   /** 結案或取消：底下的資料都唯讀 */
   closed: boolean;
-  /** 修改專案資料、成員、里程碑、標籤 */
+  /** 修改專案資料、成員、里程碑、標籤、Sprint */
   canManage: boolean;
   /** 改狀態（含重新開啟結案的專案） */
   canChangeStatus: boolean;
@@ -93,6 +94,15 @@ export function useProjectMilestones(projectId: number) {
     queryKey: ['milestone', 'project', projectId],
     queryFn: () => milestoneApi.query({ projectId }),
     select: (milestones) => [...milestones].sort((a, b) => a.dueDate.localeCompare(b.dueDate)),
+  });
+}
+
+/** 專案的 Sprint，依開始日排序 */
+export function useProjectSprints(projectId: number) {
+  return useQuery({
+    queryKey: ['sprint', 'project', projectId],
+    queryFn: () => sprintApi.query({ projectId }),
+    select: (sprints) => [...sprints].sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id - b.id),
   });
 }
 

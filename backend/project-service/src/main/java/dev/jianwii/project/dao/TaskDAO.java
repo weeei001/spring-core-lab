@@ -34,6 +34,9 @@ public interface TaskDAO extends BaseDAO<Task, Long> {
     /** 前置任務含此任務的有效任務；刪除任務時一併移除關聯。 */
     List<Task> findByPredecessorIdsContainingAndDbMark(Long predecessorId, Integer dbMark);
 
+    /** Sprint 內的有效任務；結束、刪除 Sprint 時移動任務用。 */
+    List<Task> findBySprintIdAndDbMark(Long sprintId, Integer dbMark);
+
     /** 移除成員時，找出該成員關注的任務。 */
     List<Task> findByProjectIdAndWatcherIdsContainingAndDbMark(Long projectId, String watcherId,
             Integer dbMark);
@@ -94,6 +97,22 @@ public interface TaskDAO extends BaseDAO<Task, Long> {
     List<TaskCount> countByLabel(@Param("ids") Collection<Long> labelIds,
             @Param("done") TaskStatus done, @Param("cancelled") TaskStatus cancelled,
             @Param("today") LocalDate today);
+
+    /** 各 Sprint 的主任務數與故事點數合計；沒填點數的任務以 0 計。 */
+    @Query("""
+            select t.sprintId as sprintId, count(t) as total,
+                   sum(case when t.status = :done then 1 else 0 end) as done,
+                   coalesce(sum(t.storyPoints), 0) as points,
+                   coalesce(sum(case when t.status = :done then t.storyPoints else 0 end), 0) as donePoints
+            from Task t
+            where t.sprintId in :ids and t.parentId is null and t.status <> :cancelled and t.dbMark = 0
+            group by t.sprintId""")
+    List<SprintCount> countBySprint(@Param("ids") Collection<Long> sprintIds,
+            @Param("done") TaskStatus done, @Param("cancelled") TaskStatus cancelled);
+
+    default List<SprintCount> sprintCounts(Collection<Long> sprintIds) {
+        return countBySprint(sprintIds, TaskStatus.DONE, TaskStatus.CANCELLED);
+    }
 
     default List<TaskCount> projectCounts(Collection<Long> projectIds) {
         return countByProject(projectIds, TaskStatus.DONE, TaskStatus.CANCELLED, LocalDate.now());

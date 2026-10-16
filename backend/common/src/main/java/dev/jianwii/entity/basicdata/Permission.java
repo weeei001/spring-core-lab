@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public enum Permission {
 
     PROJECT_READ("project:read", "專案", "查詢自己參與的專案、任務、留言與工時"),
-    PROJECT_WRITE("project:write", "專案", "建立專案；擔任經理時維護專案、成員、里程碑與標籤"),
+    PROJECT_WRITE("project:write", "專案", "建立專案；擔任經理時維護專案、成員、里程碑、標籤與 Sprint"),
     PROJECT_ADMIN("project:admin", "專案", "不受成員限制，可存取所有專案；能否修改看其他權限"),
     TASK_WRITE("task:write", "專案", "新增、修改、刪除任務與留言"),
     WORK_LOG_WRITE("work-log:write", "專案", "登記自己的工時"),

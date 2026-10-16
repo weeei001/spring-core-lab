@@ -5,7 +5,7 @@ import { BarsOutlined, PlusOutlined, ProjectOutlined, TableOutlined } from '@ant
 import { milestoneApi } from '@/api/project/milestone-api';
 import type { Milestone } from '@/api/project/milestone.types';
 import type { Task, TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
-import { useInvalidateProjectData, useProjectLabels, useProjectMilestones, useProjectTasks, type ProjectAccess } from '@/components/project/hooks';
+import { useInvalidateProjectData, useProjectLabels, useProjectMilestones, useProjectSprints, useProjectTasks, type ProjectAccess } from '@/components/project/hooks';
 import { LabelSelect } from '@/components/project/LabelSelect';
 import { TASK_PRIORITY_LABELS, TASK_TYPE_LABELS } from '@/components/project/labels';
 import { useTaskActions } from '@/components/project/useTaskActions';
@@ -25,6 +25,9 @@ const VIEW_KEY = 'project-task-view';
 /** 指派人篩選的特殊值 */
 const ME = '__me__';
 const NONE = '__none__';
+/** Sprint 篩選的特殊值：進行中的 Sprint、Backlog（沒排入 Sprint） */
+const CURRENT_SPRINT = -1;
+const BACKLOG = -2;
 
 function loadView(): ViewMode {
   try {
@@ -52,6 +55,8 @@ interface Filters {
   /** 掛了任一個標籤即符合 */
   labelIds: number[];
   milestoneId?: number;
+  /** Sprint id，或 CURRENT_SPRINT、BACKLOG；undefined 表示全部 */
+  sprint?: number;
 }
 
 interface TasksTabProps {
@@ -70,6 +75,7 @@ export function TasksTab({ projectId, access, directory, memberOptions, onOpen }
   const tasks = useProjectTasks(projectId);
   const milestones = useProjectMilestones(projectId);
   const labels = useProjectLabels(projectId);
+  const sprints = useProjectSprints(projectId);
   const { create, update } = useTaskActions();
   const [view, setView] = useState<ViewMode>(loadView);
   const [filters, setFilters] = useState<Filters>({ keyword: '', priorities: [], types: [], labelIds: [] });
@@ -89,6 +95,10 @@ export function TasksTab({ projectId, access, directory, memberOptions, onOpen }
   }
 
   const allTasks = tasks.data ?? [];
+  const activeSprintId = (sprints.data ?? []).find((sprint) => sprint.status === 'ACTIVE')?.id;
+  // 子任務跟著父任務的 Sprint
+  const sprintOf = (task: Task): number | null =>
+    task.parentId === null ? task.sprintId : (allTasks.find((other) => other.id === task.parentId)?.sprintId ?? null);
   const keyword = filters.keyword.trim().toLowerCase();
   const myId = String(user.id);
   const filtered = allTasks.filter((task) => {
@@ -112,6 +122,13 @@ export function TasksTab({ projectId, access, directory, memberOptions, onOpen }
     }
     if (filters.labelIds.length > 0 && !task.labelIds.some((id) => filters.labelIds.includes(id))) {
       return false;
+    }
+    if (filters.sprint !== undefined) {
+      const sprintId = sprintOf(task);
+      const wanted = filters.sprint === CURRENT_SPRINT ? activeSprintId : filters.sprint === BACKLOG ? null : filters.sprint;
+      if (wanted === undefined || sprintId !== wanted) {
+        return false;
+      }
     }
     if (filters.milestoneId !== undefined && task.milestoneId !== filters.milestoneId) {
       return false;
@@ -178,6 +195,20 @@ export function TasksTab({ projectId, access, directory, memberOptions, onOpen }
             style={{ width: 'auto', minWidth: 150 }}
             onChange={(labelIds) => {
               setFilters({ ...filters, labelIds });
+            }}
+          />
+          <Select<number>
+            allowClear
+            placeholder="全部 Sprint"
+            style={{ width: 150 }}
+            value={filters.sprint}
+            options={[
+              { value: CURRENT_SPRINT, label: '進行中的 Sprint' },
+              { value: BACKLOG, label: 'Backlog' },
+              ...(sprints.data ?? []).map((sprint) => ({ value: sprint.id, label: sprint.name })),
+            ]}
+            onChange={(sprint: number | undefined) => {
+              setFilters({ ...filters, sprint });
             }}
           />
           <Select<number>

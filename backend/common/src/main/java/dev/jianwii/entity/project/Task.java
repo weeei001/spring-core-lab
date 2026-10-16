@@ -6,6 +6,8 @@ import dev.jianwii.common.validation.ValidGroup;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -29,7 +31,8 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "task", indexes = {@Index(columnList = "project_id, status"),
-        @Index(columnList = "assignee_id"), @Index(columnList = "parent_id")})
+        @Index(columnList = "assignee_id"), @Index(columnList = "parent_id"),
+        @Index(columnList = "sprint_id")})
 @Getter
 @Setter
 public class Task extends BaseEntity {
@@ -46,6 +49,19 @@ public class Task extends BaseEntity {
     /** 所屬里程碑，必須是同一專案的里程碑；選填。 */
     @Column(name = "milestone_id")
     private Long milestoneId;
+
+    /**
+     * 排入的 Sprint，必須是同一專案、未結束的 Sprint；只有主任務能排入，子任務跟著父任務。
+     * 選填，null 即在 Backlog。
+     */
+    @Column(name = "sprint_id")
+    private Long sprintId;
+
+    /** 故事點數（相對工作量，例如 1、2、3、5、8），燃盡圖以此計算；選填。 */
+    @Min(0)
+    @Max(100)
+    @Column(name = "story_points")
+    private Integer storyPoints;
 
     /** 父任務；有值即為子任務。建立後不可修改。 */
     @Column(name = "parent_id", updatable = false)
@@ -134,7 +150,8 @@ public class Task extends BaseEntity {
     private Set<String> watcherIds;
 
     /**
-     * 只在更新時使用：要清空的選填欄位，可用 milestoneId、assigneeId、startDate、dueDate、estimateHours、description。
+     * 只在更新時使用：要清空的選填欄位，可用 milestoneId、sprintId、storyPoints、assigneeId、startDate、dueDate、
+     * estimateHours、description。
      * 不存資料庫，也不會回傳。
      */
     @Transient

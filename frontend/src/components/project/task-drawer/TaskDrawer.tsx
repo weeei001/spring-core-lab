@@ -10,9 +10,9 @@ import { toOptions } from '@/shared/lib/format';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import { useAuth } from '@/core/auth/useAuth';
 import { PageTour } from '@/shared/ui/PageTour';
-import { useInvalidateProjectData, useProjectContext, useProjectLabels, useProjectMilestones, useProjectTasks } from '../hooks';
+import { useInvalidateProjectData, useProjectContext, useProjectLabels, useProjectMilestones, useProjectSprints, useProjectTasks } from '../hooks';
 import { LabelSelect } from '../LabelSelect';
-import { TASK_PRIORITY_LABELS, TASK_STATUS_LABELS, TASK_TYPE_LABELS } from '../labels';
+import { SPRINT_STATUS_LABELS, STORY_POINT_OPTIONS, TASK_PRIORITY_LABELS, TASK_STATUS_LABELS, TASK_TYPE_LABELS } from '../labels';
 import { DATE_FORMAT, isTaskFinished } from '../project-utils';
 import { useMemberDirectory } from '../useMemberDirectory';
 import { useTaskActions } from '../useTaskActions';
@@ -46,6 +46,7 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
   const projectTasks = useProjectTasks(task.projectId);
   const milestones = useProjectMilestones(task.projectId);
   const labels = useProjectLabels(task.projectId);
+  const sprints = useProjectSprints(task.projectId);
   const { directory, options: memberOptions } = useMemberDirectory(members, [task.assigneeId, ...task.watcherIds]);
   const { update, remove, confirmStatus } = useTaskActions();
   const { user } = useAuth();
@@ -206,6 +207,51 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
             }}
           />
         </Field>
+        <Field label="Sprint">
+          {task.parentId === null ? (
+            <Flex gap={8} align="center" wrap>
+              <Select<number>
+                value={task.sprintId ?? undefined}
+                disabled={!editable}
+                allowClear
+                placeholder="Backlog"
+                // 已結束的 Sprint 不能再排入，但目前所在的仍要顯示名稱
+                options={(sprints.data ?? [])
+                  .filter((sprint) => sprint.status !== 'CLOSED' || sprint.id === task.sprintId)
+                  .map((sprint) => ({
+                    value: sprint.id,
+                    label: `${sprint.name}（${SPRINT_STATUS_LABELS[sprint.status]}）`,
+                    disabled: sprint.status === 'CLOSED',
+                  }))}
+                style={{ width: 240 }}
+                onChange={(sprintId: number | undefined) => {
+                  if (sprintId === undefined) {
+                    clear('sprintId');
+                  } else {
+                    save({ sprintId });
+                  }
+                }}
+              />
+              <Select<number>
+                value={task.storyPoints ?? undefined}
+                disabled={!editable}
+                allowClear
+                placeholder="點數"
+                options={STORY_POINT_OPTIONS.map((points) => ({ value: points, label: `${String(points)} 點` }))}
+                style={{ width: 100 }}
+                onChange={(storyPoints: number | undefined) => {
+                  if (storyPoints === undefined) {
+                    clear('storyPoints');
+                  } else {
+                    save({ storyPoints });
+                  }
+                }}
+              />
+            </Flex>
+          ) : (
+            <Typography.Text type="secondary">跟著父任務</Typography.Text>
+          )}
+        </Field>
         <Field label="日期">
           <Flex gap={8} align="center" wrap>
             <DatePicker
@@ -355,7 +401,7 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
             {
               key: 'activity',
               label: '留言與活動',
-              children: <TaskTimeline taskId={task.id} milestones={milestones.data ?? []} labels={labels.data ?? []} members={memberOptions} editable={editable} />,
+              children: <TaskTimeline taskId={task.id} milestones={milestones.data ?? []} labels={labels.data ?? []} sprints={sprints.data ?? []} members={memberOptions} editable={editable} />,
             },
             {
               key: 'work-log',

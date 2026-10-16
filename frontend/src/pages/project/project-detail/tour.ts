@@ -17,7 +17,7 @@ export const PROJECT_DETAIL_TOUR: GuideStep[] = [
   {
     target: 'project-tabs',
     title: '分頁',
-    description: '概覽看進度與待辦；任務是主要工作區；里程碑是階段目標；標籤區分任務範圍；成員管理誰能參與；工時看大家投入多少時間。',
+    description: '概覽看進度與待辦；任務是主要工作區；Sprint 規劃迭代並看燃盡圖；里程碑是階段目標；標籤區分任務範圍；成員管理誰能參與；工時看大家投入多少時間。',
   },
   // 停在任務分頁時，重看教學也會帶到任務區的說明
   ...TASKS_TOUR,

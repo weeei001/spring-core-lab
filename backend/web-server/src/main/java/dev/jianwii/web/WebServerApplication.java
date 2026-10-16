@@ -8,6 +8,7 @@ import dev.jianwii.api.project.MilestoneApi;
 import dev.jianwii.api.project.ProjectApi;
 import dev.jianwii.api.project.ProjectLabelApi;
 import dev.jianwii.api.project.ProjectMemberApi;
+import dev.jianwii.api.project.SprintApi;
 import dev.jianwii.api.project.TaskActivityApi;
 import dev.jianwii.api.project.TaskApi;
 import dev.jianwii.api.project.TaskCommentApi;
@@ -24,8 +25,8 @@ import org.springframework.web.service.registry.ImportHttpServices;
 // group 即 Eureka 上的服務名稱，由 Spring Cloud LoadBalancer 挑選實例
 @ImportHttpServices(group = "basic-data", types = {SerialNumberApi.class, UserApi.class, RoleApi.class})
 @ImportHttpServices(group = "project-service", types = {ProjectApi.class, ProjectMemberApi.class,
-        MilestoneApi.class, ProjectLabelApi.class, TaskApi.class, TaskCommentApi.class,
-        TaskActivityApi.class, WorkLogApi.class})
+        MilestoneApi.class, ProjectLabelApi.class, SprintApi.class, TaskApi.class,
+        TaskCommentApi.class, TaskActivityApi.class, WorkLogApi.class})
 @ImportHttpServices(group = "notification-service", types = NotificationApi.class)
 public class WebServerApplication {
 

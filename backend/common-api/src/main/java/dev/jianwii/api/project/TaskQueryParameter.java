@@ -35,6 +35,8 @@ public class TaskQueryParameter extends QueryParameter<Task> {
 
     private Long milestoneId;
 
+    private Long sprintId;
+
     /** 查某任務的子任務。 */
     private Long parentId;
 

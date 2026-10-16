@@ -9,12 +9,14 @@ import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.service.BaseService;
 import dev.jianwii.common.web.Operator;
 import dev.jianwii.entity.project.ProjectLabel;
+import dev.jianwii.entity.project.SprintStatus;
 import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskPriority;
 import dev.jianwii.entity.project.TaskStatus;
 import dev.jianwii.entity.project.TaskType;
 import dev.jianwii.project.dao.MilestoneDAO;
 import dev.jianwii.project.dao.ProjectLabelDAO;
+import dev.jianwii.project.dao.SprintDAO;
 import dev.jianwii.project.dao.TaskCount;
 import dev.jianwii.project.dao.TaskDAO;
 import dev.jianwii.project.dao.TaskHours;
@@ -43,7 +45,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 任務 CRUD 與看板排序；子任務、前置任務、指派人、里程碑、標籤的檢查，以及欄位變更的活動紀錄。
+ * 任務 CRUD 與看板排序；子任務、前置任務、指派人、里程碑、標籤、Sprint 的檢查，以及欄位變更的活動紀錄。
  */
 @Service
 public class TaskService extends BaseService<Task, TaskQueryParameter> {
@@ -52,12 +54,14 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     /** 看板排序值的間隔：插到兩張卡片之間時取中間值，間隔用完才整欄重新編號，平常只改被拖的那一筆。 */
     private static final long GAP = 1024;
     /** 可用 clearFields 清空的欄位。 */
-    private static final Set<String> CLEARABLE = Set.of("milestoneId", "assigneeId", "startDate",
-            "dueDate", "estimateHours", "description");
+    private static final Set<String> CLEARABLE = Set.of("milestoneId", "sprintId", "storyPoints",
+            "assigneeId", "startDate", "dueDate", "estimateHours", "description");
 
     private final TaskDAO taskDAO;
     private final MilestoneDAO milestoneDAO;
     private final ProjectLabelDAO projectLabelDAO;
+    private final SprintDAO sprintDAO;
+    private final SprintBurndownRecorder sprintBurndownRecorder;
     private final WorkLogDAO workLogDAO;
     private final ProjectRules projectRules;
     private final TaskActivityRecorder taskActivityRecorder;
@@ -65,13 +69,16 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     private final SerialNumberApi serialNumberApi;
 
     public TaskService(TaskDAO taskDAO, MilestoneDAO milestoneDAO,
-            ProjectLabelDAO projectLabelDAO, WorkLogDAO workLogDAO, ProjectRules projectRules,
-            TaskActivityRecorder taskActivityRecorder, TaskNotifier taskNotifier,
+            ProjectLabelDAO projectLabelDAO, SprintDAO sprintDAO, WorkLogDAO workLogDAO,
+            ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder,
+            SprintBurndownRecorder sprintBurndownRecorder, TaskNotifier taskNotifier,
             SerialNumberApi serialNumberApi) {
         super(taskDAO);
         this.taskDAO = taskDAO;
         this.milestoneDAO = milestoneDAO;
         this.projectLabelDAO = projectLabelDAO;
+        this.sprintDAO = sprintDAO;
+        this.sprintBurndownRecorder = sprintBurndownRecorder;
         this.workLogDAO = workLogDAO;
         this.projectRules = projectRules;
         this.taskActivityRecorder = taskActivityRecorder;
@@ -140,6 +147,7 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     public Task create(Task request) {
         Task saved = super.create(request);
         taskActivityRecorder.created(saved.getId());
+        sprintBurndownRecorder.refresh(saved.getSprintId());
         if (saved.getAssigneeId() != null) {
             taskNotifier.assigned(saved);
         }
@@ -153,6 +161,14 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         Task saved = super.update(id, request);
         recordChanges(before, saved);
         return saved;
+    }
+
+    /** 刪除後更新所在 Sprint 的燃盡紀錄。 */
+    @Override
+    public void delete(Long id) {
+        Long sprintId = find(id).getSprintId();
+        super.delete(id);
+        sprintBurndownRecorder.refresh(sprintId);
     }
 
     /**
@@ -216,6 +232,9 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         if (request.getMilestoneId() != null) {
             requireMilestone(projectId, request.getMilestoneId());
         }
+        if (request.getSprintId() != null) {
+            requireSprint(projectId, request.getParentId(), request.getSprintId());
+        }
         if (request.getAssigneeId() != null) {
             projectRules.requireMember(projectId, request.getAssigneeId());
         }
@@ -272,6 +291,9 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
 
         if (request.getMilestoneId() != null) {
             requireMilestone(projectId, request.getMilestoneId());
+        }
+        if (request.getSprintId() != null) {
+            requireSprint(projectId, entity.getParentId(), request.getSprintId());
         }
         if (request.getAssigneeId() != null) {
             projectRules.requireMember(projectId, request.getAssigneeId());
@@ -354,7 +376,7 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     @Override
     protected Set<String> sortableFields() {
         return Set.of("id", "createTime", "transTime", "code", "title", "sortOrder", "startDate",
-                "dueDate");
+                "dueDate", "storyPoints");
     }
 
     /** 回傳前載入前置任務、標籤與關注者（LAZY 的中間表）。 */
@@ -413,6 +435,19 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         }
     }
 
+    /** Sprint 必須是同專案、未結束的有效 Sprint；子任務不能另外排入。 */
+    private void requireSprint(Long projectId, Long parentId, Long sprintId) {
+        if (parentId != null) {
+            throw new BusinessException("子任務跟著父任務，不能另外排入 Sprint");
+        }
+        sprintDAO.findById(sprintId)
+                .filter(sprint -> sprint.getDbMark() == BaseEntity.VALID
+                        && sprint.getProjectId().equals(projectId)
+                        && sprint.getStatus() != SprintStatus.CLOSED)
+                .orElseThrow(() -> new BusinessException(
+                        "Sprint 不存在、已結束或不在同一專案：" + sprintId));
+    }
+
     private void requireMilestone(Long projectId, Long milestoneId) {
         milestoneDAO.findById(milestoneId)
                 .filter(milestone -> milestone.getDbMark() == BaseEntity.VALID
@@ -442,6 +477,14 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         taskActivityRecorder.changed(id, "dueDate", before.dueDate(), after.getDueDate());
         taskActivityRecorder.changed(id, "milestoneId", before.milestoneId(),
                 after.getMilestoneId());
+        taskActivityRecorder.changed(id, "sprintId", before.sprintId(), after.getSprintId());
+        taskActivityRecorder.changed(id, "storyPoints", before.storyPoints(),
+                after.getStoryPoints());
+        // 移出、移入、改點數、改狀態都可能影響燃盡圖；同一個 Sprint 重算一次即可
+        sprintBurndownRecorder.refresh(after.getSprintId());
+        if (before.sprintId() != null && !before.sprintId().equals(after.getSprintId())) {
+            sprintBurndownRecorder.refresh(before.sprintId());
+        }
         if (after.getAssigneeId() != null && !after.getAssigneeId().equals(before.assigneeId())) {
             taskNotifier.assigned(after);
         }
@@ -471,13 +514,14 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     /** 要記活動紀錄的欄位，在更新前先記下舊值（entity 更新後就會被覆蓋）。 */
     private record Tracked(String title, TaskType type, Set<Long> labelIds, TaskStatus status,
             TaskPriority priority, String assigneeId, LocalDate startDate, LocalDate dueDate,
-            Long milestoneId) {
+            Long milestoneId, Long sprintId, Integer storyPoints) {
 
         static Tracked of(Task task) {
             // 標籤要複製一份：更新時會換掉 entity 的集合
             return new Tracked(task.getTitle(), task.getType(), Set.copyOf(task.getLabelIds()),
                     task.getStatus(), task.getPriority(), task.getAssigneeId(),
-                    task.getStartDate(), task.getDueDate(), task.getMilestoneId());
+                    task.getStartDate(), task.getDueDate(), task.getMilestoneId(),
+                    task.getSprintId(), task.getStoryPoints());
         }
     }
 }

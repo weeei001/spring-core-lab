@@ -17,11 +17,12 @@ import { LabelTab } from './components/LabelTab';
 import { MemberTab } from './components/MemberTab';
 import { MilestoneTab } from './components/MilestoneTab';
 import { OverviewTab } from './components/OverviewTab';
+import { SprintTab } from './components/SprintTab';
 import { WorkLogTab } from './components/WorkLogTab';
 import { TasksTab } from './components/tasks/TasksTab';
 import { PROJECT_DETAIL_TOUR } from './tour';
 
-const TABS = ['overview', 'tasks', 'milestones', 'labels', 'members', 'work-log'] as const;
+const TABS = ['overview', 'tasks', 'sprints', 'milestones', 'labels', 'members', 'work-log'] as const;
 type TabKey = (typeof TABS)[number];
 
 function isTab(value: string | null): value is TabKey {
@@ -187,6 +188,11 @@ function ProjectDetail({ projectId }: { projectId: number }) {
                   onOpen={drawer.open}
                 />
               ),
+            },
+            {
+              key: 'sprints',
+              label: 'Sprint',
+              children: <SprintTab projectId={projectId} access={access} directory={directory} onOpen={drawer.open} />,
             },
             { key: 'milestones', label: '里程碑', children: <MilestoneTab projectId={projectId} access={access} /> },
             { key: 'labels', label: '標籤', children: <LabelTab projectId={projectId} access={access} /> },

@@ -11,7 +11,7 @@ export const TASKS_TOUR: GuideStep[] = [
   {
     target: 'task-filters',
     title: '篩選',
-    description: '關鍵字、指派人、優先度、類型、標籤、里程碑；三種檢視共用同一組條件，切換檢視不會重設。',
+    description: '關鍵字、指派人、優先度、類型、標籤、Sprint、里程碑；三種檢視共用同一組條件，切換檢視不會重設。',
   },
   {
     target: 'task-create',

@@ -8,6 +8,7 @@ import { commentApi } from '@/api/project/comment-api';
 import type { TaskComment } from '@/api/project/comment.types';
 import type { ProjectLabel } from '@/api/project/label.types';
 import type { Milestone } from '@/api/project/milestone.types';
+import type { Sprint } from '@/api/project/sprint.types';
 import type { TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import { useUserDirectory, type UserDirectory } from '@/components/user/useUserDirectory';
@@ -23,6 +24,7 @@ interface TaskTimelineProps {
   taskId: number;
   milestones: readonly Milestone[];
   labels: readonly ProjectLabel[];
+  sprints: readonly Sprint[];
   /** 留言可以 @ 的專案成員 */
   members: readonly MentionCandidate[];
   /** 可以留言 */
@@ -34,6 +36,7 @@ interface Lookup {
   directory: UserDirectory;
   milestones: readonly Milestone[];
   labels: readonly ProjectLabel[];
+  sprints: readonly Sprint[];
 }
 
 function isType(value: string): value is TaskType {
@@ -49,7 +52,7 @@ function isPriority(value: string): value is TaskPriority {
 }
 
 /** 活動紀錄的值轉成給人看的文字 */
-function describeValue(field: string | null, value: string | null, { directory, milestones, labels }: Lookup): string {
+function describeValue(field: string | null, value: string | null, { directory, milestones, labels, sprints }: Lookup): string {
   if (value === null) {
     return '（空）';
   }
@@ -68,6 +71,8 @@ function describeValue(field: string | null, value: string | null, { directory, 
       return isPriority(value) ? TASK_PRIORITY_LABELS[value] : value;
     case 'assigneeId':
       return directory.name(value);
+    case 'sprintId':
+      return sprints.find((sprint) => String(sprint.id) === value)?.name ?? value;
     case 'milestoneId':
       return milestones.find((milestone) => String(milestone.id) === value)?.name ?? value;
     default:
@@ -93,7 +98,7 @@ function describeActivity(activity: TaskActivity, lookup: Lookup) {
 }
 
 /** 留言與活動紀錄依時間合成一條時間軸；底部輸入留言，Ctrl + Enter 送出 */
-export function TaskTimeline({ taskId, milestones, labels, members, editable }: TaskTimelineProps) {
+export function TaskTimeline({ taskId, milestones, labels, sprints, members, editable }: TaskTimelineProps) {
   const { user } = useAuth();
   const { token } = theme.useToken();
   const { message } = App.useApp();
@@ -164,7 +169,7 @@ export function TaskTimeline({ taskId, milestones, labels, members, editable }: 
                 <Flex gap={8} align="baseline" wrap>
                   <Typography.Text strong>{directory.name(actorId)}</Typography.Text>
                   {entry.kind === 'activity' ? (
-                    <Typography.Text type="secondary">{describeActivity(entry.item, { directory, milestones, labels })}</Typography.Text>
+                    <Typography.Text type="secondary">{describeActivity(entry.item, { directory, milestones, labels, sprints })}</Typography.Text>
                   ) : (
                     <Typography.Text type="secondary">
                       <MessageOutlined /> 留言

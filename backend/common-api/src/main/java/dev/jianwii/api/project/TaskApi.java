@@ -29,7 +29,7 @@ public interface TaskApi {
     PageResponse<Task> queryPage(@Valid @RequestBody TaskQueryParameter parameter);
 
     /**
-     * 新增；code 由系統取號，狀態不給為 TODO、優先度不給為 MEDIUM，排在該狀態欄位的最後。
+     * 新增；code 由系統取號，類型不給為 FEATURE、狀態不給為 TODO、優先度不給為 MEDIUM，排在該狀態欄位的最後。
      * 給 parentId 即為子任務：父任務必須同專案，且本身不是子任務。
      */
     @PostExchange
