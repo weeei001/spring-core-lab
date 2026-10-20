@@ -103,7 +103,7 @@ export function UserPage() {
           }
         }}
       >
-        <Form.Item name="roleIds" label="角色" extra="整批取代；調整後最晚 1 分鐘生效，不用重新登入">
+        <Form.Item name="roleIds" label="角色" extra="整批取代；下一次操作就會套用新權限，不用重新登入">
           <Select mode="multiple" options={roleOptions} placeholder="選擇角色" />
         </Form.Item>
       </FormModal>

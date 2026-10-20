@@ -5,7 +5,6 @@ import dev.jianwii.api.basicdata.UserQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.basicdata.User;
-import dev.jianwii.web.security.PermissionCache;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +23,6 @@ import java.util.Set;
 @RequestMapping(path = "/api/basic-data/user")
 public class WebUserController {
     private final UserApi userApi;
-    private final PermissionCache permissionCache;
 
     @PostMapping("/query")
     public Result<List<User>> query(@Valid @RequestBody UserQueryParameter parameter) {
@@ -37,12 +35,10 @@ public class WebUserController {
         return Result.success(userApi.queryPage(parameter));
     }
 
-    /** 指派角色：整批取代；改完立即清掉這個使用者的權限快取。 */
+    /** 指派角色：整批取代；下一個請求就會依新的角色檢查權限。 */
     @PreAuthorize("hasAuthority('role:manage')")
     @PutMapping("/{id}/roles")
     public Result<User> updateRoles(@PathVariable Long id, @RequestBody Set<Long> roleIds) {
-        User user = userApi.updateRoles(id, roleIds);
-        permissionCache.evict(String.valueOf(id));
-        return Result.success(user);
+        return Result.success(userApi.updateRoles(id, roleIds));
     }
 }

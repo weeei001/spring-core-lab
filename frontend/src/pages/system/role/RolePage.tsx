@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Checkbox, Flex, Form, Input, Popconfirm, Table, Tag, Typography, type TableColumnsType } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { roleApi } from '@/api/basic-data/role-api';
@@ -32,6 +32,7 @@ function groupPermissions(permissions: readonly Permission[]): [string, Permissi
 
 /** 角色維護：把功能權限組合成角色（需要 role:manage，由路由檢查） */
 export function RolePage() {
+  const queryClient = useQueryClient();
   const list = usePagedList<Role, RoleQuery>('role', roleApi.queryPage, {});
   const { save, remove } = useSaveDelete<Role>('role', roleApi);
   const userName = useUserNames(list.rows);
@@ -43,6 +44,11 @@ export function RolePage() {
   const close = (): void => {
     setEditing(null);
   };
+  const afterSave = (): void => {
+    close();
+    // 改到自己的角色時，選單與按鈕也要立即使用新權限。
+    void queryClient.invalidateQueries({ queryKey: ['me'] });
+  };
 
   const submit = (values: RoleFormValues): void => {
     if (editing === null) {
@@ -50,10 +56,10 @@ export function RolePage() {
     }
     const permissionCodes = values.permissionCodes ?? [];
     if (editing.mode === 'create') {
-      save.mutate({ values: { code: values.code, name: values.name, permissionCodes } }, { onSuccess: close });
+      save.mutate({ values: { code: values.code, name: values.name, permissionCodes } }, { onSuccess: afterSave });
     } else {
       // code 建立後不可修改，不送
-      save.mutate({ id: editing.role.id, values: { name: values.name, permissionCodes } }, { onSuccess: close });
+      save.mutate({ id: editing.role.id, values: { name: values.name, permissionCodes } }, { onSuccess: afterSave });
     }
   };
 

@@ -36,7 +36,14 @@ function LoginPage({ error }: { error: string | null }) {
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const loginError = new URLSearchParams(window.location.search).get('loginError');
-  const me = useQuery({ queryKey: ['me'], queryFn: authApi.me, enabled: loginError === null });
+  const me = useQuery({
+    queryKey: ['me'],
+    queryFn: authApi.me,
+    enabled: loginError === null,
+    // 切回視窗時同步管理員的權限調整；真正的授權仍由後端逐次檢查。
+    staleTime: 0,
+    refetchOnWindowFocus: 'always',
+  });
 
   if (loginError !== null) {
     return <LoginPage error={loginError} />;

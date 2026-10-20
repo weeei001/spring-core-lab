@@ -6,6 +6,7 @@ import { ApiError } from '@/core/http/client';
  * 查詢、儲存失敗時統一跳出後端的錯誤訊息。
  * 401 代表 session 過期，不另外提示，重新取得登入者讓 AuthProvider 顯示登入頁；
  * 登入者本身的查詢 401 由 AuthProvider 處理，不能再重查，否則會一直重複。
+ * 403 時也重新取得權限，讓畫面移除已被管理員收回權限的功能。
  */
 function showError(error: Error, isMeQuery = false): void {
   if (error instanceof ApiError && error.status === 401) {
@@ -13,6 +14,9 @@ function showError(error: Error, isMeQuery = false): void {
       void queryClient.invalidateQueries({ queryKey: ['me'] });
     }
     return;
+  }
+  if (error instanceof ApiError && error.status === 403 && !isMeQuery) {
+    void queryClient.invalidateQueries({ queryKey: ['me'] });
   }
   void message.error(error.message);
 }

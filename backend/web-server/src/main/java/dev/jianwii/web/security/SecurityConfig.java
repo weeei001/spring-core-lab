@@ -1,5 +1,6 @@
 package dev.jianwii.web.security;
 
+import dev.jianwii.api.basicdata.UserApi;
 import dev.jianwii.common.web.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -46,7 +47,7 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http,
-            LoginSuccessHandler loginSuccessHandler, PermissionCache permissionCache,
+            LoginSuccessHandler loginSuccessHandler, UserApi userApi,
             ClientRegistrationRepository clientRegistrationRepository, JsonMapper jsonMapper,
             @Value("${app.frontend-url}") String frontendUrl) throws Exception {
         // 登出時也結束 authentik 的登入狀態，否則下次登入會直接通過。
@@ -72,7 +73,7 @@ public class SecurityConfig {
                         .logoutSuccessHandler(logoutSuccessHandler))
                 .csrf(csrf -> csrf.spa())
                 // 在檢查權限之前，把登入者的功能權限放進 Spring Security
-                .addFilterBefore(new PermissionAuthorityFilter(permissionCache),
+                .addFilterBefore(new PermissionAuthorityFilter(userApi, jsonMapper),
                         AuthorizationFilter.class)
                 // 預設會把未登入的請求導向登入頁；API 改回 JSON，由前端決定怎麼處理
                 .exceptionHandling(exception -> exception

@@ -7,7 +7,6 @@ import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.basicdata.Permission;
 import dev.jianwii.entity.basicdata.Role;
-import dev.jianwii.web.security.PermissionCache;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +25,6 @@ import java.util.List;
 @PreAuthorize("hasAuthority('role:manage')")
 public class WebRoleController {
     private final RoleApi roleApi;
-    private final PermissionCache permissionCache;
 
     /** 所有可勾選的功能權限，依 group 分組顯示。 */
     @GetMapping("/permissions")
@@ -52,10 +50,7 @@ public class WebRoleController {
     @PatchMapping("/{id}")
     public Result<Role> update(@PathVariable Long id,
             @Validated(ValidGroup.Update.class) @RequestBody Role role) {
-        Role updated = roleApi.update(id, role);
-        // 角色權限改了，擁有這個角色的使用者都受影響
-        permissionCache.clear();
-        return Result.success(updated);
+        return Result.success(roleApi.update(id, role));
     }
 
     @DeleteMapping("/{id}")
