@@ -28,13 +28,13 @@ import java.util.Set;
  *
  * <ul>
  * <li>登入：前端整頁跳轉到 {@value #LOGIN_URI}/authentik，登入完成導回 {@code app.frontend-url}。</li>
- * <li>登出：前端 POST {@value #LOGOUT_URI}（要帶 CSRF header），回傳 authentik 的登出網址，
- * 前端再整頁跳轉過去，一併登出 authentik 後導回前端。</li>
+ * <li>登出：前端 POST {@value #LOGOUT_URI}（要帶 CSRF header），回傳 authentik 的登出網址， 前端再整頁跳轉過去，一併登出 authentik
+ * 後導回前端。</li>
  * <li>API：一律要登入，未登入回 401 Result，前端收到後導向登入網址。</li>
- * <li>權限：Controller 以 {@code @PreAuthorize("hasAuthority('task:write')")} 檢查功能權限，
- * 沒有權限回 403 Result；權限由 PermissionAuthorityFilter 每個請求載入。</li>
- * <li>CSRF：登入靠 cookie，所以要防 CSRF。後端把 token 放在 XSRF-TOKEN cookie，
- * 前端送出 POST／PATCH／DELETE 時放進 X-XSRF-TOKEN header（axios 會自動處理）。</li>
+ * <li>權限：Controller 以 {@code @PreAuthorize("hasAuthority('task:write')")} 檢查功能權限， 沒有權限回 403
+ * Result；權限由 PermissionAuthorityFilter 每個請求載入。</li>
+ * <li>CSRF：登入靠 cookie，所以要防 CSRF。後端把 token 放在 XSRF-TOKEN cookie， 前端送出 POST／PATCH／DELETE 時放進
+ * X-XSRF-TOKEN header（axios 會自動處理）。</li>
  * </ul>
  */
 @Configuration(proxyBeanMethods = false)
@@ -73,14 +73,14 @@ public class SecurityConfig {
                     public void onLogoutSuccess(HttpServletRequest request,
                             HttpServletResponse response, Authentication authentication)
                             throws IOException {
-                        writeJson(jsonMapper, response, HttpStatus.OK, Result.success(
-                                determineTargetUrl(request, response, authentication)));
+                        writeJson(jsonMapper, response, HttpStatus.OK, Result
+                                .success(determineTargetUrl(request, response, authentication)));
                     }
                 };
         logoutSuccessHandler.setPostLogoutRedirectUri(frontendUrl);
 
-        http.authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/actuator", "/actuator/**").denyAll()
+        http.authorizeHttpRequests(
+                authorize -> authorize.requestMatchers("/actuator", "/actuator/**").denyAll()
                         .anyRequest().authenticated())
                 .oauth2Login(login -> login
                         .authorizationEndpoint(endpoint -> endpoint.baseUri(LOGIN_URI))
@@ -90,13 +90,15 @@ public class SecurityConfig {
                         .logoutSuccessHandler(logoutSuccessHandler))
                 .csrf(csrf -> csrf.spa())
                 // 先確認帳號有效，再做 CSRF 與功能授權；停用帳號一致回 401。
-                .addFilterBefore(new PermissionAuthorityFilter(userApi, jsonMapper, superAdminSubjects),
+                .addFilterBefore(
+                        new PermissionAuthorityFilter(userApi, jsonMapper, superAdminSubjects),
                         CsrfFilter.class)
                 // 預設會把未登入的請求導向登入頁；API 改回 JSON，由前端決定怎麼處理
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, e) -> writeJson(jsonMapper,
                                 response, HttpStatus.UNAUTHORIZED, Result.failure("未登入", "請先登入")))
-                        // filter 層被拒絕，目前只有 CSRF token 不符；@PreAuthorize 不通過由 WebExceptionHandleController 處理
+                        // filter 層被拒絕，目前只有 CSRF token 不符；@PreAuthorize 不通過由
+                        // WebExceptionHandleController 處理
                         .accessDeniedHandler((request, response, e) -> writeJson(jsonMapper,
                                 response, HttpStatus.FORBIDDEN,
                                 Result.failure("無權限", "請求驗證失敗，請重新整理頁面後再試"))));

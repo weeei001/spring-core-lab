@@ -19,8 +19,8 @@ import java.util.Map;
  * 建立者自動成為專案經理（{@link ProjectMember}）。
  *
  * <p>
- * 欄位驗證：{@code groups = ValidGroup.Create.class} 的規則只在新增時檢查（必填）；
- * 沒寫 groups 的規則新增、更新都檢查，但值為 null 時略過，所以更新時不給就是不改。詳見 ValidGroup。
+ * 欄位驗證：{@code groups = ValidGroup.Create.class} 的規則只在新增時檢查（必填）； 沒寫 groups 的規則新增、更新都檢查，但值為 null
+ * 時略過，所以更新時不給就是不改。詳見 ValidGroup。
  */
 @Entity
 @Table(name = "project")

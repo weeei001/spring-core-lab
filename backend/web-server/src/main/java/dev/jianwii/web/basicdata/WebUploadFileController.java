@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * 通用入口由 SecurityConfig 要求登入，且只允許存取自己的檔案。
- * 業務模組若要共用檔案，應另經該模組的權限檢查後呼叫內部 UploadFileApi。
+ * 通用入口由 SecurityConfig 要求登入，且只允許存取自己的檔案。 業務模組若要共用檔案，應另經該模組的權限檢查後呼叫內部 UploadFileApi。
  */
 @RestController
 @AllArgsConstructor

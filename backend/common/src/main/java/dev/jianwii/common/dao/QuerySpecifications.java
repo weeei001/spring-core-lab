@@ -18,20 +18,18 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 把 {@link QueryConditions} 轉成 Spring Data 的 {@link Specification}（動態 WHERE 條件，底層是 JPA Criteria API），
- * 並檢查條件值與 Entity property 型別相符。
- * 型別不符、property 不存在是程式寫錯（IllegalStateException，回 500）；使用者輸入錯誤丟 {@link BusinessException}（回 400）。
+ * 把 {@link QueryConditions} 轉成 Spring Data 的 {@link Specification}（動態 WHERE 條件，底層是 JPA Criteria
+ * API）， 並檢查條件值與 Entity property 型別相符。 型別不符、property 不存在是程式寫錯（IllegalStateException，回 500）；使用者輸入錯誤丟
+ * {@link BusinessException}（回 400）。
  */
 public final class QuerySpecifications {
 
-    private QuerySpecifications() {
-    }
+    private QuerySpecifications() {}
 
     public static <T> Specification<T> of(QueryConditions conditions) {
         List<QueryCondition> list = conditions.getConditions();
-        return (root, query, builder) -> builder.and(
-                list.stream().map(condition -> toPredicate(root, builder, condition))
-                        .toArray(Predicate[]::new));
+        return (root, query, builder) -> builder.and(list.stream()
+                .map(condition -> toPredicate(root, builder, condition)).toArray(Predicate[]::new));
     }
 
     private static Predicate toPredicate(Root<?> root, CriteriaBuilder builder,
@@ -79,8 +77,8 @@ public final class QuerySpecifications {
         if (!(value instanceof String text)) {
             throw new IllegalStateException("文字查詢條件必須對應 String：" + property);
         }
-        if (text.codePoints().allMatch(
-                character -> Character.isWhitespace(character) || Character.isSpaceChar(character))) {
+        if (text.codePoints().allMatch(character -> Character.isWhitespace(character)
+                || Character.isSpaceChar(character))) {
             throw new BusinessException("查詢文字不可空白");
         }
         // 跳脫 LIKE 萬用字元，使用者輸入的 % 與 _ 當一般字元比對
@@ -105,8 +103,8 @@ public final class QuerySpecifications {
     /** 值必須與 property 同型別；例外是 property 為 id／xxxId（Long）而值是字串時，轉成 Long。 */
     private static Object typed(String property, Class<?> type, Object value) {
         String name = property.substring(property.lastIndexOf('.') + 1);
-        if (type == Long.class && value instanceof String text && (name.equals("id")
-                || name.endsWith("Id"))) {
+        if (type == Long.class && value instanceof String text
+                && (name.equals("id") || name.endsWith("Id"))) {
             return queryId(text);
         }
         if (!type.isInstance(value)) {

@@ -13,8 +13,8 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * 專案成員查詢條件，寫法說明見 {@link QueryParameter}。
- * 沒有 project:admin 的人，web-server 會要求給 projectId（且自己是成員），否則只查得到自己的成員資料。
+ * 專案成員查詢條件，寫法說明見 {@link QueryParameter}。 沒有 project:admin 的人，web-server 會要求給
+ * projectId（且自己是成員），否則只查得到自己的成員資料。
  */
 @Getter
 @Setter

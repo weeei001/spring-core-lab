@@ -32,9 +32,8 @@ public class TaskComment extends BaseEntity {
     private String content;
 
     /**
-     * 留言中 @ 到的人（user id），存在中間表 task_comment_mention；必須是專案成員。
-     * 由前端依選到的成員送出，內文的「@名字」只是顯示用。被 @ 的人會收到通知並自動關注任務。
-     * 更新時不給（null）表示不改；新加入的人才會再收到通知。
+     * 留言中 @ 到的人（user id），存在中間表 task_comment_mention；必須是專案成員。 由前端依選到的成員送出，內文的「@名字」只是顯示用。被 @
+     * 的人會收到通知並自動關注任務。 更新時不給（null）表示不改；新加入的人才會再收到通知。
      */
     @Size(max = 20)
     @ElementCollection(fetch = FetchType.LAZY)

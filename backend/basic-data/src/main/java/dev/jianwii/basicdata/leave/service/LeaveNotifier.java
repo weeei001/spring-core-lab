@@ -23,8 +23,8 @@ public class LeaveNotifier {
     private final NotificationApi notificationApi;
 
     public void submitted(LeaveRequest request) {
-        publish(request, request.getApproverId(), NotificationType.LEAVE_SUBMITTED,
-                "有一筆請假申請待審核", "/leave/reviews");
+        publish(request, request.getApproverId(), NotificationType.LEAVE_SUBMITTED, "有一筆請假申請待審核",
+                "/leave/reviews");
     }
 
     public void reviewed(LeaveRequest request) {
@@ -40,8 +40,8 @@ public class LeaveNotifier {
         notification.setType(type);
         notification.setTitle(title);
         // 原因與審核意見只在受權限保護的申請頁顯示。
-        notification.setContent("申請 #" + request.getId() + "：" + request.getStartDate()
-                + " 至 " + request.getEndDate());
+        notification.setContent("申請 #" + request.getId() + "：" + request.getStartDate() + " 至 "
+                + request.getEndDate());
         notification.setLink(path + "?request=" + request.getId());
         notification.setEmail(false);
         eventPublisher.publishEvent(new LeaveNotificationEvent(notification));

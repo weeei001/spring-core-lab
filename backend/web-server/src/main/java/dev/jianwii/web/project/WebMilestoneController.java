@@ -24,8 +24,7 @@ public class WebMilestoneController {
 
     @PreAuthorize("hasAuthority('project:read')")
     @PostMapping("/query")
-    public Result<List<Milestone>> query(
-            @Valid @RequestBody MilestoneQueryParameter parameter) {
+    public Result<List<Milestone>> query(@Valid @RequestBody MilestoneQueryParameter parameter) {
         projectAccessGuard.scopeMilestones(parameter);
         return Result.success(milestoneApi.query(parameter));
     }

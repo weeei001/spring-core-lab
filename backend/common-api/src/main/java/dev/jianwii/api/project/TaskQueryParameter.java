@@ -20,8 +20,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * 任務查詢條件，寫法說明見 {@link QueryParameter}。
- * 沒有 project:admin 的人：給 projectId 時必須是該專案成員；只給 ids 時這些任務的專案都要是自己參與的；都沒給時 web-server 會把 assigneeId 設為登入者（我的任務）。
+ * 任務查詢條件，寫法說明見 {@link QueryParameter}。 沒有 project:admin 的人：給 projectId 時必須是該專案成員；只給 ids
+ * 時這些任務的專案都要是自己參與的；都沒給時 web-server 會把 assigneeId 設為登入者（我的任務）。
  */
 @Getter
 @Setter

@@ -12,9 +12,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 系統編號規則（參考 tvbs TSerialNumberSetting），例如專案編號 PRJ2610001。
- * Entity 放在 common 讓各服務共用類別，但只有 basic-data 會建這張表（它的 @EntityScan 只掃這個 package）；
- * 其他服務透過 SerialNumberApi 取號。欄位驗證的分組規則見 ValidGroup。
+ * 系統編號規則（參考 tvbs TSerialNumberSetting），例如專案編號 PRJ2610001。 Entity 放在 common 讓各服務共用類別，但只有 basic-data
+ * 會建這張表（它的 @EntityScan 只掃這個 package）； 其他服務透過 SerialNumberApi 取號。欄位驗證的分組規則見 ValidGroup。
  */
 @Entity
 @Table(name = "serial_number")
@@ -37,8 +36,8 @@ public class SerialNumber extends BaseEntity {
     private String name;
 
     /**
-     * 編號格式：{0000} 為補零流水號（0 的個數即位數，必須剛好一個），{yyyyMM} 等為日期（只限 y、M、d），
-     * 其餘照原樣輸出。例：P{yyyyMM}{0000} → P2026100001。
+     * 編號格式：{0000} 為補零流水號（0 的個數即位數，必須剛好一個），{yyyyMM} 等為日期（只限 y、M、d）， 其餘照原樣輸出。例：P{yyyyMM}{0000} →
+     * P2026100001。
      */
     @NotBlank(groups = ValidGroup.Create.class)
     @Size(max = 50)

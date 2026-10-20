@@ -12,6 +12,7 @@ public interface UserDAO extends BaseDAO<User, Long> {
 
     interface AuthorizationRow {
         Integer getDbMark();
+
         String getPermissionCode();
     }
 

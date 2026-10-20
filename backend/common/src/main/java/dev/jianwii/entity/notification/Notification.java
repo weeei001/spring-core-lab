@@ -8,8 +8,8 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 /**
- * 站內通知，一位收件人一筆；由 notification-service 依 NotificationApi.send 建立，只能查詢與標記已讀。
- * 觸發的人即 createId（系統觸發為 system），時間即 createTime。
+ * 站內通知，一位收件人一筆；由 notification-service 依 NotificationApi.send 建立，只能查詢與標記已讀。 觸發的人即 createId（系統觸發為
+ * system），時間即 createTime。
  */
 @Entity
 @Table(name = "notification", indexes = @Index(columnList = "recipient_id, read_time"))

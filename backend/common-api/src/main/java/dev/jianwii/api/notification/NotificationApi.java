@@ -12,8 +12,8 @@ import org.springframework.web.service.annotation.PostExchange;
 import java.util.List;
 
 /**
- * notification-service 的通知 API，用法同 {@link dev.jianwii.api.project.ProjectApi}。
- * 通知由 {@link #send} 建立，不能修改內容或刪除；「我的」指 {@code X-Operator} header 的使用者。
+ * notification-service 的通知 API，用法同 {@link dev.jianwii.api.project.ProjectApi}。 通知由 {@link #send}
+ * 建立，不能修改內容或刪除；「我的」指 {@code X-Operator} header 的使用者。
  */
 @HttpExchange("/api/notification")
 public interface NotificationApi {

@@ -10,10 +10,9 @@ import java.time.LocalDateTime;
 
 /** 送出後不修改內容，只審核一次；建立與審核資訊即為完整操作紀錄。 */
 @Entity
-@Table(name = "leave_request", indexes = {
-        @Index(columnList = "applicant_id, status"),
-        @Index(columnList = "approver_id, status")
-})
+@Table(name = "leave_request",
+        indexes = {@Index(columnList = "applicant_id, status"),
+                @Index(columnList = "approver_id, status")})
 @Getter
 @Setter
 public class LeaveRequest extends BaseEntity {

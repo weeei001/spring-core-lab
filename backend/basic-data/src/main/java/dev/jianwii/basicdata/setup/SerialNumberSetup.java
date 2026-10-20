@@ -10,8 +10,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 /**
- * 啟動時建立各服務需要的編號規則；已存在的不覆蓋（可能已被管理者調整過）。
- * 新服務要取號時，在這裡加一筆規則。
+ * 啟動時建立各服務需要的編號規則；已存在的不覆蓋（可能已被管理者調整過）。 新服務要取號時，在這裡加一筆規則。
  */
 @Component
 @AllArgsConstructor
@@ -26,8 +25,7 @@ public class SerialNumberSetup implements ApplicationRunner {
         createIfAbsent("TASK", "任務系統編號", "T{yyMM}{0000}", ResetCycle.MONTH);
     }
 
-    private void createIfAbsent(String serialKey, String name, String rule,
-            ResetCycle resetCycle) {
+    private void createIfAbsent(String serialKey, String name, String rule, ResetCycle resetCycle) {
         if (serialNumberDAO.existsBySerialKey(serialKey)) {
             return;
         }

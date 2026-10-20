@@ -57,6 +57,26 @@
     <!-- JAR 不含本機密碼；IDE 與 spring-boot:run 仍可從 classes 載入 local 設定。 -->
     <build>
         <plugins>
+            <!-- IDE 可匯入同一份 Eclipse formatter XML；編譯前統一 Java 縮排與換行。 -->
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>2.29.0</version>
+                <configuration>
+                    <configFile>${maven.multiModuleProjectDirectory}/eclipse-java-google-style.xml</configFile>
+                    <compilerSource>${java.version}</compilerSource>
+                    <compilerCompliance>${java.version}</compilerCompliance>
+                    <compilerTargetPlatform>${java.version}</compilerTargetPlatform>
+                    <lineEnding>LF</lineEnding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>

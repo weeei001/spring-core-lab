@@ -15,12 +15,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * 工時：成員在某天花在某任務的時數。只能登記、修改、刪除自己的工時。
- * projectId 由任務帶入（冗餘存放），統計專案工時時不必 join task。
+ * 工時：成員在某天花在某任務的時數。只能登記、修改、刪除自己的工時。 projectId 由任務帶入（冗餘存放），統計專案工時時不必 join task。
  */
 @Entity
-@Table(name = "work_log", indexes = {@Index(columnList = "project_id, work_date"),
-        @Index(columnList = "user_id, work_date"), @Index(columnList = "task_id")})
+@Table(name = "work_log",
+        indexes = {@Index(columnList = "project_id, work_date"),
+                @Index(columnList = "user_id, work_date"), @Index(columnList = "task_id")})
 @Getter
 @Setter
 public class WorkLog extends BaseEntity {

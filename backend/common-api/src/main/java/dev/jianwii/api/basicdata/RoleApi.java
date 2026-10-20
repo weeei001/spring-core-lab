@@ -16,7 +16,8 @@ import java.util.List;
 
 /**
  * basic-data 的角色 API（Spring HTTP Interface），用法同 {@link SerialNumberApi}。
- * 角色是一組功能權限（{@link dev.jianwii.entity.basicdata.Permission}），再透過 {@link UserApi#updateRoles} 指派給使用者。
+ * 角色是一組功能權限（{@link dev.jianwii.entity.basicdata.Permission}），再透過 {@link UserApi#updateRoles}
+ * 指派給使用者。
  */
 @HttpExchange("/api/basic-data/role")
 public interface RoleApi {

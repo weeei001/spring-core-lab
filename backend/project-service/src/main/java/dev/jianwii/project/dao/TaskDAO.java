@@ -11,8 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 統計查詢只算有效、未取消的任務；done 為完成數，overdue 為過了到期日仍未完成的數量。
- * dbMark = 0 即 BaseEntity.VALID。
+ * 統計查詢只算有效、未取消的任務；done 為完成數，overdue 為過了到期日仍未完成的數量。 dbMark = 0 即 BaseEntity.VALID。
  */
 public interface TaskDAO extends BaseDAO<Task, Long> {
 

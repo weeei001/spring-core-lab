@@ -17,23 +17,16 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static dev.jianwii.entity.basicdata.Permission.NOTIFICATION_SEND;
 import static dev.jianwii.entity.basicdata.Permission.LEAVE_APPLY;
 import static dev.jianwii.entity.basicdata.Permission.LEAVE_APPROVE;
-import static dev.jianwii.entity.basicdata.Permission.PROJECT_ADMIN;
 import static dev.jianwii.entity.basicdata.Permission.PROJECT_READ;
 import static dev.jianwii.entity.basicdata.Permission.PROJECT_WRITE;
-import static dev.jianwii.entity.basicdata.Permission.ROLE_MANAGE;
-import static dev.jianwii.entity.basicdata.Permission.SERIAL_NUMBER_READ;
-import static dev.jianwii.entity.basicdata.Permission.SERIAL_NUMBER_WRITE;
 import static dev.jianwii.entity.basicdata.Permission.TASK_WRITE;
 import static dev.jianwii.entity.basicdata.Permission.WORK_LOG_WRITE;
 
 /**
- * 啟動時建立預設角色；已存在的不覆蓋（可能已被管理者調整過，含已刪除的也不重建）。
- * 依職責拆分，一個人可同時擁有多個角色，例如系統管理員兼專案經理就指派兩個角色。
- * 之後新增的權限不會自動加進這些角色，要到角色管理畫面勾選。
- * 每個人都有預設角色（{@link Role#DEFAULT_CODE}），其他角色只放預設角色以外要多給的權限。
+ * 啟動時建立預設角色；已存在的不覆蓋（可能已被管理者調整過，含已刪除的也不重建）。 預設只提供一般成員、主管與系統管理員；各角色包含完整的工作權限，不必疊加。 功能權限與資料範圍仍由各 API
+ * 檢查，主管不會因此取得所有專案或所有請假資料。 新增權限不會自動寫入既有角色，由管理員調整。
  */
 @Component
 @AllArgsConstructor
@@ -46,26 +39,17 @@ public class RoleSetup implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        // 所有人：只看得到自己參與的專案，新使用者第一次登入時自動擁有
-        if (createIfAbsent(Role.DEFAULT_CODE, "一般使用者", PROJECT_READ)) {
+        // ponytail: 三個日常角色就足夠；細部授權沿用 Permission，不再替每項功能建立角色。
+        if (createIfAbsent(Role.DEFAULT_CODE, "一般成員", PROJECT_READ, TASK_WRITE, WORK_LOG_WRITE,
+                LEAVE_APPLY)) {
             // 只在第一次建立時補發給之前登入過、還沒有任何角色的人；之後被拿掉所有角色的人不會再補
             int count = userService.assignDefaultRoleToUsersWithoutRoles();
             log.info("已將預設角色指派給 {} 位沒有角色的使用者", count);
         }
-        // 系統設定：帳號角色、編號規則、公告；不含專案資料
-        createIfAbsent("ADMIN", "系統管理員", ROLE_MANAGE, SERIAL_NUMBER_READ, SERIAL_NUMBER_WRITE,
-                NOTIFICATION_SEND);
-        // 跨專案管理：看得到並能維護所有專案，不必是成員
-        createIfAbsent("PMO", "專案管理辦公室", PROJECT_READ, PROJECT_ADMIN, PROJECT_WRITE, TASK_WRITE);
-        // 可建立專案；只在自己擔任經理的專案維護成員、里程碑
-        createIfAbsent("PROJECT_MANAGER", "專案經理", PROJECT_READ, PROJECT_WRITE, TASK_WRITE, WORK_LOG_WRITE);
-        // 在參與的專案做事：任務、留言、工時
-        createIfAbsent("PROJECT_MEMBER", "專案成員", PROJECT_READ, TASK_WRITE, WORK_LOG_WRITE);
-        // 主管、稽核：看得到所有專案，不能修改
-        createIfAbsent("AUDITOR", "稽核", PROJECT_READ, PROJECT_ADMIN);
-        // 獨立角色，由管理員指派；不擴大既有角色權限。
-        createIfAbsent("LEAVE_APPLICANT", "請假申請人", LEAVE_APPLY);
-        createIfAbsent("LEAVE_APPROVER", "請假審核人", LEAVE_APPLY, LEAVE_APPROVE);
+        // 保留既有代碼；主管只管理自己擔任經理的專案、審核指定給自己的請假。
+        createIfAbsent("PROJECT_MANAGER", "主管", PROJECT_READ, PROJECT_WRITE, TASK_WRITE,
+                WORK_LOG_WRITE, LEAVE_APPLY, LEAVE_APPROVE);
+        createIfAbsent("ADMIN", "系統管理員", Permission.values());
     }
 
     /** 回傳這次是否有建立。 */

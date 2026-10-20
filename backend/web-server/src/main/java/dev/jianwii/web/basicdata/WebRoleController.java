@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 前端用的角色維護：呼叫 basic-data 的 {@link RoleApi}，結果包成 Result。
- * 整個 Controller 都需要 role:manage 權限（標在類別上，每個方法都適用）。
+ * 前端用的角色維護：呼叫 basic-data 的 {@link RoleApi}，結果包成 Result。 整個 Controller 都需要 role:manage
+ * 權限（標在類別上，每個方法都適用）。
  */
 @RestController
 @AllArgsConstructor

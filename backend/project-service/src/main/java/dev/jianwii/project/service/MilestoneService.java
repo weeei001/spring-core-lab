@@ -24,8 +24,7 @@ public class MilestoneService extends BaseService<Milestone, MilestoneQueryParam
     private final TaskDAO taskDAO;
     private final ProjectRules projectRules;
 
-    public MilestoneService(MilestoneDAO milestoneDAO, TaskDAO taskDAO,
-            ProjectRules projectRules) {
+    public MilestoneService(MilestoneDAO milestoneDAO, TaskDAO taskDAO, ProjectRules projectRules) {
         super(milestoneDAO);
         this.taskDAO = taskDAO;
         this.projectRules = projectRules;
@@ -38,8 +37,8 @@ public class MilestoneService extends BaseService<Milestone, MilestoneQueryParam
         PageResponse<Milestone> page = super.queryPage(parameter);
         List<Milestone> milestones = page.getItems();
         if (!milestones.isEmpty()) {
-            Map<Long, TaskCount> counts = taskDAO.milestoneCounts(
-                    milestones.stream().map(Milestone::getId).toList()).stream()
+            Map<Long, TaskCount> counts = taskDAO
+                    .milestoneCounts(milestones.stream().map(Milestone::getId).toList()).stream()
                     .collect(Collectors.toMap(TaskCount::getGroupId, Function.identity()));
             for (Milestone milestone : milestones) {
                 TaskCount count = counts.get(milestone.getId());

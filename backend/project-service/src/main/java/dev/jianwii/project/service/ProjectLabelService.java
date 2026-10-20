@@ -42,9 +42,9 @@ public class ProjectLabelService extends BaseService<ProjectLabel, ProjectLabelQ
         PageResponse<ProjectLabel> page = super.queryPage(parameter);
         List<ProjectLabel> labels = page.getItems();
         if (!labels.isEmpty()) {
-            Map<Long, Long> counts = taskDAO.labelCounts(
-                    labels.stream().map(ProjectLabel::getId).toList()).stream()
-                    .collect(Collectors.toMap(TaskCount::getGroupId, TaskCount::getTotal));
+            Map<Long, Long> counts =
+                    taskDAO.labelCounts(labels.stream().map(ProjectLabel::getId).toList()).stream()
+                            .collect(Collectors.toMap(TaskCount::getGroupId, TaskCount::getTotal));
             for (ProjectLabel label : labels) {
                 label.setTaskCount(counts.getOrDefault(label.getId(), 0L));
             }

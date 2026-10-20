@@ -29,15 +29,15 @@ public interface TaskApi {
     PageResponse<Task> queryPage(@Valid @RequestBody TaskQueryParameter parameter);
 
     /**
-     * 新增；code 由系統取號，類型不給為 FEATURE、狀態不給為 TODO、優先度不給為 MEDIUM，排在該狀態欄位的最後。
-     * 給 parentId 即為子任務：父任務必須同專案，且本身不是子任務。
+     * 新增；code 由系統取號，類型不給為 FEATURE、狀態不給為 TODO、優先度不給為 MEDIUM，排在該狀態欄位的最後。 給 parentId
+     * 即為子任務：父任務必須同專案，且本身不是子任務。
      */
     @PostExchange
     Task create(@Validated(ValidGroup.Create.class) @RequestBody Task task);
 
     /**
-     * 部分更新：只更新有給值（非 null）的欄位，要清空選填欄位用 clearFields；projectId、parentId 不可修改。
-     * 改了狀態會排到新狀態欄位的最後；要指定位置請用 {@link #move}。
+     * 部分更新：只更新有給值（非 null）的欄位，要清空選填欄位用 clearFields；projectId、parentId 不可修改。 改了狀態會排到新狀態欄位的最後；要指定位置請用
+     * {@link #move}。
      */
     @PatchExchange("/{id}")
     Task update(@PathVariable("id") Long id,

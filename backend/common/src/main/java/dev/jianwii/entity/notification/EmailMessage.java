@@ -8,8 +8,8 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 /**
- * 待寄／已寄的 Email（outbox）。和通知在同一個交易寫入，commit 後才寄，交易 rollback 就不會寄出；
- * 寄信失敗留在資料表等排程重試，服務重啟也不會遺失。只在 notification-service 內部使用，沒有對外 API。
+ * 待寄／已寄的 Email（outbox）。和通知在同一個交易寫入，commit 後才寄，交易 rollback 就不會寄出； 寄信失敗留在資料表等排程重試，服務重啟也不會遺失。只在
+ * notification-service 內部使用，沒有對外 API。
  */
 @Entity
 @Table(name = "email_message", indexes = @Index(columnList = "status, trans_time"))

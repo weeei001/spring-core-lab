@@ -14,8 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * 寫入燃盡圖的每日紀錄（{@link SprintBurndown}）：任務、Sprint 的 Service 在異動後同一個交易內呼叫，
- * 以當下的合計更新今天這一筆。只記進行中的 Sprint。
+ * 寫入燃盡圖的每日紀錄（{@link SprintBurndown}）：任務、Sprint 的 Service 在異動後同一個交易內呼叫， 以當下的合計更新今天這一筆。只記進行中的 Sprint。
  */
 @Component
 @AllArgsConstructor
@@ -35,8 +34,8 @@ public class SprintBurndownRecorder {
         List<SprintCount> counts = taskDAO.sprintCounts(List.of(sprintId));
         SprintCount count = counts.isEmpty() ? null : counts.getFirst();
         LocalDate today = LocalDate.now();
-        SprintBurndown row = sprintBurndownDAO.findBySprintIdAndDay(sprintId, today)
-                .orElseGet(() -> {
+        SprintBurndown row =
+                sprintBurndownDAO.findBySprintIdAndDay(sprintId, today).orElseGet(() -> {
                     SprintBurndown created = new SprintBurndown();
                     created.setSprintId(sprintId);
                     created.setDay(today);

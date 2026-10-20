@@ -43,7 +43,8 @@ public class LeaveRequestService {
         if (applicant.equals(submission.approverId())) {
             throw new BusinessException("不可指定自己審核請假");
         }
-        UserAuthorization approver = userService.authorization(Long.valueOf(submission.approverId()));
+        UserAuthorization approver =
+                userService.authorization(Long.valueOf(submission.approverId()));
         if (!approver.active()
                 || !approver.permissions().contains(Permission.LEAVE_APPROVE.getCode())) {
             throw new BusinessException("審核人不存在、已停用或沒有請假審核權限");
@@ -94,7 +95,8 @@ public class LeaveRequestService {
         if (request.getStatus() != LeaveStatus.PENDING) {
             throw new ConflictException("這筆申請已審核，請重新讀取");
         }
-        if (review.decision() != LeaveStatus.APPROVED && review.decision() != LeaveStatus.REJECTED) {
+        if (review.decision() != LeaveStatus.APPROVED
+                && review.decision() != LeaveStatus.REJECTED) {
             throw new BusinessException("只能核准或退回申請");
         }
         String comment = review.comment() == null ? "" : review.comment().strip();
@@ -115,8 +117,8 @@ public class LeaveRequestService {
                 builder.equal(root.get("dbMark"), BaseEntity.VALID),
                 builder.equal(root.get(ownerField), userId));
         return new PageResponse<>(leaveRequestDAO.findAll(
-                scope.and(QuerySpecifications.of(parameter.toQueryConditions())),
-                PageResponse.pageable(parameter, Set.of("id", "createTime", "startDate", "endDate"))));
+                scope.and(QuerySpecifications.of(parameter.toQueryConditions())), PageResponse
+                        .pageable(parameter, Set.of("id", "createTime", "startDate", "endDate"))));
     }
 
     private LeaveRequest find(Long id) {

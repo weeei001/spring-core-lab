@@ -9,8 +9,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * 專案底下各資料（成員、里程碑、任務、留言、工時）共用的檢查。
- * 獨立成元件而非放在 ProjectService，避免各 Service 互相注入。
+ * 專案底下各資料（成員、里程碑、任務、留言、工時）共用的檢查。 獨立成元件而非放在 ProjectService，避免各 Service 互相注入。
  */
 @Component
 @AllArgsConstructor

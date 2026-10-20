@@ -18,8 +18,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 發送通知：先向 basic-data 確認收件人並取得 Email，再交給 {@link NotificationService} 寫入。
- * 獨立成元件（不在 Service 的交易內），呼叫其他服務時才不會一直占著資料庫連線。
+ * 發送通知：先向 basic-data 確認收件人並取得 Email，再交給 {@link NotificationService} 寫入。 獨立成元件（不在 Service
+ * 的交易內），呼叫其他服務時才不會一直占著資料庫連線。
  */
 @Component
 @AllArgsConstructor

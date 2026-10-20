@@ -7,8 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 任務附件（例如 Bug 的截圖）；新檔案由 basic-data 管理，這裡保存關聯與顯示用資訊。
- * 上傳者即 createId，只有上傳者能刪除；刪除只停用任務附件關聯，共用檔案紀錄與實體檔案保留。
+ * 任務附件（例如 Bug 的截圖）；新檔案由 basic-data 管理，這裡保存關聯與顯示用資訊。 上傳者即
+ * createId，只有上傳者能刪除；刪除只停用任務附件關聯，共用檔案紀錄與實體檔案保留。
  */
 @Entity
 @Table(name = "task_attachment", indexes = @Index(columnList = "task_id"))

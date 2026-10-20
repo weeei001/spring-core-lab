@@ -14,9 +14,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 前端用的使用者查詢：呼叫 basic-data 的 {@link UserApi}，結果包成 Result。
- * query 用來把 createId、transId 換成名字，登入就能用；其餘為權限管理，需要 role:manage。
- * 登入同步（login）、載入權限（permissions）只給 web-server 內部使用，不開放。
+ * 前端用的使用者查詢：呼叫 basic-data 的 {@link UserApi}，結果包成 Result。 query 用來把 createId、transId
+ * 換成名字，登入就能用；其餘為權限管理，需要 role:manage。 登入同步（login）、載入權限（permissions）只給 web-server 內部使用，不開放。
  */
 @RestController
 @AllArgsConstructor

@@ -42,8 +42,7 @@ public interface WorkLogApi {
     // ---- 以下為工時專屬的業務 API ----
 
     /**
-     * 依人、日合計工時，前端再組成週表或圖表；必須給 fromDate、toDate，區間最多 366 天。
-     * page、size、sort 不使用。
+     * 依人、日合計工時，前端再組成週表或圖表；必須給 fromDate、toDate，區間最多 366 天。 page、size、sort 不使用。
      */
     @PostExchange("/summary")
     List<WorkLogSummary> summary(@Valid @RequestBody WorkLogQueryParameter parameter);

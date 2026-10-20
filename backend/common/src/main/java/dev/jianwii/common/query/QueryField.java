@@ -11,18 +11,20 @@ import java.lang.annotation.Target;
  * <p>
  * 時間區間 [fromTime, toTime) 宣告兩個欄位，起訖檢查用 {@code @AssertTrue}：
  *
- * <pre>{@code
- * @QueryField(property = "createTime", operator = QueryOperator.GREATER_THAN_OR_EQUAL)
+ * <pre>
+ * {@code
+ * &#64;QueryField(property = "createTime", operator = QueryOperator.GREATER_THAN_OR_EQUAL)
  * private LocalDateTime fromTime;
  *
- * @QueryField(property = "createTime", operator = QueryOperator.LESS_THAN)
+ * &#64;QueryField(property = "createTime", operator = QueryOperator.LESS_THAN)
  * private LocalDateTime toTime;
  *
  * @AssertTrue(message = "fromTime 必須小於 toTime")
  * private boolean isTimeRangeValid() {
  *     return fromTime == null || toTime == null || fromTime.isBefore(toTime);
  * }
- * }</pre>
+ * }
+ * </pre>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

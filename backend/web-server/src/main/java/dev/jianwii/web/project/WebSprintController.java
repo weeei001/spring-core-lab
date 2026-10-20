@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 前端用的 Sprint API，寫法同 {@link WebProjectController}；只有專案經理能維護、開始、結束 Sprint。
- * 任務排入 Sprint 是修改任務（task:write），不在這裡。
+ * 前端用的 Sprint API，寫法同 {@link WebProjectController}；只有專案經理能維護、開始、結束 Sprint。 任務排入 Sprint
+ * 是修改任務（task:write），不在這裡。
  */
 @RestController
 @AllArgsConstructor

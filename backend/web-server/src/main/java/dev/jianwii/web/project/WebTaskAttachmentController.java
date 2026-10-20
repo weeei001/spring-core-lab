@@ -16,8 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 /**
- * 前端用的任務附件 API，寫法同 {@link WebProjectController}；只能刪自己上傳的附件由 project-service 檢查。
- * 檔案內容不包 Result，直接回傳檔案，給 img src、下載連結使用。
+ * 前端用的任務附件 API，寫法同 {@link WebProjectController}；只能刪自己上傳的附件由 project-service 檢查。 檔案內容不包
+ * Result，直接回傳檔案，給 img src、下載連結使用。
  */
 @RestController
 @AllArgsConstructor
@@ -55,8 +55,7 @@ public class WebTaskAttachmentController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         headers.getFirst(HttpHeaders.CONTENT_DISPOSITION))
                 .header("X-Content-Type-Options", "nosniff")
-                .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
-                .body(remote.getBody());
+                .header(HttpHeaders.CACHE_CONTROL, "private, no-store").body(remote.getBody());
     }
 
     @PreAuthorize("hasAuthority('task:write')")

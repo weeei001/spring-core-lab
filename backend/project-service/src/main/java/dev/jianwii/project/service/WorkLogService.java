@@ -47,8 +47,8 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
     }
 
     /**
-     * 依人、日合計：GROUP BY 的查詢 Spring Data 的 findAll 做不到，直接用 Criteria API，
-     * 篩選條件仍沿用 WorkLogQueryParameter（與 queryPage 相同）。
+     * 依人、日合計：GROUP BY 的查詢 Spring Data 的 findAll 做不到，直接用 Criteria API， 篩選條件仍沿用
+     * WorkLogQueryParameter（與 queryPage 相同）。
      */
     @Transactional(readOnly = true)
     public List<WorkLogSummary> summary(WorkLogQueryParameter parameter) {
@@ -63,9 +63,8 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<WorkLogSummary> query = builder.createQuery(WorkLogSummary.class);
         Root<WorkLog> root = query.from(WorkLog.class);
-        Specification<WorkLog> valid =
-                (workLog, criteria, criteriaBuilder) -> criteriaBuilder.equal(workLog.get("dbMark"),
-                        BaseEntity.VALID);
+        Specification<WorkLog> valid = (workLog, criteria, criteriaBuilder) -> criteriaBuilder
+                .equal(workLog.get("dbMark"), BaseEntity.VALID);
         query.select(builder.construct(WorkLogSummary.class, root.get("userId"),
                 root.get("workDate"), builder.sum(root.<BigDecimal>get("hours"))))
                 .where(valid.and(toSpecification(parameter)).toPredicate(root, query, builder))
@@ -119,15 +118,14 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
     }
 
     /** 時數以 0.5 小時為單位；加上同一天其他工時（不含 excludeId）不可超過 24 小時。 */
-    private void requireHours(String userId, LocalDate workDate, BigDecimal hours,
-            Long excludeId) {
+    private void requireHours(String userId, LocalDate workDate, BigDecimal hours, Long excludeId) {
         if (hours.remainder(UNIT).signum() != 0) {
             throw new BusinessException("工時以 0.5 小時為單位");
         }
         BigDecimal logged = workLogDAO.sumHoursOfDay(userId, workDate, excludeId);
         if (logged.add(hours).compareTo(DAILY_LIMIT) > 0) {
-            throw new BusinessException(workDate + " 已登記 " + logged.stripTrailingZeros()
-                    .toPlainString() + " 小時，同一天合計不可超過 24 小時");
+            throw new BusinessException(workDate + " 已登記 "
+                    + logged.stripTrailingZeros().toPlainString() + " 小時，同一天合計不可超過 24 小時");
         }
     }
 

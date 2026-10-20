@@ -22,6 +22,5 @@ public interface TaskActivityApi {
 
     /** 分頁查詢，page 從 1 起算。 */
     @PostExchange("/queryPage")
-    PageResponse<TaskActivity> queryPage(
-            @Valid @RequestBody TaskActivityQueryParameter parameter);
+    PageResponse<TaskActivity> queryPage(@Valid @RequestBody TaskActivityQueryParameter parameter);
 }

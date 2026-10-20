@@ -18,9 +18,8 @@ import java.util.Enumeration;
 import java.util.List;
 
 /**
- * 決定 {@value Operator#HEADER}：外部送來的一律忽略（避免偽造），改成 session 中登入者的 user id；
- * 沒登入時沒有這個 header（後端記為 system）。
- * 做法是用 HttpServletRequestWrapper 改寫 header，後續程式（包含 Operator.current()）讀到的都是改寫後的值，
+ * 決定 {@value Operator#HEADER}：外部送來的一律忽略（避免偽造），改成 session 中登入者的 user id； 沒登入時沒有這個 header（後端記為
+ * system）。 做法是用 HttpServletRequestWrapper 改寫 header，後續程式（包含 Operator.current()）讀到的都是改寫後的值，
  * 呼叫其他服務時再由 OperatorForwardingInterceptor 帶過去。
  */
 @Component

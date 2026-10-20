@@ -15,8 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 寄信狀態的變更，每個方法各自一個短交易；寄信本身（連 SMTP）在交易外，由 {@link EmailDispatcher} 執行，
- * 不會在等 SMTP 時占著資料庫連線。
+ * 寄信狀態的變更，每個方法各自一個短交易；寄信本身（連 SMTP）在交易外，由 {@link EmailDispatcher} 執行， 不會在等 SMTP 時占著資料庫連線。
  */
 @Service
 @Transactional
@@ -43,12 +42,13 @@ public class EmailMessageService {
     public List<Long> findRetryableIds() {
         LocalDateTime now = LocalDateTime.now();
         return emailMessageDAO.findRetryableIds(maxAttempts, now.minus(PENDING_GRACE),
-                now.minus(FAILED_BACKOFF), now.minus(SENDING_TIMEOUT), PageRequest.of(0, BATCH_SIZE));
+                now.minus(FAILED_BACKOFF), now.minus(SENDING_TIMEOUT),
+                PageRequest.of(0, BATCH_SIZE));
     }
 
     /**
-     * 領取一封要寄的信：改成 SENDING 並把次數加一。不需要寄（已寄出、別人正在寄、次數用完）時回 empty。
-     * 兩個執行緒同時領取同一封時，後存檔的版本不符，丟 OptimisticLockingFailureException，由呼叫端放棄。
+     * 領取一封要寄的信：改成 SENDING 並把次數加一。不需要寄（已寄出、別人正在寄、次數用完）時回 empty。 兩個執行緒同時領取同一封時，後存檔的版本不符，丟
+     * OptimisticLockingFailureException，由呼叫端放棄。
      */
     public Optional<EmailMessage> claim(Long id) {
         EmailMessage message = emailMessageDAO.findById(id)

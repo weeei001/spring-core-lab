@@ -14,8 +14,8 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 /**
- * Sprint（迭代）：一段固定期間要完成的任務，任務以 {@link Task#getSprintId()} 排入；
- * 沒有排入 Sprint 的未完成主任務即為 Backlog。狀態只能用 SprintApi.start／close 改變。
+ * Sprint（迭代）：一段固定期間要完成的任務，任務以 {@link Task#getSprintId()} 排入； 沒有排入 Sprint 的未完成主任務即為 Backlog。狀態只能用
+ * SprintApi.start／close 改變。
  */
 @Entity
 @Table(name = "sprint", indexes = @Index(columnList = "project_id, status"))

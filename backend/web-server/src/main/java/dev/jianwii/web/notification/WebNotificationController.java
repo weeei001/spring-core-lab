@@ -72,10 +72,8 @@ public class WebNotificationController {
     }
 
     /** 公告內容；email 為 true 時同時寄信給有 Email 的收件人。 */
-    public record AnnouncementRequest(
-            @NotEmpty @Size(max = 100) Set<@NotBlank String> recipientIds,
-            @NotBlank @Size(max = 200) String title,
-            @Size(max = 2000) String content,
+    public record AnnouncementRequest(@NotEmpty @Size(max = 100) Set<@NotBlank String> recipientIds,
+            @NotBlank @Size(max = 200) String title, @Size(max = 2000) String content,
             boolean email) {
     }
 }

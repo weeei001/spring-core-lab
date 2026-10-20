@@ -45,8 +45,8 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
     private final TaskDAO taskDAO;
     private final SerialNumberApi serialNumberApi;
 
-    public ProjectService(ProjectDAO projectDAO, ProjectMemberDAO projectMemberDAO,
-            TaskDAO taskDAO, SerialNumberApi serialNumberApi) {
+    public ProjectService(ProjectDAO projectDAO, ProjectMemberDAO projectMemberDAO, TaskDAO taskDAO,
+            SerialNumberApi serialNumberApi) {
         super(projectDAO);
         this.projectMemberDAO = projectMemberDAO;
         this.taskDAO = taskDAO;
@@ -60,9 +60,9 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
         PageResponse<Project> page = super.queryPage(parameter);
         List<Project> projects = page.getItems();
         if (!projects.isEmpty()) {
-            Map<Long, TaskCount> counts = taskDAO.projectCounts(
-                    projects.stream().map(Project::getId).toList()).stream()
-                    .collect(Collectors.toMap(TaskCount::getGroupId, Function.identity()));
+            Map<Long, TaskCount> counts =
+                    taskDAO.projectCounts(projects.stream().map(Project::getId).toList()).stream()
+                            .collect(Collectors.toMap(TaskCount::getGroupId, Function.identity()));
             for (Project project : projects) {
                 TaskCount count = counts.get(project.getId());
                 project.setTaskCount(count == null ? 0L : count.getTotal());
@@ -112,15 +112,14 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
         ProjectStatus status = request.getStatus();
         boolean statusChanged = status != null && status != entity.getStatus();
         if (statusChanged && !entity.getStatus().next().contains(status)) {
-            throw new BusinessException(
-                    "專案狀態不能從 " + entity.getStatus() + " 改為 " + status);
+            throw new BusinessException("專案狀態不能從 " + entity.getStatus() + " 改為 " + status);
         }
         if (entity.getStatus().isClosed() && !statusChanged) {
             throw new BusinessException("專案已結案或取消，請先重新開啟");
         }
-        requireDateRange(request.getStartDate() != null ? request.getStartDate()
-                : entity.getStartDate(), request.getEndDate() != null ? request.getEndDate()
-                        : entity.getEndDate());
+        requireDateRange(
+                request.getStartDate() != null ? request.getStartDate() : entity.getStartDate(),
+                request.getEndDate() != null ? request.getEndDate() : entity.getEndDate());
         if (request.getWipLimits() != null) {
             requireWipLimits(request.getWipLimits());
             request.setWipLimits(new HashMap<>(request.getWipLimits()));
@@ -154,10 +153,10 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
         return specification.and((root, query, builder) -> {
             Subquery<Long> members = query.subquery(Long.class);
             Root<ProjectMember> member = members.from(ProjectMember.class);
-            List<Predicate> predicates = new ArrayList<>(List.of(
-                    builder.equal(member.get("projectId"), root.get("id")),
-                    builder.equal(member.get("userId"), memberUserId),
-                    builder.equal(member.get("dbMark"), BaseEntity.VALID)));
+            List<Predicate> predicates =
+                    new ArrayList<>(List.of(builder.equal(member.get("projectId"), root.get("id")),
+                            builder.equal(member.get("userId"), memberUserId),
+                            builder.equal(member.get("dbMark"), BaseEntity.VALID)));
             if (memberRole != null) {
                 predicates.add(builder.equal(member.get("role"), memberRole));
             }

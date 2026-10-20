@@ -22,8 +22,7 @@ import java.util.List;
 public class UserQueryParameter extends QueryParameter<User> {
 
     /**
-     * IN：前端拿 createId、transId 換成名字時使用；字串會自動轉成 Long。
-     * 系統操作記為 system，不是使用者，送出前請先排除，否則回 400。
+     * IN：前端拿 createId、transId 換成名字時使用；字串會自動轉成 Long。 系統操作記為 system，不是使用者，送出前請先排除，否則回 400。
      */
     @QueryField(property = "id", operator = QueryOperator.IN)
     @Size(max = 100)

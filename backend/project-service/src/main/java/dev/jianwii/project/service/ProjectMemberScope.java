@@ -8,8 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 /** 任務與工時共用的專案範圍；EXISTS 不受成員數或分頁上限影響。 */
 final class ProjectMemberScope {
-    private ProjectMemberScope() {
-    }
+    private ProjectMemberScope() {}
 
     static <T> Specification<T> forUser(String userId) {
         return (root, query, builder) -> {

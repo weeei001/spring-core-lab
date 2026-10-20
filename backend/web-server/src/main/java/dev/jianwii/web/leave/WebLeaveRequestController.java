@@ -24,13 +24,15 @@ public class WebLeaveRequestController {
 
     @PreAuthorize("hasAuthority('leave:apply')")
     @PostMapping("/mine/queryPage")
-    public Result<PageResponse<LeaveRequest>> mine(@Valid @RequestBody LeaveQueryParameter parameter) {
+    public Result<PageResponse<LeaveRequest>> mine(
+            @Valid @RequestBody LeaveQueryParameter parameter) {
         return Result.success(leaveApi.mine(parameter));
     }
 
     @PreAuthorize("hasAuthority('leave:approve')")
     @PostMapping("/review/queryPage")
-    public Result<PageResponse<LeaveRequest>> reviews(@Valid @RequestBody LeaveQueryParameter parameter) {
+    public Result<PageResponse<LeaveRequest>> reviews(
+            @Valid @RequestBody LeaveQueryParameter parameter) {
         return Result.success(leaveApi.reviews(parameter));
     }
 
@@ -48,7 +50,8 @@ public class WebLeaveRequestController {
 
     @PreAuthorize("hasAuthority('leave:approve')")
     @PostMapping("/{id}/review")
-    public Result<LeaveRequest> review(@PathVariable Long id, @Valid @RequestBody LeaveReview review) {
+    public Result<LeaveRequest> review(@PathVariable Long id,
+            @Valid @RequestBody LeaveReview review) {
         return Result.success(leaveApi.review(id, review));
     }
 }

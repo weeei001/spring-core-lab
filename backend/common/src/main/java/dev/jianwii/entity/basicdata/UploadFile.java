@@ -9,8 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 共用上傳檔案。只有 basic-data 建表及存檔；其他服務保存檔案 id，透過 UploadFileApi 讀取。
- * 業務關聯與存取權限由使用檔案的模組管理，實體檔案不放進資料庫。
+ * 共用上傳檔案。只有 basic-data 建表及存檔；其他服務保存檔案 id，透過 UploadFileApi 讀取。 業務關聯與存取權限由使用檔案的模組管理，實體檔案不放進資料庫。
  */
 @Entity
 @Table(name = "upload_file")

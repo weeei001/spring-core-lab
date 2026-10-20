@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 前端用的專案 API：檢查功能權限（@PreAuthorize）與成員資格（{@link ProjectAccessGuard}），
- * 再呼叫 project-service 的 {@link ProjectApi}，結果包成 Result。
- * 後端回的錯誤會變成 RemoteServiceException，再由 ExceptionHandleController 轉成同樣的 Result.failure 回前端。
+ * 前端用的專案 API：檢查功能權限（@PreAuthorize）與成員資格（{@link ProjectAccessGuard}）， 再呼叫 project-service 的
+ * {@link ProjectApi}，結果包成 Result。 後端回的錯誤會變成 RemoteServiceException，再由 ExceptionHandleController
+ * 轉成同樣的 Result.failure 回前端。
  */
 @RestController
 @AllArgsConstructor

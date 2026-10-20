@@ -28,8 +28,8 @@ public class WebAuthController {
     private final UserApi userApi;
 
     /**
-     * 目前登入者與他的功能權限（permissions）；前端啟動時呼叫，收到 401 代表要導向登入。
-     * 前端依 permissions 隱藏沒權限的選單和按鈕，真正擋住請求的是後端的 @PreAuthorize。
+     * 目前登入者與他的功能權限（permissions）；前端啟動時呼叫，收到 401 代表要導向登入。 前端依 permissions
+     * 隱藏沒權限的選單和按鈕，真正擋住請求的是後端的 @PreAuthorize。
      */
     @GetMapping("/me")
     public Result<User> me(@SessionAttribute(OperatorHeaderFilter.SESSION_USER_ID) String userId,
@@ -39,8 +39,9 @@ public class WebAuthController {
         User user = userApi.query(parameter).stream().findFirst()
                 .orElseThrow(() -> new NotFoundException("查無使用者，id：" + userId));
         // PermissionAuthorityFilter 已把功能權限放進 authorities
-        user.setPermissions(authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toCollection(TreeSet::new)));
+        user.setPermissions(
+                authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toCollection(TreeSet::new)));
         return Result.success(user);
     }
 }

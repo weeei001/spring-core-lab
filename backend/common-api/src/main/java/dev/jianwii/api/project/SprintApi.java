@@ -49,8 +49,7 @@ public interface SprintApi {
     Sprint start(@PathVariable("id") Long id);
 
     /**
-     * 結束 Sprint：必須是 ACTIVE。未完成的任務移到 moveToSprintId（同專案、PLANNED 的 Sprint），
-     * 不給則移回 Backlog。
+     * 結束 Sprint：必須是 ACTIVE。未完成的任務移到 moveToSprintId（同專案、PLANNED 的 Sprint）， 不給則移回 Backlog。
      */
     @PostExchange("/{id}/close")
     Sprint close(@PathVariable("id") Long id,

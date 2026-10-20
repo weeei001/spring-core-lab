@@ -68,9 +68,9 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     private final TaskNotifier taskNotifier;
     private final SerialNumberApi serialNumberApi;
 
-    public TaskService(TaskDAO taskDAO, MilestoneDAO milestoneDAO,
-            ProjectLabelDAO projectLabelDAO, SprintDAO sprintDAO, WorkLogDAO workLogDAO,
-            ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder,
+    public TaskService(TaskDAO taskDAO, MilestoneDAO milestoneDAO, ProjectLabelDAO projectLabelDAO,
+            SprintDAO sprintDAO, WorkLogDAO workLogDAO, ProjectRules projectRules,
+            TaskActivityRecorder taskActivityRecorder,
             SprintBurndownRecorder sprintBurndownRecorder, TaskNotifier taskNotifier,
             SerialNumberApi serialNumberApi) {
         super(taskDAO);
@@ -172,15 +172,14 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     }
 
     /**
-     * 看板拖曳：改成 status，排在同欄位 previousId 之後（null 表示排第一）。
-     * 平常只改這一筆的排序值；前後兩張卡片之間沒有空隙時，整欄重新編號。
+     * 看板拖曳：改成 status，排在同欄位 previousId 之後（null 表示排第一）。 平常只改這一筆的排序值；前後兩張卡片之間沒有空隙時，整欄重新編號。
      */
     public Task move(Long id, TaskStatus status, Long previousId) {
         Task task = find(id);
         projectRules.requireOpen(task.getProjectId());
         Tracked before = Tracked.of(task);
-        List<Task> column = new ArrayList<>(
-                taskDAO.findByProjectIdAndStatusAndDbMarkOrderBySortOrderAscIdAsc(
+        List<Task> column =
+                new ArrayList<>(taskDAO.findByProjectIdAndStatusAndDbMarkOrderBySortOrderAscIdAsc(
                         task.getProjectId(), status, BaseEntity.VALID));
         column.removeIf(other -> other.getId().equals(id));
         int index = 0;
@@ -347,8 +346,7 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     }
 
     /**
-     * 條件清單表達不了的條件在這裡補上：topLevel 是 parentId IS NULL；
-     * labelIds 在中間表，用 EXISTS 子查詢，同一個任務不會因多個標籤重複出現。
+     * 條件清單表達不了的條件在這裡補上：topLevel 是 parentId IS NULL； labelIds 在中間表，用 EXISTS 子查詢，同一個任務不會因多個標籤重複出現。
      */
     @Override
     protected Specification<Task> toSpecification(TaskQueryParameter parameter) {
@@ -356,9 +354,9 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
                 .and(ProjectMemberScope.forUser(parameter.getMemberUserId()));
         Boolean topLevel = parameter.getTopLevel();
         if (topLevel != null) {
-            specification = specification.and((root, query, builder) -> topLevel
-                    ? builder.isNull(root.get("parentId"))
-                    : builder.isNotNull(root.get("parentId")));
+            specification = specification
+                    .and((root, query, builder) -> topLevel ? builder.isNull(root.get("parentId"))
+                            : builder.isNotNull(root.get("parentId")));
         }
         List<Long> labelIds = parameter.getLabelIds();
         if (labelIds != null && !labelIds.isEmpty()) {
@@ -389,8 +387,7 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     }
 
     /**
-     * 前置任務必須是同專案的有效任務、不能是自己，也不能成環：
-     * 從新的前置任務沿著「前置的前置」一路往前追，追到自己就表示成環。
+     * 前置任務必須是同專案的有效任務、不能是自己，也不能成環： 從新的前置任務沿著「前置的前置」一路往前追，追到自己就表示成環。
      */
     private void requirePredecessors(Long taskId, Long projectId, Set<Long> predecessorIds) {
         if (predecessorIds.isEmpty()) {
@@ -401,8 +398,8 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         }
         Map<Long, Set<Long>> graph = taskDAO.findByProjectIdAndDbMark(projectId, BaseEntity.VALID)
                 .stream().collect(Collectors.toMap(Task::getId, Task::getPredecessorIds));
-        List<Long> missing = predecessorIds.stream().filter(id -> !graph.containsKey(id))
-                .sorted().toList();
+        List<Long> missing =
+                predecessorIds.stream().filter(id -> !graph.containsKey(id)).sorted().toList();
         if (!missing.isEmpty()) {
             throw new BusinessException("前置任務不存在或不在同一專案：" + missing);
         }
@@ -445,8 +442,7 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
                 .filter(sprint -> sprint.getDbMark() == BaseEntity.VALID
                         && sprint.getProjectId().equals(projectId)
                         && sprint.getStatus() != SprintStatus.CLOSED)
-                .orElseThrow(() -> new BusinessException(
-                        "Sprint 不存在、已結束或不在同一專案：" + sprintId));
+                .orElseThrow(() -> new BusinessException("Sprint 不存在、已結束或不在同一專案：" + sprintId));
     }
 
     private void requireMilestone(Long projectId, Long milestoneId) {
@@ -520,9 +516,9 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         static Tracked of(Task task) {
             // 標籤要複製一份：更新時會換掉 entity 的集合
             return new Tracked(task.getTitle(), task.getType(), Set.copyOf(task.getLabelIds()),
-                    task.getStatus(), task.getPriority(), task.getAssigneeId(),
-                    task.getStartDate(), task.getDueDate(), task.getMilestoneId(),
-                    task.getSprintId(), task.getStoryPoints());
+                    task.getStatus(), task.getPriority(), task.getAssigneeId(), task.getStartDate(),
+                    task.getDueDate(), task.getMilestoneId(), task.getSprintId(),
+                    task.getStoryPoints());
         }
     }
 }

@@ -20,14 +20,14 @@ import tools.jackson.databind.json.JsonMapper;
 import java.util.Optional;
 
 /**
- * 服務只要依賴 common 就會自動套用：全域例外處理、JPA Auditing（自動填 BaseEntity 的建立／修改者與時間）、
- * 呼叫其他服務時的操作者傳遞與錯誤轉換。
- * 跟 Spring Boot 各 starter 的自動設定同一套機制：類別名稱列在
+ * 服務只要依賴 common 就會自動套用：全域例外處理、JPA Auditing（自動填 BaseEntity 的建立／修改者與時間）、 呼叫其他服務時的操作者傳遞與錯誤轉換。 跟 Spring
+ * Boot 各 starter 的自動設定同一套機制：類別名稱列在
  * META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports，
  * 因此服務的 @SpringBootApplication 不必掃描 dev.jianwii.common。
  */
 // 排在 JPA 自動設定之後，下面的 @ConditionalOnBean(EntityManagerFactory) 才判斷得準
-@AutoConfiguration(afterName = "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration")
+@AutoConfiguration(
+        afterName = "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration")
 // 註冊全域例外處理
 @Import(ExceptionHandleController.class)
 public class CommonAutoConfiguration {
@@ -38,7 +38,10 @@ public class CommonAutoConfiguration {
     @EnableJpaAuditing
     static class JpaAuditingConfiguration {
 
-        /** 告訴 JPA Auditing 目前操作者是誰：取自 {@link Operator#HEADER}，沒有時記為 system；服務自行定義 AuditorAware bean 即可覆蓋。 */
+        /**
+         * 告訴 JPA Auditing 目前操作者是誰：取自 {@link Operator#HEADER}，沒有時記為 system；服務自行定義 AuditorAware bean
+         * 即可覆蓋。
+         */
         @Bean
         @ConditionalOnMissingBean(AuditorAware.class)
         AuditorAware<String> operatorAuditor() {
@@ -47,9 +50,8 @@ public class CommonAutoConfiguration {
     }
 
     /**
-     * 呼叫其他服務時：送出前帶上操作者 header，收到 4xx/5xx 時轉成 RemoteServiceException。
-     * 套用到 Spring Boot 提供的 RestClient.Builder 與 @ImportHttpServices 產生的 XxxApi；
-     * 自己用 RestClient.builder() 建立的不會套用。
+     * 呼叫其他服務時：送出前帶上操作者 header，收到 4xx/5xx 時轉成 RemoteServiceException。 套用到 Spring Boot 提供的
+     * RestClient.Builder 與 @ImportHttpServices 產生的 XxxApi； 自己用 RestClient.builder() 建立的不會套用。
      */
     @Bean
     RestClientCustomizer commonRestClientCustomizer(JsonMapper jsonMapper) {

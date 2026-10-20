@@ -50,8 +50,8 @@ public class PageResponse<T> {
     }
 
     /**
-     * 把 QueryParameter 的 page、size、sort 轉成 Spring Data 的 {@link Pageable}。
-     * sort 只接受 allowed 內的欄位；最後一律補上 id 排序，排序值相同時分頁結果才固定。
+     * 把 QueryParameter 的 page、size、sort 轉成 Spring Data 的 {@link Pageable}。 sort 只接受 allowed
+     * 內的欄位；最後一律補上 id 排序，排序值相同時分頁結果才固定。
      */
     public static Pageable pageable(QueryParameter<?> parameter, Set<String> allowed) {
         // 最後一個條件：跳過的筆數（offset）不可超過 int 範圍
@@ -61,8 +61,8 @@ public class PageResponse<T> {
         }
         List<Sort.Order> orders = new ArrayList<>();
         for (QueryParameter.Order order : parameter.getSort()) {
-            if (!allowed.contains(order.getField()) || !Set.of("asc", "desc")
-                    .contains(order.getDirection())) {
+            if (!allowed.contains(order.getField())
+                    || !Set.of("asc", "desc").contains(order.getDirection())) {
                 throw new BusinessException("不支援的排序欄位或方向");
             }
             orders.add(new Sort.Order(

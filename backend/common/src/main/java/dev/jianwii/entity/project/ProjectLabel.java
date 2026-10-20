@@ -12,8 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 專案標籤，例如 frontend、backend、API；每個專案各自維護，任務可掛多個（{@link Task#getLabelIds()}）。
- * 同一專案內名稱不可重複（不分大小寫）。
+ * 專案標籤，例如 frontend、backend、API；每個專案各自維護，任務可掛多個（{@link Task#getLabelIds()}）。 同一專案內名稱不可重複（不分大小寫）。
  */
 @Entity
 @Table(name = "project_label", indexes = @Index(columnList = "project_id"))

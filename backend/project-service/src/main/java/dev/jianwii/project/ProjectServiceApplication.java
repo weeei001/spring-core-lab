@@ -14,8 +14,8 @@ import org.springframework.web.service.registry.ImportHttpServices;
 @EntityScan("dev.jianwii.entity.project")
 // SerialNumberApi：新增專案、任務時取系統編號；UserApi：加入成員時確認使用者存在。
 // group 即 Eureka 上的服務名稱，由 Spring Cloud LoadBalancer 找到實際位址
-@ImportHttpServices(group = "basic-data", types = {SerialNumberApi.class, UserApi.class,
-        UploadFileApi.class})
+@ImportHttpServices(group = "basic-data",
+        types = {SerialNumberApi.class, UserApi.class, UploadFileApi.class})
 // NotificationApi：任務指派、狀態變更、新留言時發通知
 @ImportHttpServices(group = "notification-service", types = NotificationApi.class)
 public class ProjectServiceApplication {

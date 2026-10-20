@@ -27,10 +27,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 每個請求把登入者的功能權限放進 Spring Security，
- * {@code @PreAuthorize("hasAuthority('task:write')")} 才判斷得到。
- * 每次請求都向 basic-data 取得最新權限，管理員調整後，下一個請求就會使用新權限。
- * 只換掉這個請求的 Authentication，不寫回 session。由 SecurityConfig 加進 Spring Security 的 filter 鏈，不是 bean。
+ * 每個請求把登入者的功能權限放進 Spring Security， {@code @PreAuthorize("hasAuthority('task:write')")} 才判斷得到。
+ * 每次請求都向 basic-data 取得最新權限，管理員調整後，下一個請求就會使用新權限。 只換掉這個請求的 Authentication，不寫回 session。由
+ * SecurityConfig 加進 Spring Security 的 filter 鏈，不是 bean。
  */
 public class PermissionAuthorityFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(PermissionAuthorityFilter.class);
@@ -51,8 +50,8 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
             FilterChain chain) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         HttpSession session = request.getSession(false);
-        Object userId = session == null ? null
-                : session.getAttribute(OperatorHeaderFilter.SESSION_USER_ID);
+        Object userId =
+                session == null ? null : session.getAttribute(OperatorHeaderFilter.SESSION_USER_ID);
         if (authentication instanceof OAuth2AuthenticationToken token) {
             if (userId == null) {
                 unauthorized(session, response);
@@ -60,14 +59,16 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
             }
             Set<String> permissions;
             try {
-                UserAuthorization authorization = userApi.authorization(Long.valueOf(userId.toString()));
+                UserAuthorization authorization =
+                        userApi.authorization(Long.valueOf(userId.toString()));
                 if (!authorization.active()) {
                     unauthorized(session, response);
                     return;
                 }
                 String subject = token.getPrincipal().getAttribute("sub");
-                permissions = subject != null && superAdminSubjects.contains(subject)
-                        ? Permission.codes() : Set.copyOf(authorization.permissions());
+                permissions =
+                        subject != null && superAdminSubjects.contains(subject) ? Permission.codes()
+                                : Set.copyOf(authorization.permissions());
             } catch (RuntimeException e) {
                 // Filter 不會經過 ControllerAdvice；無法確認權限時停止請求，不沿用舊授權。
                 log.warn("載入權限失敗，userId：{}", userId, e);
@@ -79,8 +80,8 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
                         Result.failure("權限查詢失敗", "暫時無法確認權限，請稍後再試"));
                 return;
             }
-            List<GrantedAuthority> authorities =
-                    permissions.stream().<GrantedAuthority>map(SimpleGrantedAuthority::new).toList();
+            List<GrantedAuthority> authorities = permissions.stream()
+                    .<GrantedAuthority>map(SimpleGrantedAuthority::new).toList();
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(new OAuth2AuthenticationToken(token.getPrincipal(),
                     authorities, token.getAuthorizedClientRegistrationId()));
@@ -89,7 +90,8 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    private void unauthorized(HttpSession session, HttpServletResponse response) throws IOException {
+    private void unauthorized(HttpSession session, HttpServletResponse response)
+            throws IOException {
         if (session != null) {
             session.invalidate();
         }
@@ -97,7 +99,6 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        jsonMapper.writeValue(response.getOutputStream(),
-                Result.failure("未登入", "帳號不存在或已停用，請重新登入"));
+        jsonMapper.writeValue(response.getOutputStream(), Result.failure("未登入", "帳號不存在或已停用，請重新登入"));
     }
 }

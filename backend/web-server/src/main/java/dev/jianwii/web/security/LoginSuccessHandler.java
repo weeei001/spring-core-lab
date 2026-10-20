@@ -19,9 +19,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 
 /**
- * authentik 登入成功後：把登入者同步到 basic-data 的 user 表，user id 存進 session，再導回前端。
- * 同步失敗（帳號已停用、basic-data 沒啟動）就不算登入，清掉 session 並帶 loginError 參數導回前端。
- * subject 列在 {@code app.super-admin-subjects} 的是超級管理員，擁有全部權限，用來指派第一批角色。
+ * authentik 登入成功後：把登入者同步到 basic-data 的 user 表，user id 存進 session，再導回前端。 同步失敗（帳號已停用、basic-data
+ * 沒啟動）就不算登入，清掉 session 並帶 loginError 參數導回前端。 subject 列在 {@code app.super-admin-subjects}
+ * 的是超級管理員，擁有全部權限，用來指派第一批角色。
  */
 @Component
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {

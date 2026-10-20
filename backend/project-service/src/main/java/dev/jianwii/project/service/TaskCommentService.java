@@ -18,8 +18,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * 任務留言；只有作者能修改或刪除。新增時寫一筆活動紀錄、通知指派人與關注者，
- * 被 @ 的人另外收到通知；留言者與被 @ 的人自動關注任務。
+ * 任務留言；只有作者能修改或刪除。新增時寫一筆活動紀錄、通知指派人與關注者， 被 @ 的人另外收到通知；留言者與被 @ 的人自動關注任務。
  */
 @Service
 public class TaskCommentService extends BaseService<TaskComment, TaskCommentQueryParameter> {
@@ -113,8 +112,9 @@ public class TaskCommentService extends BaseService<TaskComment, TaskCommentQuer
 
     /** 任務必須有效，且所屬專案未結案。 */
     private Task requireOpenTask(Long taskId) {
-        Task task = taskDAO.findById(taskId).filter(entity -> entity.getDbMark() == BaseEntity.VALID)
-                .orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
+        Task task =
+                taskDAO.findById(taskId).filter(entity -> entity.getDbMark() == BaseEntity.VALID)
+                        .orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
         projectRules.requireOpen(task.getProjectId());
         return task;
     }

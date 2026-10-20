@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 把通知轉成待寄信件寫進資料表（outbox），並發出 {@link EmailQueuedEvent}。
- * 必須在呼叫端的交易內執行：信件與通知一起 commit 或 rollback，commit 後 {@link EmailDispatcher} 才寄。
+ * 把通知轉成待寄信件寫進資料表（outbox），並發出 {@link EmailQueuedEvent}。 必須在呼叫端的交易內執行：信件與通知一起 commit 或
+ * rollback，commit 後 {@link EmailDispatcher} 才寄。
  */
 @Component
 public class EmailOutbox {
@@ -37,8 +37,7 @@ public class EmailOutbox {
     }
 
     /**
-     * @param emails
-     *            收件人 id → Email，notifications 的收件人都必須在其中
+     * @param emails 收件人 id → Email，notifications 的收件人都必須在其中
      */
     public void enqueue(List<Notification> notifications, Map<String, String> emails) {
         if (!enabled || notifications.isEmpty()) {
@@ -55,8 +54,8 @@ public class EmailOutbox {
             message.setDbMark(BaseEntity.VALID);
             return message;
         }).toList();
-        List<Long> ids = emailMessageDAO.saveAll(messages).stream().map(EmailMessage::getId)
-                .toList();
+        List<Long> ids =
+                emailMessageDAO.saveAll(messages).stream().map(EmailMessage::getId).toList();
         // @TransactionalEventListener 會等到交易 commit 才收到；rollback 就收不到，不會寄出
         eventPublisher.publishEvent(new EmailQueuedEvent(ids));
     }
@@ -68,8 +67,7 @@ public class EmailOutbox {
             body.append(notification.getContent()).append("\n\n");
         }
         if (StringUtils.hasText(notification.getLink())) {
-            body.append("前往查看：").append(frontendUrl).append(notification.getLink())
-                    .append("\n\n");
+            body.append("前往查看：").append(frontendUrl).append(notification.getLink()).append("\n\n");
         }
         return body.append("此信由系統自動發送，請勿直接回覆。").toString();
     }

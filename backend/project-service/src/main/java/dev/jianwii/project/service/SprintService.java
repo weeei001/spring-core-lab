@@ -26,8 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Sprint CRUD、開始與結束；查詢結果帶任務與點數合計。
- * 任務排入 Sprint 由 TaskService 處理，這裡只在結束、刪除 Sprint 時整批移動任務。
+ * Sprint CRUD、開始與結束；查詢結果帶任務與點數合計。 任務排入 Sprint 由 TaskService 處理，這裡只在結束、刪除 Sprint 時整批移動任務。
  */
 @Service
 public class SprintService extends BaseService<Sprint, SprintQueryParameter> {
@@ -38,9 +37,8 @@ public class SprintService extends BaseService<Sprint, SprintQueryParameter> {
     private final TaskActivityRecorder taskActivityRecorder;
     private final SprintBurndownRecorder sprintBurndownRecorder;
 
-    public SprintService(SprintDAO sprintDAO, SprintBurndownDAO sprintBurndownDAO,
-            TaskDAO taskDAO, ProjectRules projectRules,
-            TaskActivityRecorder taskActivityRecorder,
+    public SprintService(SprintDAO sprintDAO, SprintBurndownDAO sprintBurndownDAO, TaskDAO taskDAO,
+            ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder,
             SprintBurndownRecorder sprintBurndownRecorder) {
         super(sprintDAO);
         this.sprintDAO = sprintDAO;
@@ -58,8 +56,8 @@ public class SprintService extends BaseService<Sprint, SprintQueryParameter> {
         PageResponse<Sprint> page = super.queryPage(parameter);
         List<Sprint> sprints = page.getItems();
         if (!sprints.isEmpty()) {
-            Map<Long, SprintCount> counts = taskDAO.sprintCounts(
-                    sprints.stream().map(Sprint::getId).toList()).stream()
+            Map<Long, SprintCount> counts = taskDAO
+                    .sprintCounts(sprints.stream().map(Sprint::getId).toList()).stream()
                     .collect(Collectors.toMap(SprintCount::getSprintId, Function.identity()));
             for (Sprint sprint : sprints) {
                 SprintCount count = counts.get(sprint.getId());
@@ -90,8 +88,7 @@ public class SprintService extends BaseService<Sprint, SprintQueryParameter> {
     }
 
     /**
-     * 結束 Sprint：先記下最後一筆燃盡紀錄，再把未完成的任務移到 moveToSprintId（null 為 Backlog），
-     * 移動寫進各任務的活動紀錄。
+     * 結束 Sprint：先記下最後一筆燃盡紀錄，再把未完成的任務移到 moveToSprintId（null 為 Backlog）， 移動寫進各任務的活動紀錄。
      */
     public Sprint close(Long id, Long moveToSprintId) {
         Sprint sprint = find(id);

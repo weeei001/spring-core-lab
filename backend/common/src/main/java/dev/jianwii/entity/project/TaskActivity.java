@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 任務活動紀錄，由 project-service 在任務異動時自動寫入，只能查詢；操作者即 createId、時間即 createTime。
- * 值一律存成文字：enum 存名稱、日期存 yyyy-MM-dd、人員存 user id，前端再轉成顯示文字。
+ * 任務活動紀錄，由 project-service 在任務異動時自動寫入，只能查詢；操作者即 createId、時間即 createTime。 值一律存成文字：enum 存名稱、日期存
+ * yyyy-MM-dd、人員存 user id，前端再轉成顯示文字。
  */
 @Entity
 @Table(name = "task_activity", indexes = @Index(columnList = "task_id"))

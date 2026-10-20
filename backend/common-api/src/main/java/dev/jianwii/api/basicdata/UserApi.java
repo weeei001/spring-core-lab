@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * basic-data 的使用者 API（Spring HTTP Interface），用法同 {@link SerialNumberApi}。
- * 使用者由登入自動建立（帶預設角色 {@code Role.DEFAULT_CODE}），所以沒有新增、修改；權限透過指派角色（{@link #updateRoles}）管理。
+ * basic-data 的使用者 API（Spring HTTP Interface），用法同 {@link SerialNumberApi}。 使用者由登入自動建立（帶預設角色
+ * {@code Role.DEFAULT_CODE}），所以沒有新增、修改；權限透過指派角色（{@link #updateRoles}）管理。
  */
 @HttpExchange("/api/basic-data/user")
 public interface UserApi {
@@ -29,8 +29,8 @@ public interface UserApi {
     PageResponse<User> queryPage(@Valid @RequestBody UserQueryParameter parameter);
 
     /**
-     * 登入同步，只給 web-server 在登入成功時呼叫：依 subject 找使用者，沒有就建立，
-     * 有就以 authentik 的資料更新 username、name、email。已停用（軟刪除）的使用者回 403。
+     * 登入同步，只給 web-server 在登入成功時呼叫：依 subject 找使用者，沒有就建立， 有就以 authentik 的資料更新
+     * username、name、email。已停用（軟刪除）的使用者回 403。
      */
     @PostExchange("/login")
     User login(@Valid @RequestBody User user);
@@ -40,8 +40,7 @@ public interface UserApi {
     User updateRoles(@PathVariable("id") Long id, @RequestBody Set<Long> roleIds);
 
     /**
-     * 使用者所有角色的功能權限 code（聯集），只給 web-server 載入權限用。
-     * 使用者不存在或已停用時回空集合。
+     * 使用者所有角色的功能權限 code（聯集），只給 web-server 載入權限用。 使用者不存在或已停用時回空集合。
      */
     @GetExchange("/{id}/permissions")
     Set<String> permissions(@PathVariable("id") Long id);

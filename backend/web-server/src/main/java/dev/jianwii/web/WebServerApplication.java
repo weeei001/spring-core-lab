@@ -26,11 +26,13 @@ import org.springframework.web.service.registry.ImportHttpServices;
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 // 產生各服務 XxxApi 的實作 bean，注入後呼叫方法即送出 HTTP 請求；
 // group 即 Eureka 上的服務名稱，由 Spring Cloud LoadBalancer 挑選實例
-@ImportHttpServices(group = "basic-data", types = {SerialNumberApi.class, UserApi.class, RoleApi.class,
-        UploadFileApi.class, LeaveApi.class})
-@ImportHttpServices(group = "project-service", types = {ProjectApi.class, ProjectMemberApi.class,
-        MilestoneApi.class, ProjectLabelApi.class, SprintApi.class, TaskApi.class,
-        TaskCommentApi.class, TaskAttachmentApi.class, TaskActivityApi.class, WorkLogApi.class})
+@ImportHttpServices(group = "basic-data",
+        types = {SerialNumberApi.class, UserApi.class, RoleApi.class, UploadFileApi.class,
+                LeaveApi.class})
+@ImportHttpServices(group = "project-service",
+        types = {ProjectApi.class, ProjectMemberApi.class, MilestoneApi.class,
+                ProjectLabelApi.class, SprintApi.class, TaskApi.class, TaskCommentApi.class,
+                TaskAttachmentApi.class, TaskActivityApi.class, WorkLogApi.class})
 @ImportHttpServices(group = "notification-service", types = NotificationApi.class)
 public class WebServerApplication {
 

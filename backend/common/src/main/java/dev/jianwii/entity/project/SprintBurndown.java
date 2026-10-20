@@ -8,8 +8,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 /**
- * 燃盡圖的每日紀錄：進行中的 Sprint 只要任務有異動，就更新當天這一筆（當下的合計）；
- * 沒有異動的日子不寫，畫圖時沿用前一天的值。只算主任務，取消的不計。
+ * 燃盡圖的每日紀錄：進行中的 Sprint 只要任務有異動，就更新當天這一筆（當下的合計）； 沒有異動的日子不寫，畫圖時沿用前一天的值。只算主任務，取消的不計。
  */
 @Entity
 @Table(name = "sprint_burndown",

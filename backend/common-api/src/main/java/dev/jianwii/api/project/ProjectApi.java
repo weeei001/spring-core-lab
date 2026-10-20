@@ -23,8 +23,8 @@ import java.util.List;
  * 後即可注入 ProjectApi；前端經 web-server 的 WebProjectController 呼叫，由它檢查權限並包成 Result。</li>
  * </ul>
  *
- * project-service 不檢查權限與成員資格，由 web-server 負責（見 ProjectAccessGuard）。
- * 成功時直接回傳物件，不包 Result；失敗時呼叫端會收到 RemoteServiceException。
+ * project-service 不檢查權限與成員資格，由 web-server 負責（見 ProjectAccessGuard）。 成功時直接回傳物件，不包 Result；失敗時呼叫端會收到
+ * RemoteServiceException。
  */
 @HttpExchange("/api/project")
 public interface ProjectApi {

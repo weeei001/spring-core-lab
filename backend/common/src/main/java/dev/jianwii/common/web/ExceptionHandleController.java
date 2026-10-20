@@ -27,9 +27,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
 /**
- * 全域例外處理（@RestControllerAdvice）：所有 Controller 丟出的例外都在這裡統一轉成 {@link Result#failure}。
- * 業務錯誤丟 {@link ProjectException} 子類別即可。5xx 一律回通用訊息並記錄 log，不把內部錯誤細節回給前端。
- * 由 CommonAutoConfiguration 註冊，各服務不需要再掃描這個 package。
+ * 全域例外處理（@RestControllerAdvice）：所有 Controller 丟出的例外都在這裡統一轉成 {@link Result#failure}。 業務錯誤丟
+ * {@link ProjectException} 子類別即可。5xx 一律回通用訊息並記錄 log，不把內部錯誤細節回給前端。 由 CommonAutoConfiguration
+ * 註冊，各服務不需要再掃描這個 package。
  */
 @RestControllerAdvice
 public class ExceptionHandleController {
@@ -109,8 +109,8 @@ public class ExceptionHandleController {
     public ResponseEntity<Result<Void>> handleHttpMessageNotReadable(
             HttpMessageNotReadableException e) {
         Throwable cause = e.getMostSpecificCause();
-        if (cause instanceof MismatchedInputException mismatched && !mismatched.getPath()
-                .isEmpty()) {
+        if (cause instanceof MismatchedInputException mismatched
+                && !mismatched.getPath().isEmpty()) {
             String field =
                     mismatched.getPath().get(mismatched.getPath().size() - 1).getPropertyName();
             if (field != null && !field.isBlank()) {
@@ -154,8 +154,7 @@ public class ExceptionHandleController {
 
     private ResponseEntity<Result<Void>> unexpectedFailure(Exception e, HttpStatus status) {
         String time = LocalDateTime.now(TAIPEI).format(UNEXPECTED_TIME);
-        String message =
-                "發生未預期錯誤，請告訴管理員或工程師（有截圖或是錄影可以更好排除錯誤） " + time;
+        String message = "發生未預期錯誤，請告訴管理員或工程師（有截圖或是錄影可以更好排除錯誤） " + time;
         log.error(message, e);
         return ResponseEntity.status(status).body(Result.failure("未預期錯誤", message));
     }

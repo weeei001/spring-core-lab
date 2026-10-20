@@ -41,9 +41,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 專案的資料範圍：一般使用者只能存取自己是成員的專案，有 project:admin 的人不受限制。
- * 功能權限由 Controller 的 {@code @PreAuthorize} 先擋，這裡只管「是不是這個專案的人」；
- * project-service 信任 web-server，不再重做這些檢查。
+ * 專案的資料範圍：一般使用者只能存取自己是成員的專案，有 project:admin 的人不受限制。 功能權限由 Controller 的 {@code @PreAuthorize}
+ * 先擋，這裡只管「是不是這個專案的人」； project-service 信任 web-server，不再重做這些檢查。
  *
  * <ul>
  * <li>查詢：scopeXxx 依參數檢查成員資格，或把條件限縮到登入者自己的資料。</li>
@@ -99,8 +98,7 @@ public class ProjectAccessGuard {
     }
 
     /**
-     * 給 projectId 時要是該專案成員；只給 ids 時（任務抽屜、工時表）這些任務的專案都要是自己參與的；
-     * 都沒給時只查得到指派給自己的任務（我的任務）。
+     * 給 projectId 時要是該專案成員；只給 ids 時（任務抽屜、工時表）這些任務的專案都要是自己參與的； 都沒給時只查得到指派給自己的任務（我的任務）。
      */
     public void scopeTasks(TaskQueryParameter parameter) {
         parameter.setMemberUserId(isAdmin() ? null : currentUserId());
@@ -270,8 +268,7 @@ public class ProjectAccessGuard {
     }
 
     private static <T> T first(List<T> items, Long id) {
-        return items.stream().findFirst()
-                .orElseThrow(() -> new NotFoundException("查無資料，id：" + id));
+        return items.stream().findFirst().orElseThrow(() -> new NotFoundException("查無資料，id：" + id));
     }
 
     /** 經 OperatorHeaderFilter 改寫後的 X-Operator，即登入者的 user id。 */
@@ -282,8 +279,8 @@ public class ProjectAccessGuard {
     /** PermissionAuthorityFilter 已把登入者的功能權限放進 authorities。 */
     private static boolean isAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(Permission.PROJECT_ADMIN.getCode()::equals);
+        return authentication != null
+                && authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                        .anyMatch(Permission.PROJECT_ADMIN.getCode()::equals);
     }
 }

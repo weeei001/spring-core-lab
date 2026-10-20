@@ -21,18 +21,16 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * 共用 CRUD：query、queryPage、create、update（部分更新）、delete（軟刪除），輸入輸出直接用 Entity，
- * 查詢條件用 {@link QueryParameter}。已軟刪除的資料（dbMark = INVALID）查不到，也不能修改或再刪除。
+ * 共用 CRUD：query、queryPage、create、update（部分更新）、delete（軟刪除），輸入輸出直接用 Entity， 查詢條件用
+ * {@link QueryParameter}。已軟刪除的資料（dbMark = INVALID）查不到，也不能修改或再刪除。
  *
  * <p>
- * 用法：XxxService 繼承此類別並加 @Service，建構子把 DAO 傳給 super。
- * 需要額外檢查時覆寫 before* 方法（丟例外即中止，交易會 rollback）；可排序欄位覆寫 {@link #sortableFields()}；
- * 有 LAZY 關聯要帶回前端時覆寫 {@link #initialize}；其他業務方法直接寫在 XxxService。
+ * 用法：XxxService 繼承此類別並加 @Service，建構子把 DAO 傳給 super。 需要額外檢查時覆寫 before* 方法（丟例外即中止，交易會
+ * rollback）；可排序欄位覆寫 {@link #sortableFields()}； 有 LAZY 關聯要帶回前端時覆寫 {@link #initialize}；其他業務方法直接寫在
+ * XxxService。
  *
- * @param <E>
- *            Entity
- * @param <Q>
- *            查詢參數
+ * @param <E> Entity
+ * @param <Q> 查詢參數
  */
 // 所有 public 方法都在交易內執行；查詢方法另標 readOnly
 @Transactional
@@ -105,15 +103,17 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
     }
 
     /**
-     * 把 request 中非 null 的欄位複製到 entity（PATCH 語意），略過 id、dbMark 與審計欄位。
-     * 因此無法透過 update 把欄位設為 null；需要時覆寫此方法。
+     * 把 request 中非 null 的欄位複製到 entity（PATCH 語意），略過 id、dbMark 與審計欄位。 因此無法透過 update 把欄位設為
+     * null；需要時覆寫此方法。
      */
     protected void applyUpdate(E request, E entity) {
         BeanWrapper source = new BeanWrapperImpl(request);
-        String[] ignored = Stream.of(source.getPropertyDescriptors()).map(PropertyDescriptor::getName)
-                .filter(name -> MANAGED_PROPERTIES.contains(name) || !source.isReadableProperty(
-                        name) || source.getPropertyValue(name) == null)
-                .toArray(String[]::new);
+        String[] ignored =
+                Stream.of(source.getPropertyDescriptors()).map(PropertyDescriptor::getName)
+                        .filter(name -> MANAGED_PROPERTIES.contains(name)
+                                || !source.isReadableProperty(name)
+                                || source.getPropertyValue(name) == null)
+                        .toArray(String[]::new);
         BeanUtils.copyProperties(request, entity, ignored);
     }
 
@@ -132,37 +132,30 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
 
     /**
      * 回傳前載入要帶給前端的 LAZY 關聯，例如 {@code Hibernate.initialize(task.getPredecessorIds())}。
-     * 交易結束後就不能再查資料庫，轉 JSON 時讀到沒載入的關聯會出錯，所以必須在 Service 內載入。
-     * query、queryPage、create、update 回傳前都會呼叫；XxxService 自己的方法要自行呼叫。
+     * 交易結束後就不能再查資料庫，轉 JSON 時讀到沒載入的關聯會出錯，所以必須在 Service 內載入。 query、queryPage、create、update
+     * 回傳前都會呼叫；XxxService 自己的方法要自行呼叫。
      */
-    protected void initialize(E entity) {
-    }
+    protected void initialize(E entity) {}
 
     /**
-     * 只改了 @ElementCollection（中間表，例如任務的前置任務、角色權限）時，主表沒有欄位變動，
-     * JPA 不會 UPDATE 主表，transId、transTime 也就不會更新。改一下 transTime 讓主表一起 UPDATE，
-     * JPA Auditing 會再填入正確的修改者與時間。
+     * 只改了 @ElementCollection（中間表，例如任務的前置任務、角色權限）時，主表沒有欄位變動， JPA 不會 UPDATE 主表，transId、transTime
+     * 也就不會更新。改一下 transTime 讓主表一起 UPDATE， JPA Auditing 會再填入正確的修改者與時間。
      */
     protected void touch(E entity) {
         entity.setTransTime(LocalDateTime.now());
     }
 
     /** 新增前的檢查或補值，例如檢查代碼重複、填入系統編號。 */
-    protected void beforeCreate(E request) {
-    }
+    protected void beforeCreate(E request) {}
 
     /**
-     * 更新前的檢查。entity 是資料庫中的現值，request 是前端送來的新值；
-     * 不允許修改的欄位可在這裡設為 null，就不會被複製。
+     * 更新前的檢查。entity 是資料庫中的現值，request 是前端送來的新值； 不允許修改的欄位可在這裡設為 null，就不會被複製。
      */
-    protected void beforeUpdate(E entity, E request) {
-    }
+    protected void beforeUpdate(E entity, E request) {}
 
     /** 刪除前的檢查，例如仍有關聯資料時禁止刪除。 */
-    protected void beforeDelete(E entity) {
-    }
+    protected void beforeDelete(E entity) {}
 
     /** 查詢前的檢查，例如權限。 */
-    protected void beforeList() {
-    }
+    protected void beforeList() {}
 }

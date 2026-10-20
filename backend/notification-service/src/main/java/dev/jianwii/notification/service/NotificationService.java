@@ -18,8 +18,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 站內通知的建立、查詢與已讀。建立要透過 {@link NotificationSender}（先向 basic-data 查收件人），
- * BaseService 的 create、update、delete 不對外開放。
+ * 站內通知的建立、查詢與已讀。建立要透過 {@link NotificationSender}（先向 basic-data 查收件人）， BaseService 的
+ * create、update、delete 不對外開放。
  */
 @Service
 public class NotificationService extends BaseService<Notification, NotificationQueryParameter> {
@@ -33,11 +33,9 @@ public class NotificationService extends BaseService<Notification, NotificationQ
     }
 
     /**
-     * 每位收件人建一筆通知；要寄信時，有 Email 的收件人同時寫一筆待寄信件。
-     * 兩者在同一個交易，commit 後才會寄出。
+     * 每位收件人建一筆通知；要寄信時，有 Email 的收件人同時寫一筆待寄信件。 兩者在同一個交易，commit 後才會寄出。
      *
-     * @param emails
-     *            收件人 id → Email，沒有 Email 的不在其中
+     * @param emails 收件人 id → Email，沒有 Email 的不在其中
      */
     public List<Notification> createAll(NotificationSendRequest request,
             Map<String, String> emails) {
@@ -54,9 +52,13 @@ public class NotificationService extends BaseService<Notification, NotificationQ
         }
         List<Notification> saved = notificationDAO.saveAllAndFlush(notifications);
         if (request.isEmail()) {
-            emailOutbox.enqueue(saved.stream()
-                    .filter(notification -> emails.containsKey(notification.getRecipientId()))
-                    .toList(), emails);
+            emailOutbox
+                    .enqueue(
+                            saved.stream()
+                                    .filter(notification -> emails
+                                            .containsKey(notification.getRecipientId()))
+                                    .toList(),
+                            emails);
         }
         return saved;
     }
@@ -100,8 +102,9 @@ public class NotificationService extends BaseService<Notification, NotificationQ
         if (unread == null) {
             return specification;
         }
-        return specification.and((root, query, builder) -> unread
-                ? builder.isNull(root.get("readTime")) : builder.isNotNull(root.get("readTime")));
+        return specification
+                .and((root, query, builder) -> unread ? builder.isNull(root.get("readTime"))
+                        : builder.isNotNull(root.get("readTime")));
     }
 
     @Override

@@ -5,7 +5,5 @@ public enum EmailStatus {
     /** 等待寄出 */
     PENDING,
     /** 已被某個執行緒領走，正在寄 */
-    SENDING,
-    SENT,
-    FAILED
+    SENDING, SENT, FAILED
 }

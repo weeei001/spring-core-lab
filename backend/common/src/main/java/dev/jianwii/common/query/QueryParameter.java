@@ -12,8 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 查詢參數基底（查詢 API 的 request body）：分頁、排序，以及把子類別的欄位自動轉成查詢條件，
- * 子類別只要宣告欄位，不必手寫「有值才加條件」的判斷。
+ * 查詢參數基底（查詢 API 的 request body）：分頁、排序，以及把子類別的欄位自動轉成查詢條件， 子類別只要宣告欄位，不必手寫「有值才加條件」的判斷。
  *
  * <ul>
  * <li>值非 null 的欄位才會變成條件，預設為「Entity 同名欄位 = 值」；false 與 0 也算有值。</li>
@@ -23,8 +22,7 @@ import java.util.List;
  * </ul>
  * page 從 1 起算；page、size、sort 不參與篩選。
  *
- * @param <T>
- *            要查詢的 Entity
+ * @param <T> 要查詢的 Entity
  */
 @Getter
 @Setter
@@ -48,9 +46,9 @@ public abstract class QueryParameter<T> {
         QueryConditions conditions = new QueryConditions();
         for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
             for (Field field : type.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers()) || Modifier.isTransient(
-                        field.getModifiers()) || field.isSynthetic() || field.isAnnotationPresent(
-                                QueryIgnore.class)) {
+                if (Modifier.isStatic(field.getModifiers())
+                        || Modifier.isTransient(field.getModifiers()) || field.isSynthetic()
+                        || field.isAnnotationPresent(QueryIgnore.class)) {
                     continue;
                 }
                 if (field.getType().isPrimitive()) {
@@ -60,8 +58,9 @@ public abstract class QueryParameter<T> {
                     throw new IllegalStateException("無法讀取查詢欄位：" + field.getName());
                 }
                 QueryField queryField = field.getAnnotation(QueryField.class);
-                String property = queryField == null || queryField.property().isEmpty()
-                        ? field.getName() : queryField.property();
+                String property =
+                        queryField == null || queryField.property().isEmpty() ? field.getName()
+                                : queryField.property();
                 QueryOperator operator =
                         queryField == null ? QueryOperator.EQUAL : queryField.operator();
                 conditions.add(property, operator, ReflectionUtils.getField(field, this));

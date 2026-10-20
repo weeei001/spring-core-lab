@@ -15,8 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 前端用的編號規則維護：呼叫 basic-data 的 {@link SerialNumberApi}，結果包成 Result。
- * 取號（next）只給服務之間使用，不開放給前端。
+ * 前端用的編號規則維護：呼叫 basic-data 的 {@link SerialNumberApi}，結果包成 Result。 取號（next）只給服務之間使用，不開放給前端。
  */
 @RestController
 @AllArgsConstructor

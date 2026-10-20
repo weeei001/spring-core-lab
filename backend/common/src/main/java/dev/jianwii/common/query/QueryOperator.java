@@ -1,8 +1,8 @@
 package dev.jianwii.common.query;
 
 /**
- * 查詢比較方式，寫死在 Java 端（{@link QueryField} 或 toQueryConditions），API 呼叫端不能自己指定。
- * 轉成 JPA 條件與型別檢查在 {@link dev.jianwii.common.dao.QuerySpecifications}。
+ * 查詢比較方式，寫死在 Java 端（{@link QueryField} 或 toQueryConditions），API 呼叫端不能自己指定。 轉成 JPA 條件與型別檢查在
+ * {@link dev.jianwii.common.dao.QuerySpecifications}。
  *
  * <ul>
  * <li>{@link #EQUAL}／{@link #NOT_EQUAL}：等於／不等於。</li>
@@ -14,6 +14,5 @@ package dev.jianwii.common.query;
  */
 public enum QueryOperator {
 
-    EQUAL, NOT_EQUAL, LIKE, STARTS_WITH, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN,
-    LESS_THAN_OR_EQUAL, IN
+    EQUAL, NOT_EQUAL, LIKE, STARTS_WITH, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN
 }

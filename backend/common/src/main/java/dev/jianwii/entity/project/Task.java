@@ -22,17 +22,16 @@ import java.time.LocalDate;
 import java.util.Set;
 
 /**
- * 任務。parentId 有值的是子任務；子任務只有一層，子任務底下不能再有子任務。
- * 類型、標籤、狀態、指派人、優先度、日期、里程碑的變更由 TaskService 自動寫進活動紀錄（{@link TaskActivity}）。
- * 狀態變更與新留言會通知指派人與關注者（{@link #watcherIds}）。
+ * 任務。parentId 有值的是子任務；子任務只有一層，子任務底下不能再有子任務。 類型、標籤、狀態、指派人、優先度、日期、里程碑的變更由 TaskService
+ * 自動寫進活動紀錄（{@link TaskActivity}）。 狀態變更與新留言會通知指派人與關注者（{@link #watcherIds}）。
  *
  * <p>
  * 更新是部分更新（null 表示不改），要清空選填欄位時把欄位名稱放進 {@link #clearFields}。
  */
 @Entity
-@Table(name = "task", indexes = {@Index(columnList = "project_id, status"),
-        @Index(columnList = "assignee_id"), @Index(columnList = "parent_id"),
-        @Index(columnList = "sprint_id")})
+@Table(name = "task",
+        indexes = {@Index(columnList = "project_id, status"), @Index(columnList = "assignee_id"),
+                @Index(columnList = "parent_id"), @Index(columnList = "sprint_id")})
 @Getter
 @Setter
 public class Task extends BaseEntity {
@@ -51,8 +50,7 @@ public class Task extends BaseEntity {
     private Long milestoneId;
 
     /**
-     * 排入的 Sprint，必須是同一專案、未結束的 Sprint；只有主任務能排入，子任務跟著父任務。
-     * 選填，null 即在 Backlog。
+     * 排入的 Sprint，必須是同一專案、未結束的 Sprint；只有主任務能排入，子任務跟著父任務。 選填，null 即在 Backlog。
      */
     @Column(name = "sprint_id")
     private Long sprintId;
@@ -127,8 +125,7 @@ public class Task extends BaseEntity {
     private Set<@NotNull Long> predecessorIds;
 
     /**
-     * 標籤 id（{@link ProjectLabel}），存在中間表 task_label；必須是同一專案的標籤。
-     * 更新時不給（null）表示不改，給 [] 表示清空。
+     * 標籤 id（{@link ProjectLabel}），存在中間表 task_label；必須是同一專案的標籤。 更新時不給（null）表示不改，給 [] 表示清空。
      */
     @Size(max = 20)
     @ElementCollection(fetch = FetchType.LAZY)
@@ -139,8 +136,8 @@ public class Task extends BaseEntity {
     private Set<@NotNull Long> labelIds;
 
     /**
-     * 關注者的 user id，存在中間表 task_watcher；由系統維護，新增、修改時前端送來的值會被忽略。
-     * 建立者、指派人、留言者、被 @ 的人會自動加入；自己關注、取消關注用 TaskApi.watch／unwatch。
+     * 關注者的 user id，存在中間表 task_watcher；由系統維護，新增、修改時前端送來的值會被忽略。 建立者、指派人、留言者、被 @ 的人會自動加入；自己關注、取消關注用
+     * TaskApi.watch／unwatch。
      */
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "task_watcher", joinColumns = @JoinColumn(name = "task_id"),
@@ -151,8 +148,7 @@ public class Task extends BaseEntity {
 
     /**
      * 只在更新時使用：要清空的選填欄位，可用 milestoneId、sprintId、storyPoints、assigneeId、startDate、dueDate、
-     * estimateHours、description。
-     * 不存資料庫，也不會回傳。
+     * estimateHours、description。 不存資料庫，也不會回傳。
      */
     @Transient
     @JsonInclude(JsonInclude.Include.NON_NULL)

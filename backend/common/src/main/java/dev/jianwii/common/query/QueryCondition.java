@@ -10,10 +10,10 @@ public sealed interface QueryCondition {
     /**
      * {@code property operator value}，例如 {@code price >= 100}。
      *
-     * @param property
-     *            Entity property 名稱（不是 DTO 欄位名），可用 {@code .} 指到關聯，例如 {@code category.code}
+     * @param property Entity property 名稱（不是 DTO 欄位名），可用 {@code .} 指到關聯，例如 {@code category.code}
      */
-    record Compare(String property, QueryOperator operator, Object value) implements QueryCondition {
+    record Compare(String property, QueryOperator operator,
+            Object value) implements QueryCondition {
     }
 
     /** 任一條件符合即可（OR）。 */

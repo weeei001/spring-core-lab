@@ -25,8 +25,7 @@ import java.util.List;
  * <li>{@link #onQueued}：寫入通知的交易 commit 後，在背景執行緒馬上寄（呼叫端不必等 SMTP）。</li>
  * <li>{@link #retry}：排程重寄失敗或漏寄的信。</li>
  * </ul>
- * 先「領取」再寄（{@link EmailMessageService#claim}），兩個入口同時碰到同一封信也只會寄一次。
- * 多個實例同時跑排程也一樣靠領取的樂觀鎖擋住。
+ * 先「領取」再寄（{@link EmailMessageService#claim}），兩個入口同時碰到同一封信也只會寄一次。 多個實例同時跑排程也一樣靠領取的樂觀鎖擋住。
  */
 @Component
 @ConditionalOnProperty(name = "app.mail.enabled", havingValue = "true", matchIfMissing = true)
@@ -83,8 +82,8 @@ public class EmailDispatcher {
             mailSender.send(toMimeMessage(message));
             emailMessageService.markSent(id);
         } catch (MailException | MessagingException e) {
-            log.warn("寄信失敗（第 {} 次），id：{}，收件人：{}", message.getAttempts(), id,
-                    message.getRecipient(), e);
+            log.warn("寄信失敗（第 {} 次），id：{}，收件人：{}", message.getAttempts(), id, message.getRecipient(),
+                    e);
             emailMessageService.markFailed(id, e.getMessage());
         }
     }

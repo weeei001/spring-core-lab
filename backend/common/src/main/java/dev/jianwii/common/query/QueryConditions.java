@@ -5,9 +5,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 查詢條件清單，彼此以 AND 連接；OR 用 {@link #anyOf} 群組。
- * 由 {@link QueryParameter#toQueryConditions} 產生，DAO 層再轉成 JPA 條件。
- * value 為 null 或空集合時不加條件，呼叫端不必自己判斷。
+ * 查詢條件清單，彼此以 AND 連接；OR 用 {@link #anyOf} 群組。 由 {@link QueryParameter#toQueryConditions} 產生，DAO 層再轉成
+ * JPA 條件。 value 為 null 或空集合時不加條件，呼叫端不必自己判斷。
  */
 public class QueryConditions {
 

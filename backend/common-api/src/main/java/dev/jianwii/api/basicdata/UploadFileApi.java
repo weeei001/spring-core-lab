@@ -12,8 +12,8 @@ import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
 /**
- * basic-data 的共用檔案 API；呼叫端用 @ImportHttpServices(group = "basic-data", types = UploadFileApi.class) 註冊。
- * 內部讀取不限制上傳者，供業務模組通過自己的存取檢查後取檔；不可直接對外公開。
+ * basic-data 的共用檔案 API；呼叫端用 @ImportHttpServices(group = "basic-data", types = UploadFileApi.class)
+ * 註冊。 內部讀取不限制上傳者，供業務模組通過自己的存取檢查後取檔；不可直接對外公開。
  */
 @HttpExchange("/api/basic-data/upload-file")
 public interface UploadFileApi {

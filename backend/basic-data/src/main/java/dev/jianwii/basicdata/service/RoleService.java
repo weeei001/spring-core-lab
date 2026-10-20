@@ -73,7 +73,8 @@ public class RoleService extends BaseService<Role, RoleQueryParameter> {
         if (codes == null) {
             return;
         }
-        List<String> unknown = codes.stream().filter(code -> !Permission.exists(code)).sorted().toList();
+        List<String> unknown =
+                codes.stream().filter(code -> !Permission.exists(code)).sorted().toList();
         if (!unknown.isEmpty()) {
             throw new BusinessException("權限不存在：" + unknown);
         }

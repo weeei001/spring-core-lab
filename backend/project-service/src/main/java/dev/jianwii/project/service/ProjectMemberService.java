@@ -27,8 +27,7 @@ public class ProjectMemberService extends BaseService<ProjectMember, ProjectMemb
     private final UserApi userApi;
 
     public ProjectMemberService(ProjectMemberDAO projectMemberDAO, TaskDAO taskDAO,
-            ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder,
-            UserApi userApi) {
+            ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder, UserApi userApi) {
         super(projectMemberDAO);
         this.projectMemberDAO = projectMemberDAO;
         this.taskDAO = taskDAO;
@@ -65,9 +64,10 @@ public class ProjectMemberService extends BaseService<ProjectMember, ProjectMemb
         if (entity.getRole() == ProjectRole.MANAGER) {
             requireAnotherManager(entity);
         }
-        List<Task> tasks = taskDAO.findByProjectIdAndAssigneeIdAndDbMark(entity.getProjectId(),
-                entity.getUserId(), BaseEntity.VALID).stream()
-                .filter(task -> !task.getStatus().isFinished()).toList();
+        List<Task> tasks = taskDAO
+                .findByProjectIdAndAssigneeIdAndDbMark(entity.getProjectId(), entity.getUserId(),
+                        BaseEntity.VALID)
+                .stream().filter(task -> !task.getStatus().isFinished()).toList();
         for (Task task : tasks) {
             taskActivityRecorder.changed(task.getId(), "assigneeId", task.getAssigneeId(), null);
             task.setAssigneeId(null);

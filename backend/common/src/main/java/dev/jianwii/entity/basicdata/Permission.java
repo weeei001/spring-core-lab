@@ -22,20 +22,25 @@ import java.util.stream.Collectors;
 @Getter
 public enum Permission {
 
-    PROJECT_READ("project:read", "專案", "查詢自己參與的專案、任務、留言與工時"),
-    PROJECT_WRITE("project:write", "專案", "建立專案；擔任經理時維護專案、成員、里程碑、標籤與 Sprint"),
-    PROJECT_ADMIN("project:admin", "專案", "不受成員限制，可存取所有專案；能否修改看其他權限"),
-    TASK_WRITE("task:write", "專案", "新增、修改、刪除任務與留言"),
-    WORK_LOG_WRITE("work-log:write", "專案", "登記自己的工時"),
-    LEAVE_APPLY("leave:apply", "請假", "送出請假申請，查看自己的申請與結果"),
-    LEAVE_APPROVE("leave:approve", "請假", "查看並審核指定給自己的請假申請"),
-    SERIAL_NUMBER_READ("serial-number:read", "基本資料", "查詢編號規則"),
-    SERIAL_NUMBER_WRITE("serial-number:write", "基本資料", "維護編號規則"),
-    ROLE_MANAGE("role:manage", "系統管理", "維護角色、指派使用者角色"),
-    NOTIFICATION_SEND("notification:send", "系統管理", "發送公告通知給指定的使用者");
+    PROJECT_READ("project:read", "專案", "查詢自己參與的專案、任務、留言與工時"), PROJECT_WRITE("project:write", "專案",
+            "建立專案；擔任經理時維護專案、成員、里程碑、標籤與 Sprint"), PROJECT_ADMIN("project:admin", "專案",
+                    "不受成員限制，可存取所有專案；能否修改看其他權限"), TASK_WRITE("task:write", "專案",
+                            "新增、修改、刪除任務與留言"), WORK_LOG_WRITE("work-log:write", "專案",
+                                    "登記自己的工時"), LEAVE_APPLY("leave:apply", "請假",
+                                            "送出請假申請，查看自己的申請與結果"), LEAVE_APPROVE("leave:approve",
+                                                    "請假", "查看並審核指定給自己的請假申請"), SERIAL_NUMBER_READ(
+                                                            "serial-number:read", "基本資料",
+                                                            "查詢編號規則"), SERIAL_NUMBER_WRITE(
+                                                                    "serial-number:write", "基本資料",
+                                                                    "維護編號規則"), ROLE_MANAGE(
+                                                                            "role:manage", "系統管理",
+                                                                            "維護角色、指派使用者角色"), NOTIFICATION_SEND(
+                                                                                    "notification:send",
+                                                                                    "系統管理",
+                                                                                    "發送公告通知給指定的使用者");
 
-    private static final Set<String> CODES =
-            Arrays.stream(values()).map(Permission::getCode).collect(Collectors.toUnmodifiableSet());
+    private static final Set<String> CODES = Arrays.stream(values()).map(Permission::getCode)
+            .collect(Collectors.toUnmodifiableSet());
 
     /** 權限代碼，格式為「資源:動作」。 */
     private final String code;

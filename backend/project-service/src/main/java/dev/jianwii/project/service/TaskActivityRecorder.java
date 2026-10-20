@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 /**
- * 寫入任務活動紀錄，由任務、留言、成員的 Service 在同一個交易內呼叫，異動失敗時紀錄一起 rollback。
- * 操作者與時間由 JPA Auditing 填入 createId、createTime。
+ * 寫入任務活動紀錄，由任務、留言、成員的 Service 在同一個交易內呼叫，異動失敗時紀錄一起 rollback。 操作者與時間由 JPA Auditing 填入
+ * createId、createTime。
  */
 @Component
 @AllArgsConstructor

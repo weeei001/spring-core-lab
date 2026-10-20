@@ -10,8 +10,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 編號規則查詢條件：serialKey 完全相符；keyword 為 serialKey 或 name 任一包含即符合。
- * 未給的欄位不篩選，寫法說明見 {@link QueryParameter}。
+ * 編號規則查詢條件：serialKey 完全相符；keyword 為 serialKey 或 name 任一包含即符合。 未給的欄位不篩選，寫法說明見
+ * {@link QueryParameter}。
  */
 @Getter
 @Setter

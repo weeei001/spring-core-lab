@@ -14,8 +14,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * 里程碑查詢條件，寫法說明見 {@link QueryParameter}。
- * 沒有 project:admin 的人，web-server 會要求給 projectId 或 projectIds，且都必須是自己參與的專案。
+ * 里程碑查詢條件，寫法說明見 {@link QueryParameter}。 沒有 project:admin 的人，web-server 會要求給 projectId 或
+ * projectIds，且都必須是自己參與的專案。
  */
 @Getter
 @Setter

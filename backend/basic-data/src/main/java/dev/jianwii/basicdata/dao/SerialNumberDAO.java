@@ -13,8 +13,8 @@ public interface SerialNumberDAO extends BaseDAO<SerialNumber, Long> {
     boolean existsBySerialKey(String serialKey);
 
     /**
-     * 悲觀鎖（SELECT ... FOR UPDATE），交易結束前同一規則的其他取號會等待；取號用。
-     * 方法名中的 WithLock 只是方便閱讀，Spring Data 會忽略 find 與 By 之間的文字。
+     * 悲觀鎖（SELECT ... FOR UPDATE），交易結束前同一規則的其他取號會等待；取號用。 方法名中的 WithLock 只是方便閱讀，Spring Data 會忽略 find
+     * 與 By 之間的文字。
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<SerialNumber> findWithLockBySerialKeyAndDbMark(String serialKey, Integer dbMark);

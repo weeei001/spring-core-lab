@@ -9,8 +9,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import java.io.IOException;
 
 /**
- * 呼叫其他服務時，把目前操作者放進 {@value Operator#HEADER} header 一起送出，對方存檔時的建立／修改者才會是同一個人。
- * 由 CommonAutoConfiguration 掛到 RestClient 上。
+ * 呼叫其他服務時，把目前操作者放進 {@value Operator#HEADER} header 一起送出，對方存檔時的建立／修改者才會是同一個人。 由
+ * CommonAutoConfiguration 掛到 RestClient 上。
  */
 public class OperatorForwardingInterceptor implements ClientHttpRequestInterceptor {
 

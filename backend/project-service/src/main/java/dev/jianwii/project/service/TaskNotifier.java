@@ -28,15 +28,15 @@ import java.util.Set;
  * <li>留言 @ 到：通知被 @ 的人，並寄信。</li>
  * <li>狀態變更、新留言：通知指派人與關注者，只發站內通知；已因 @ 收到通知的人不重複通知。</li>
  * </ul>
- * 由 Service 在交易內呼叫，但交易 commit 後才真的送到 notification-service：
- * 異動 rollback 就不會發出通知；notification-service 沒啟動或失敗只記 log，不影響任務本身。
+ * 由 Service 在交易內呼叫，但交易 commit 後才真的送到 notification-service： 異動 rollback 就不會發出通知；notification-service
+ * 沒啟動或失敗只記 log，不影響任務本身。
  */
 @Component
 public class TaskNotifier {
     private static final Logger log = LoggerFactory.getLogger(TaskNotifier.class);
-    private static final Map<TaskStatus, String> STATUS_LABELS = Map.of(TaskStatus.TODO, "待辦",
-            TaskStatus.IN_PROGRESS, "進行中", TaskStatus.REVIEW, "審核中", TaskStatus.DONE, "完成",
-            TaskStatus.CANCELLED, "取消");
+    private static final Map<TaskStatus, String> STATUS_LABELS =
+            Map.of(TaskStatus.TODO, "待辦", TaskStatus.IN_PROGRESS, "進行中", TaskStatus.REVIEW, "審核中",
+                    TaskStatus.DONE, "完成", TaskStatus.CANCELLED, "取消");
     /** 留言內容在通知裡只顯示前幾個字。 */
     private static final int EXCERPT_LENGTH = 100;
 
@@ -65,8 +65,8 @@ public class TaskNotifier {
 
     /** 新留言：通知指派人與關注者；這次被 @ 的人另外收到 {@link #mentioned}，這裡排除。 */
     public void commented(Task task, TaskComment comment) {
-        publish(task, NotificationType.TASK_COMMENTED, "新留言：" + task.getTitle(),
-                excerpt(comment), false, followers(task, comment.getMentionIds()));
+        publish(task, NotificationType.TASK_COMMENTED, "新留言：" + task.getTitle(), excerpt(comment),
+                false, followers(task, comment.getMentionIds()));
     }
 
     /** 留言 @ 到 userIds（只傳新被 @ 的人）。 */
@@ -126,8 +126,8 @@ public class TaskNotifier {
     private String content(Task task, String detail) {
         String project = projectDAO.findById(task.getProjectId()).map(Project::getName)
                 .orElse(String.valueOf(task.getProjectId()));
-        String content = "專案：" + project + "\n任務：" + task.getCode()
-                + (detail == null ? "" : "\n" + detail);
+        String content =
+                "專案：" + project + "\n任務：" + task.getCode() + (detail == null ? "" : "\n" + detail);
         return truncate(content, 2000);
     }
 

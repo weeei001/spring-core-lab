@@ -38,8 +38,8 @@ public class ProjectQueryParameter extends QueryParameter<Project> {
     private List<@NotNull ProjectStatus> statuses;
 
     /**
-     * 只查此使用者是成員的專案。web-server 對沒有 project:admin 的人一律設為登入者，前端給的會被覆寫。
-     * 成員在另一張表，條件清單表達不了，由 ProjectService.toSpecification 處理。
+     * 只查此使用者是成員的專案。web-server 對沒有 project:admin 的人一律設為登入者，前端給的會被覆寫。 成員在另一張表，條件清單表達不了，由
+     * ProjectService.toSpecification 處理。
      */
     @QueryIgnore
     @Size(max = 100)

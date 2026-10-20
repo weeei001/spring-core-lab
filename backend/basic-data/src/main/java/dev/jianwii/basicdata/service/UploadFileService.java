@@ -43,12 +43,12 @@ public class UploadFileService {
     private final Path root;
     private final Path legacyRoot;
 
-    public UploadFileService(UploadFileDAO uploadFileDAO,
-            @Value("${app.upload.dir}") String dir,
+    public UploadFileService(UploadFileDAO uploadFileDAO, @Value("${app.upload.dir}") String dir,
             @Value("${app.upload.legacy-dir:}") String legacyDir) {
         this.uploadFileDAO = uploadFileDAO;
         this.root = Path.of(dir).toAbsolutePath().normalize();
-        this.legacyRoot = legacyDir.isBlank() ? null : Path.of(legacyDir).toAbsolutePath().normalize();
+        this.legacyRoot =
+                legacyDir.isBlank() ? null : Path.of(legacyDir).toAbsolutePath().normalize();
     }
 
     public UploadFile upload(MultipartFile file, boolean businessManaged) {
@@ -58,8 +58,8 @@ public class UploadFileService {
         if (file.getSize() > MAX_SIZE) {
             throw new BusinessException("檔案不可超過 10MB");
         }
-        String name = StringUtils.getFilename(StringUtils.cleanPath(
-                file.getOriginalFilename() == null ? "" : file.getOriginalFilename()));
+        String name = StringUtils.getFilename(StringUtils
+                .cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename()));
         if (name == null || name.isBlank()) {
             name = "file";
         }
@@ -70,14 +70,15 @@ public class UploadFileService {
         Path target = root.resolve(relative);
         // 包含 flush 後、commit 才失敗的情況，交易未提交就清除本次新檔案。
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCompletion(int status) {
-                    if (status == STATUS_ROLLED_BACK) {
-                        removeFailedUpload(target);
-                    }
-                }
-            });
+            TransactionSynchronizationManager
+                    .registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCompletion(int status) {
+                            if (status == STATUS_ROLLED_BACK) {
+                                removeFailedUpload(target);
+                            }
+                        }
+                    });
         }
         try {
             Files.createDirectories(target.getParent());
@@ -86,7 +87,8 @@ public class UploadFileService {
             uploaded.setFileName(name.length() > 255 ? name.substring(name.length() - 255) : name);
             String contentType = file.getContentType();
             uploaded.setContentType(contentType == null || contentType.length() > 100
-                    ? MediaType.APPLICATION_OCTET_STREAM_VALUE : contentType);
+                    ? MediaType.APPLICATION_OCTET_STREAM_VALUE
+                    : contentType);
             uploaded.setSize(file.getSize());
             uploaded.setBusinessManaged(businessManaged);
             uploaded.setStoragePath(relative);
@@ -139,8 +141,7 @@ public class UploadFileService {
                         : MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .header("X-Content-Type-Options", "nosniff")
-                .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
-                .body(bytes);
+                .header(HttpHeaders.CACHE_CONTROL, "private, no-store").body(bytes);
     }
 
     public void delete(Long id) {

@@ -17,8 +17,8 @@ import org.springframework.web.service.annotation.PostExchange;
 import java.util.List;
 
 /**
- * project-service 的任務附件 API，用法同 {@link ProjectApi}。
- * 上傳用 multipart，單檔上限 10MB（spring.servlet.multipart.max-file-size）。
+ * project-service 的任務附件 API，用法同 {@link ProjectApi}。 上傳用 multipart，單檔上限
+ * 10MB（spring.servlet.multipart.max-file-size）。
  */
 @HttpExchange("/api/task-attachment")
 public interface TaskAttachmentApi {

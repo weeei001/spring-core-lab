@@ -40,13 +40,13 @@ public class UserService extends BaseService<User, UserQueryParameter> {
     }
 
     /**
-     * 登入同步：依 subject 找使用者，沒有就建立（只有預設角色）；有就以 authentik 的資料更新。
-     * 資料沒變時 JPA 不會送出 UPDATE，transTime 也不會變。
+     * 登入同步：依 subject 找使用者，沒有就建立（只有預設角色）；有就以 authentik 的資料更新。 資料沒變時 JPA 不會送出 UPDATE，transTime 也不會變。
      */
     @Transactional
     public User login(User login) {
         String name = StringUtils.hasText(login.getName()) ? login.getName()
-                : StringUtils.hasText(login.getUsername()) ? login.getUsername() : login.getSubject();
+                : StringUtils.hasText(login.getUsername()) ? login.getUsername()
+                        : login.getSubject();
         User user = userDAO.findBySubject(login.getSubject()).orElse(null);
         if (user == null) {
             login.setName(name);
@@ -107,8 +107,7 @@ public class UserService extends BaseService<User, UserQueryParameter> {
             return new UserAuthorization(false, Set.of());
         }
         Set<String> permissions = rows.stream().map(UserDAO.AuthorizationRow::getPermissionCode)
-                .filter(Objects::nonNull)
-                .filter(Permission::exists)
+                .filter(Objects::nonNull).filter(Permission::exists)
                 .collect(Collectors.toCollection(TreeSet::new));
         return new UserAuthorization(true, permissions);
     }
@@ -128,8 +127,7 @@ public class UserService extends BaseService<User, UserQueryParameter> {
             Root<User> user = eligible.from(User.class);
             Join<User, Long> roleId = user.join("roleIds");
             Root<Role> role = eligible.from(Role.class);
-            eligible.select(user.get("id")).where(
-                    builder.equal(user.get("id"), root.get("id")),
+            eligible.select(user.get("id")).where(builder.equal(user.get("id"), root.get("id")),
                     builder.equal(role.get("id"), roleId),
                     builder.equal(role.get("dbMark"), Role.VALID),
                     builder.isMember(permission, role.get("permissionCodes")));

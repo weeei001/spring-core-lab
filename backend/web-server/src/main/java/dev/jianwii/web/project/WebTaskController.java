@@ -32,8 +32,7 @@ public class WebTaskController {
 
     @PreAuthorize("hasAuthority('project:read')")
     @PostMapping("/queryPage")
-    public Result<PageResponse<Task>> queryPage(
-            @Valid @RequestBody TaskQueryParameter parameter) {
+    public Result<PageResponse<Task>> queryPage(@Valid @RequestBody TaskQueryParameter parameter) {
         projectAccessGuard.scopeTasks(parameter);
         return Result.success(taskApi.queryPage(parameter));
     }

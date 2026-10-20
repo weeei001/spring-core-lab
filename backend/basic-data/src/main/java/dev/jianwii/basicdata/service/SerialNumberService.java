@@ -29,14 +29,13 @@ public class SerialNumberService extends BaseService<SerialNumber, SerialNumberQ
     }
 
     /**
-     * 鎖住規則再遞增，多個服務、多個實例同時取號也不會重複。
-     * 每次取號都會更新 transTime，因此以 transTime 判斷是否已進入新週期，不需要排程歸零。
+     * 鎖住規則再遞增，多個服務、多個實例同時取號也不會重複。 每次取號都會更新 transTime，因此以 transTime 判斷是否已進入新週期，不需要排程歸零。
      */
     @Transactional
     public String next(String serialKey) {
-        SerialNumber serialNumber = serialNumberDAO
-                .findWithLockBySerialKeyAndDbMark(serialKey, SerialNumber.VALID)
-                .orElseThrow(() -> new NotFoundException("查無編號規則：" + serialKey));
+        SerialNumber serialNumber =
+                serialNumberDAO.findWithLockBySerialKeyAndDbMark(serialKey, SerialNumber.VALID)
+                        .orElseThrow(() -> new NotFoundException("查無編號規則：" + serialKey));
         // 與 JPA Auditing 寫入 transTime 使用同一個時區（系統預設）
         LocalDate today = LocalDate.now();
         boolean samePeriod = serialNumber.getResetCycle()
@@ -61,8 +60,8 @@ public class SerialNumberService extends BaseService<SerialNumber, SerialNumberQ
 
     @Override
     protected void beforeUpdate(SerialNumber entity, SerialNumber request) {
-        if (request.getSerialKey() != null && !request.getSerialKey()
-                .equals(entity.getSerialKey())) {
+        if (request.getSerialKey() != null
+                && !request.getSerialKey().equals(entity.getSerialKey())) {
             throw new BusinessException("serialKey 建立後不可修改");
         }
         if (request.getRule() != null) {
