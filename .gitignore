@@ -42,3 +42,6 @@ build/
 ### Local config (secrets) ###
 application-local.yml
 http/http-client.private.env.json
+
+### Uploaded file contents ###
+**/data/uploads/

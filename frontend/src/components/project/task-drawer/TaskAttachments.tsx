@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { App, Button, Flex, Image, Popconfirm, Skeleton, Typography, Upload, theme } from 'antd';
 import { DeleteOutlined, DownloadOutlined, InboxOutlined, PaperClipOutlined } from '@ant-design/icons';
-import { attachmentApi, MAX_ATTACHMENT_SIZE } from '@/api/project/attachment-api';
+import { attachmentApi } from '@/api/project/attachment-api';
 import type { TaskAttachment } from '@/api/project/attachment.types';
 import { useUserDirectory } from '@/components/user/useUserDirectory';
 import { useAuth } from '@/core/auth/useAuth';
+import { MAX_UPLOAD_FILE_SIZE } from '@/core/http/upload';
 import { formatTime } from '@/shared/lib/format';
 
 /** 後端會直接在瀏覽器顯示的圖片類型（其他檔案一律下載） */
@@ -48,7 +49,7 @@ export function TaskAttachments({ taskId, editable }: TaskAttachmentsProps) {
   });
 
   const send = (file: File): void => {
-    if (file.size > MAX_ATTACHMENT_SIZE) {
+    if (file.size > MAX_UPLOAD_FILE_SIZE) {
       void message.error(`${file.name} 超過 10MB`);
       return;
     }

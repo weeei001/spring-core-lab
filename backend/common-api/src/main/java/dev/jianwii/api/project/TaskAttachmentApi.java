@@ -27,7 +27,7 @@ public interface TaskAttachmentApi {
     @PostExchange("/query")
     List<TaskAttachment> query(@Valid @RequestBody TaskAttachmentQueryParameter parameter);
 
-    /** 上傳附件到任務；專案必須未結案。 */
+    /** 上傳附件到任務；檔案由 basic-data 管理，專案必須未結案。 */
     @PostExchange(value = "/upload", contentType = MediaType.MULTIPART_FORM_DATA_VALUE)
     TaskAttachment upload(@RequestParam("taskId") Long taskId,
             @RequestPart("file") MultipartFile file);

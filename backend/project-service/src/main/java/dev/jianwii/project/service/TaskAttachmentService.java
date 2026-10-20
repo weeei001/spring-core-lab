@@ -1,5 +1,6 @@
 package dev.jianwii.project.service;
 
+import dev.jianwii.api.basicdata.UploadFileApi;
 import dev.jianwii.api.project.TaskAttachmentQueryParameter;
 import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
@@ -7,10 +8,13 @@ import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.service.BaseService;
 import dev.jianwii.common.web.Operator;
+import dev.jianwii.entity.basicdata.UploadFile;
 import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskAttachment;
 import dev.jianwii.project.dao.TaskAttachmentDAO;
 import dev.jianwii.project.dao.TaskDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -18,7 +22,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -26,18 +31,15 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.Set;
-import java.util.UUID;
 
 /**
- * 任務附件：檔案存在 project.attachment.dir（預設工作目錄下的 data/attachments），
- * 依上傳年月分資料夾、以 UUID 命名，不用原始檔名，避免路徑字元與重名問題。只有上傳者能刪除。
+ * 任務附件的新檔案透過 UploadFileApi 交給 basic-data；專案規則與任務關聯留在這裡。
+ * project.attachment.dir 只供舊附件讀取。只有上傳者能刪除附件關聯。
  */
 @Service
 public class TaskAttachmentService extends BaseService<TaskAttachment, TaskAttachmentQueryParameter> {
-    /** 單檔上限，與 spring.servlet.multipart.max-file-size 一致。 */
-    private static final long MAX_SIZE = 10L * 1024 * 1024;
+    private static final Logger log = LoggerFactory.getLogger(TaskAttachmentService.class);
     /**
      * 可以直接在瀏覽器顯示的類型；其他（含 SVG、HTML）一律下載，並固定為 octet-stream，
      * 避免上傳的檔案在同網域執行 script。
@@ -48,53 +50,46 @@ public class TaskAttachmentService extends BaseService<TaskAttachment, TaskAttac
     private final TaskAttachmentDAO taskAttachmentDAO;
     private final TaskDAO taskDAO;
     private final ProjectRules projectRules;
+    private final UploadFileApi uploadFileApi;
     private final Path root;
 
     public TaskAttachmentService(TaskAttachmentDAO taskAttachmentDAO, TaskDAO taskDAO,
-            ProjectRules projectRules,
+            ProjectRules projectRules, UploadFileApi uploadFileApi,
             @Value("${project.attachment.dir:data/attachments}") String dir) {
         super(taskAttachmentDAO);
         this.taskAttachmentDAO = taskAttachmentDAO;
         this.taskDAO = taskDAO;
         this.projectRules = projectRules;
+        this.uploadFileApi = uploadFileApi;
         this.root = Path.of(dir).toAbsolutePath().normalize();
     }
 
-    /** 先寫檔再存資料；存資料失敗時交易 rollback，檔案留在磁碟上但不會被引用。 */
+    /** 先檢查業務規則，再呼叫共用上傳，任務只保存檔案 id 與列表顯示資訊。 */
     public TaskAttachment upload(Long taskId, MultipartFile file) {
         Task task = taskDAO.findById(taskId).filter(entity -> entity.getDbMark() == BaseEntity.VALID)
                 .orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
         projectRules.requireOpen(task.getProjectId());
-        if (file.isEmpty()) {
-            throw new BusinessException("檔案是空的");
-        }
-        if (file.getSize() > MAX_SIZE) {
-            throw new BusinessException("檔案不可超過 10MB");
-        }
-        String fileName = StringUtils.getFilename(StringUtils.cleanPath(
-                file.getOriginalFilename() == null ? "" : file.getOriginalFilename()));
-        if (fileName == null || fileName.isBlank()) {
-            fileName = "attachment";
-        }
-        LocalDate today = LocalDate.now();
-        String relative = today.getYear() + "/" + String.format("%02d", today.getMonthValue())
-                + "/" + UUID.randomUUID();
-        Path target = root.resolve(relative).normalize();
-        try {
-            Files.createDirectories(target.getParent());
-            file.transferTo(target);
-        } catch (IOException e) {
-            throw new UncheckedIOException("附件寫入失敗：" + target, e);
-        }
+        UploadFile uploaded = uploadFileApi.uploadManaged(file);
+        // basic-data 已獨立提交；本地關聯存檔失敗時，盡可能停用尚未被引用的共用檔案。
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    try {
+                        uploadFileApi.delete(uploaded.getId());
+                    } catch (RuntimeException e) {
+                        log.warn("無法停用未完成的任務上傳，檔案 id：{}", uploaded.getId(), e);
+                    }
+                }
+            }
+        });
         TaskAttachment attachment = new TaskAttachment();
         attachment.setTaskId(taskId);
-        attachment.setFileName(fileName.length() > 255 ? fileName.substring(fileName.length() - 255)
-                : fileName);
-        String contentType = file.getContentType();
-        attachment.setContentType(contentType == null || contentType.length() > 100
-                ? MediaType.APPLICATION_OCTET_STREAM_VALUE : contentType);
-        attachment.setSize(file.getSize());
-        attachment.setStoragePath(relative);
+        attachment.setUploadFileId(uploaded.getId());
+        attachment.setFileName(uploaded.getFileName());
+        attachment.setContentType(uploaded.getContentType());
+        attachment.setSize(uploaded.getSize());
+        attachment.setStoragePath("");
         attachment.setDbMark(BaseEntity.VALID);
         return taskAttachmentDAO.saveAndFlush(attachment);
     }
@@ -103,6 +98,10 @@ public class TaskAttachmentService extends BaseService<TaskAttachment, TaskAttac
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> content(Long id) {
         TaskAttachment attachment = find(id);
+        if (attachment.getUploadFileId() != null) {
+            return uploadFileApi.content(attachment.getUploadFileId());
+        }
+        // 相容切換共用 API 之前上傳的附件。
         Path path = root.resolve(attachment.getStoragePath()).normalize();
         if (!path.startsWith(root) || !Files.isRegularFile(path)) {
             throw new NotFoundException("附件檔案不存在：" + attachment.getFileName());

@@ -16,6 +16,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import tools.jackson.databind.exc.MismatchedInputException;
 
@@ -137,6 +139,17 @@ public class ExceptionHandleController {
     private ResponseEntity<Result<Void>> validationFailure(String message) {
         String body = StringUtils.hasText(message) ? message : "驗證失敗";
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Result.failure("驗證失敗", body));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Result<Void>> handleUploadTooLarge(MaxUploadSizeExceededException e) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(Result.failure("檔案過大", "檔案不可超過 10MB"));
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<Result<Void>> handleMissingPart(MissingServletRequestPartException e) {
+        return validationFailure(e.getRequestPartName() + ": 不可為空");
     }
 
     private ResponseEntity<Result<Void>> unexpectedFailure(Exception e, HttpStatus status) {

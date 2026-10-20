@@ -4,7 +4,7 @@ server:
 spring:
   servlet:
     multipart:
-      # 任務附件單檔上限；web-server 與 project-service 要一致
+      # 任務附件單檔上限；與 web-server、basic-data 一致
       max-file-size: 10MB
       max-request-size: 11MB
   application:
@@ -31,7 +31,7 @@ spring:
     username: root
 project:
   attachment:
-    # 任務附件的存放目錄；相對路徑以啟動時的工作目錄為準
+    # 舊附件的讀取目錄；新上傳由 basic-data 的 app.upload.dir 管理
     dir: data/attachments
 
 eureka:

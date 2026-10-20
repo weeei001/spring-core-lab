@@ -55,7 +55,7 @@ public class WebTaskAttachmentController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         headers.getFirst(HttpHeaders.CONTENT_DISPOSITION))
                 .header("X-Content-Type-Options", "nosniff")
-                .header(HttpHeaders.CACHE_CONTROL, "private, max-age=3600")
+                .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
                 .body(remote.getBody());
     }
 
