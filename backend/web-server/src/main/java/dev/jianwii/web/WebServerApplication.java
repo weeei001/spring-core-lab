@@ -5,6 +5,7 @@ import dev.jianwii.api.basicdata.SerialNumberApi;
 import dev.jianwii.api.basicdata.UploadFileApi;
 import dev.jianwii.api.basicdata.UserApi;
 import dev.jianwii.api.notification.NotificationApi;
+import dev.jianwii.api.basicdata.leave.LeaveApi;
 import dev.jianwii.api.project.MilestoneApi;
 import dev.jianwii.api.project.ProjectApi;
 import dev.jianwii.api.project.ProjectLabelApi;
@@ -26,7 +27,7 @@ import org.springframework.web.service.registry.ImportHttpServices;
 // 產生各服務 XxxApi 的實作 bean，注入後呼叫方法即送出 HTTP 請求；
 // group 即 Eureka 上的服務名稱，由 Spring Cloud LoadBalancer 挑選實例
 @ImportHttpServices(group = "basic-data", types = {SerialNumberApi.class, UserApi.class, RoleApi.class,
-        UploadFileApi.class})
+        UploadFileApi.class, LeaveApi.class})
 @ImportHttpServices(group = "project-service", types = {ProjectApi.class, ProjectMemberApi.class,
         MilestoneApi.class, ProjectLabelApi.class, SprintApi.class, TaskApi.class,
         TaskCommentApi.class, TaskAttachmentApi.class, TaskActivityApi.class, WorkLogApi.class})

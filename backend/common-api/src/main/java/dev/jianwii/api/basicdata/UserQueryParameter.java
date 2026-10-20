@@ -35,6 +35,11 @@ public class UserQueryParameter extends QueryParameter<User> {
     @Pattern(regexp = "(?sU).*\\S.*")
     private String keyword;
 
+    /** 下拉選單只列出具有指定有效角色權限的使用者。 */
+    @QueryIgnore
+    @Size(max = 100)
+    private String permissionCode;
+
     @Override
     public QueryConditions toQueryConditions() {
         return super.toQueryConditions().keyword(keyword, "username", "name", "email");

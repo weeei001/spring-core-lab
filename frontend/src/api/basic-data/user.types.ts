@@ -15,4 +15,6 @@ export interface UserQuery {
   keyword?: string;
   /** createId、transId 是字串；不可包含 system */
   ids?: string[];
+  /** 只查具有此有效角色權限的人員，用於審核人選單。 */
+  permissionCode?: string;
 }

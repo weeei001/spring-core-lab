@@ -10,15 +10,16 @@ interface UserSelectProps {
   /** 不顯示的使用者，例如已經是成員的人 */
   excludeIds?: readonly string[];
   placeholder?: string;
+  permissionCode?: string;
 }
 
 /** 輸入名稱、帳號或 Email 搜尋使用者，值為 user id（字串）；可放在 Form.Item 內 */
-export function UserSelect({ value, onChange, excludeIds = [], placeholder = '輸入名稱、帳號或 Email 搜尋' }: UserSelectProps) {
+export function UserSelect({ value, onChange, excludeIds = [], placeholder = '輸入名稱、帳號或 Email 搜尋', permissionCode }: UserSelectProps) {
   const [keyword, setKeyword] = useState('');
   const trimmed = useDebounced(keyword.trim());
   const users = useQuery({
-    queryKey: ['user', 'search', trimmed],
-    queryFn: () => userApi.query({ keyword: trimmed }),
+    queryKey: ['user', 'search', trimmed, permissionCode],
+    queryFn: () => userApi.query({ keyword: trimmed, permissionCode }),
     enabled: trimmed !== '',
     staleTime: 60 * 1000,
   });

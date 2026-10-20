@@ -8,6 +8,8 @@ export const PERMISSIONS = {
   PROJECT_ADMIN: 'project:admin',
   TASK_WRITE: 'task:write',
   WORK_LOG_WRITE: 'work-log:write',
+  LEAVE_APPLY: 'leave:apply',
+  LEAVE_APPROVE: 'leave:approve',
   SERIAL_NUMBER_READ: 'serial-number:read',
   SERIAL_NUMBER_WRITE: 'serial-number:write',
   ROLE_MANAGE: 'role:manage',

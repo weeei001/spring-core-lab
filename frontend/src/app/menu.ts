@@ -24,6 +24,13 @@ export const MENU: MenuGroup[] = [
     ],
   },
   {
+    label: '請假',
+    pages: [
+      { path: '/leave/requests', label: '我的請假', permission: PERMISSIONS.LEAVE_APPLY },
+      { path: '/leave/reviews', label: '請假審核', permission: PERMISSIONS.LEAVE_APPROVE },
+    ],
+  },
+  {
     label: '基本資料',
     pages: [{ path: '/serial-numbers', label: '編號規則', permission: PERMISSIONS.SERIAL_NUMBER_READ }],
   },

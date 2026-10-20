@@ -27,6 +27,8 @@ public enum Permission {
     PROJECT_ADMIN("project:admin", "專案", "不受成員限制，可存取所有專案；能否修改看其他權限"),
     TASK_WRITE("task:write", "專案", "新增、修改、刪除任務與留言"),
     WORK_LOG_WRITE("work-log:write", "專案", "登記自己的工時"),
+    LEAVE_APPLY("leave:apply", "請假", "送出請假申請，查看自己的申請與結果"),
+    LEAVE_APPROVE("leave:approve", "請假", "查看並審核指定給自己的請假申請"),
     SERIAL_NUMBER_READ("serial-number:read", "基本資料", "查詢編號規則"),
     SERIAL_NUMBER_WRITE("serial-number:write", "基本資料", "維護編號規則"),
     ROLE_MANAGE("role:manage", "系統管理", "維護角色、指派使用者角色"),

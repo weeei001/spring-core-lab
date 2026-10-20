@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Badge, Button, Empty, Flex, Popover, Skeleton, Typography, theme } from 'antd';
-import { BellOutlined, CommentOutlined, MessageOutlined, NotificationOutlined, SwapOutlined, UserAddOutlined } from '@ant-design/icons';
+import { BellOutlined, CalendarOutlined, CheckCircleOutlined, CommentOutlined, MessageOutlined, NotificationOutlined, SwapOutlined, UserAddOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router';
 import { notificationApi } from '@/api/notification/notification-api';
 import type { Notification, NotificationType } from '@/api/notification/notification.types';
@@ -19,6 +19,8 @@ const TYPE_ICONS: Record<NotificationType, ReactNode> = {
   TASK_COMMENTED: <MessageOutlined />,
   TASK_MENTIONED: <CommentOutlined />,
   ANNOUNCEMENT: <NotificationOutlined />,
+  LEAVE_SUBMITTED: <CalendarOutlined />,
+  LEAVE_REVIEWED: <CheckCircleOutlined />,
 };
 
 /**

@@ -10,6 +10,10 @@ public enum NotificationType {
     TASK_COMMENTED,
     /** 留言中 @ 到你 */
     TASK_MENTIONED,
+    /** 請假申請送交審核 */
+    LEAVE_SUBMITTED,
+    /** 請假核准或退回 */
+    LEAVE_REVIEWED,
     /** 管理員發送的公告 */
     ANNOUNCEMENT
 }

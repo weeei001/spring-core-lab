@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static dev.jianwii.entity.basicdata.Permission.NOTIFICATION_SEND;
+import static dev.jianwii.entity.basicdata.Permission.LEAVE_APPLY;
+import static dev.jianwii.entity.basicdata.Permission.LEAVE_APPROVE;
 import static dev.jianwii.entity.basicdata.Permission.PROJECT_ADMIN;
 import static dev.jianwii.entity.basicdata.Permission.PROJECT_READ;
 import static dev.jianwii.entity.basicdata.Permission.PROJECT_WRITE;
@@ -61,6 +63,9 @@ public class RoleSetup implements ApplicationRunner {
         createIfAbsent("PROJECT_MEMBER", "專案成員", PROJECT_READ, TASK_WRITE, WORK_LOG_WRITE);
         // 主管、稽核：看得到所有專案，不能修改
         createIfAbsent("AUDITOR", "稽核", PROJECT_READ, PROJECT_ADMIN);
+        // 獨立角色，由管理員指派；不擴大既有角色權限。
+        createIfAbsent("LEAVE_APPLICANT", "請假申請人", LEAVE_APPLY);
+        createIfAbsent("LEAVE_APPROVER", "請假審核人", LEAVE_APPLY, LEAVE_APPROVE);
     }
 
     /** 回傳這次是否有建立。 */

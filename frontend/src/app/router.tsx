@@ -3,6 +3,7 @@ import { Result } from 'antd';
 import { RequirePermission } from '@/core/auth/RequirePermission';
 import { PERMISSIONS } from '@/core/auth/permissions';
 import { SerialNumberPage } from '@/pages/basic-data/serial-number/SerialNumberPage';
+import { LeavePage } from '@/pages/leave/LeavePage';
 import { DashboardPage } from '@/pages/project/dashboard/DashboardPage';
 import { MyTasksPage } from '@/pages/project/my-tasks/MyTasksPage';
 import { ProjectDetailPage } from '@/pages/project/project-detail/ProjectDetailPage';
@@ -21,6 +22,22 @@ export const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { index: true, element: <HomePage /> },
+      {
+        path: 'leave/requests',
+        element: (
+          <RequirePermission permission={PERMISSIONS.LEAVE_APPLY}>
+            <LeavePage key="mine" scope="mine" />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'leave/reviews',
+        element: (
+          <RequirePermission permission={PERMISSIONS.LEAVE_APPROVE}>
+            <LeavePage key="review" scope="review" />
+          </RequirePermission>
+        ),
+      },
       {
         path: 'dashboard',
         element: (

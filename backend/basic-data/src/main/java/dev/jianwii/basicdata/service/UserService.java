@@ -11,6 +11,10 @@ import dev.jianwii.entity.basicdata.Permission;
 import dev.jianwii.entity.basicdata.Role;
 import dev.jianwii.entity.basicdata.User;
 import org.hibernate.Hibernate;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -107,6 +111,30 @@ public class UserService extends BaseService<User, UserQueryParameter> {
                 .filter(Permission::exists)
                 .collect(Collectors.toCollection(TreeSet::new));
         return new UserAuthorization(true, permissions);
+    }
+
+    @Override
+    protected Specification<User> toSpecification(UserQueryParameter parameter) {
+        Specification<User> specification = super.toSpecification(parameter);
+        String permission = parameter.getPermissionCode();
+        if (permission == null) {
+            return specification;
+        }
+        if (!Permission.exists(permission)) {
+            throw new BusinessException("功能權限不存在：" + permission);
+        }
+        return specification.and((root, query, builder) -> {
+            Subquery<Long> eligible = query.subquery(Long.class);
+            Root<User> user = eligible.from(User.class);
+            Join<User, Long> roleId = user.join("roleIds");
+            Root<Role> role = eligible.from(Role.class);
+            eligible.select(user.get("id")).where(
+                    builder.equal(user.get("id"), root.get("id")),
+                    builder.equal(role.get("id"), roleId),
+                    builder.equal(role.get("dbMark"), Role.VALID),
+                    builder.isMember(permission, role.get("permissionCodes")));
+            return builder.exists(eligible);
+        });
     }
 
     @Override
