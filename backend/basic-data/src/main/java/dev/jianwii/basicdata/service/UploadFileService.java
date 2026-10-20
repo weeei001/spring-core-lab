@@ -41,11 +41,14 @@ public class UploadFileService {
 
     private final UploadFileDAO uploadFileDAO;
     private final Path root;
+    private final Path legacyRoot;
 
     public UploadFileService(UploadFileDAO uploadFileDAO,
-            @Value("${app.upload.dir:data/uploads}") String dir) {
+            @Value("${app.upload.dir}") String dir,
+            @Value("${app.upload.legacy-dir:}") String legacyDir) {
         this.uploadFileDAO = uploadFileDAO;
         this.root = Path.of(dir).toAbsolutePath().normalize();
+        this.legacyRoot = legacyDir.isBlank() ? null : Path.of(legacyDir).toAbsolutePath().normalize();
     }
 
     public UploadFile upload(MultipartFile file, boolean businessManaged) {
@@ -109,7 +112,15 @@ public class UploadFileService {
     public ResponseEntity<byte[]> content(Long id) {
         UploadFile file = get(id);
         Path path = root.resolve(file.getStoragePath()).normalize();
-        if (!path.startsWith(root) || !Files.isRegularFile(path)) {
+        if (path.startsWith(root) && !Files.exists(path) && legacyRoot != null) {
+            path = legacyRoot.resolve(file.getStoragePath()).normalize();
+            if (!path.startsWith(legacyRoot)) {
+                throw new NotFoundException("檔案不存在：" + file.getFileName());
+            }
+        } else if (!path.startsWith(root)) {
+            throw new NotFoundException("檔案不存在：" + file.getFileName());
+        }
+        if (!Files.isRegularFile(path)) {
             throw new NotFoundException("檔案不存在：" + file.getFileName());
         }
         byte[] bytes;

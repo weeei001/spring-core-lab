@@ -1,6 +1,7 @@
 package dev.jianwii.basicdata.service;
 
 import dev.jianwii.api.basicdata.UserQueryParameter;
+import dev.jianwii.api.basicdata.UserAuthorization;
 import dev.jianwii.basicdata.dao.RoleDAO;
 import dev.jianwii.basicdata.dao.UserDAO;
 import dev.jianwii.common.exception.BusinessException;
@@ -92,15 +93,20 @@ public class UserService extends BaseService<User, UserQueryParameter> {
     /** 使用者所有有效角色的權限 code 聯集；已從 {@link Permission} 移除的 code 不回傳。 */
     @Transactional(readOnly = true)
     public Set<String> permissions(Long id) {
-        User user = userDAO.findById(id).filter(found -> found.getDbMark() == User.VALID)
-                .orElse(null);
-        if (user == null || user.getRoleIds().isEmpty()) {
-            return Set.of();
+        return authorization(id).permissions();
+    }
+
+    @Transactional(readOnly = true)
+    public UserAuthorization authorization(Long id) {
+        List<UserDAO.AuthorizationRow> rows = userDAO.authorization(id);
+        if (rows.isEmpty() || !Integer.valueOf(User.VALID).equals(rows.getFirst().getDbMark())) {
+            return new UserAuthorization(false, Set.of());
         }
-        return roleDAO.findAllByIdInAndDbMark(user.getRoleIds(), Role.VALID).stream()
-                .flatMap(role -> role.getPermissionCodes().stream())
+        Set<String> permissions = rows.stream().map(UserDAO.AuthorizationRow::getPermissionCode)
+                .filter(Objects::nonNull)
                 .filter(Permission::exists)
                 .collect(Collectors.toCollection(TreeSet::new));
+        return new UserAuthorization(true, permissions);
     }
 
     @Override

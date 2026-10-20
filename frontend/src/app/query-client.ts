@@ -17,6 +17,10 @@ function showError(error: Error, isMeQuery = false): void {
   }
   if (error instanceof ApiError && error.status === 403 && !isMeQuery) {
     void queryClient.invalidateQueries({ queryKey: ['me'] });
+    // 成員資格與功能權限分開管理；退出專案後也要收回仍顯示的編輯入口。
+    queryClient.setQueriesData({ queryKey: ['project-member'] }, []);
+    void queryClient.invalidateQueries({ queryKey: ['project-member'], refetchType: 'none' });
+    void queryClient.invalidateQueries({ queryKey: ['project'], refetchType: 'none' });
   }
   void message.error(error.message);
 }

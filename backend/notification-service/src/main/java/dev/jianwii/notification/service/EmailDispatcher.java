@@ -6,6 +6,7 @@ import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -28,6 +29,7 @@ import java.util.List;
  * 多個實例同時跑排程也一樣靠領取的樂觀鎖擋住。
  */
 @Component
+@ConditionalOnProperty(name = "app.mail.enabled", havingValue = "true", matchIfMissing = true)
 public class EmailDispatcher {
     private static final Logger log = LoggerFactory.getLogger(EmailDispatcher.class);
 

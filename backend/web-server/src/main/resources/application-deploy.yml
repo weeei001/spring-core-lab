@@ -1,0 +1,32 @@
+# 必須明確指定 --spring.profiles.active=deploy。無本機連線或密碼預設值。
+server:
+  address: ${INTERNAL_BIND_ADDRESS}
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+        same-site: lax
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          authentik:
+            client-id: ${AUTHENTIK_CLIENT_ID}
+            client-secret: ${AUTHENTIK_CLIENT_SECRET}
+            redirect-uri: "${APP_PUBLIC_URL}/auth/callback"
+        provider:
+          authentik:
+            issuer-uri: ${AUTHENTIK_ISSUER_URI}
+app:
+  frontend-url: ${APP_FRONTEND_URL}
+  super-admin-subjects: ${APP_SUPER_ADMIN_SUBJECTS:}
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
+  instance:
+    prefer-ip-address: true
+    ip-address: ${SERVICE_IP_ADDRESS}

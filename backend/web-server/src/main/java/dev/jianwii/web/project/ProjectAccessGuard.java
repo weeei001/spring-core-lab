@@ -103,6 +103,7 @@ public class ProjectAccessGuard {
      * 都沒給時只查得到指派給自己的任務（我的任務）。
      */
     public void scopeTasks(TaskQueryParameter parameter) {
+        parameter.setMemberUserId(isAdmin() ? null : currentUserId());
         if (isAdmin()) {
             return;
         }
@@ -143,6 +144,7 @@ public class ProjectAccessGuard {
 
     /** 給 projectId 或 taskId 時要是該專案成員；都沒給時只查得到自己的工時。 */
     public void scopeWorkLogs(WorkLogQueryParameter parameter) {
+        parameter.setMemberUserId(isAdmin() ? null : currentUserId());
         if (isAdmin()) {
             return;
         }

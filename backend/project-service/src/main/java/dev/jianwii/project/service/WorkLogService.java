@@ -108,6 +108,12 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
     }
 
     @Override
+    protected Specification<WorkLog> toSpecification(WorkLogQueryParameter parameter) {
+        return super.toSpecification(parameter)
+                .and(ProjectMemberScope.forUser(parameter.getMemberUserId()));
+    }
+
+    @Override
     protected Set<String> sortableFields() {
         return Set.of("id", "createTime", "transTime", "workDate");
     }

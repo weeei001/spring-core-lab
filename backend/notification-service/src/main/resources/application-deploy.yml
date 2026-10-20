@@ -1,0 +1,30 @@
+# 必須明確指定 --spring.profiles.active=deploy。無本機連線或密碼預設值。
+server:
+  address: ${INTERNAL_BIND_ADDRESS}
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  datasource:
+    url: ${NOTIFICATION_DB_URL}
+    username: ${NOTIFICATION_DB_USERNAME}
+    password: ${NOTIFICATION_DB_PASSWORD}
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+app:
+  frontend-url: ${APP_FRONTEND_URL}
+  mail:
+    enabled: ${APP_MAIL_ENABLED:false}
+    from: ${SMTP_FROM}
+    max-attempts: 3
+    retry-interval: PT1M
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
+  instance:
+    prefer-ip-address: true
+    ip-address: ${SERVICE_IP_ADDRESS}

@@ -51,18 +51,22 @@ export function useProjectContext(projectId: number): ProjectContext {
   const project = useQuery({
     queryKey: ['project', 'detail', projectId],
     queryFn: async () => (await projectApi.query({ ids: [projectId] }))[0] ?? null,
+    staleTime: 0,
+    refetchOnWindowFocus: 'always',
   });
   const members = useQuery({
     queryKey: ['project-member', 'project', projectId],
     queryFn: () => memberApi.query({ projectId }),
     enabled: project.data != null,
+    staleTime: 0,
+    refetchOnWindowFocus: 'always',
   });
 
   const isAdmin = can(PERMISSIONS.PROJECT_ADMIN);
   const myRole = members.data?.find((member) => member.userId === String(user.id))?.role;
   const closed = project.data == null ? false : isProjectClosed(project.data.status);
-  const isMember = isAdmin || myRole !== undefined;
-  const isManager = isAdmin || myRole === 'MANAGER';
+  const isMember = project.data != null && !project.isError && !members.isError && (isAdmin || myRole !== undefined);
+  const isManager = isMember && (isAdmin || myRole === 'MANAGER');
   return {
     project: project.data ?? undefined,
     members: members.data ?? [],

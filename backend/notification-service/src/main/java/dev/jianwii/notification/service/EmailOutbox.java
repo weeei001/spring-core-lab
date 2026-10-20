@@ -24,13 +24,16 @@ public class EmailOutbox {
     private final EmailMessageDAO emailMessageDAO;
     private final ApplicationEventPublisher eventPublisher;
     private final String frontendUrl;
+    private final boolean enabled;
 
     public EmailOutbox(EmailMessageDAO emailMessageDAO, ApplicationEventPublisher eventPublisher,
-            @Value("${app.frontend-url}") String frontendUrl) {
+            @Value("${app.frontend-url}") String frontendUrl,
+            @Value("${app.mail.enabled:true}") boolean enabled) {
         this.emailMessageDAO = emailMessageDAO;
         this.eventPublisher = eventPublisher;
         // 連結是 / 開頭的路徑，去掉網址結尾的 / 避免變成 //
         this.frontendUrl = frontendUrl.replaceAll("/+$", "");
+        this.enabled = enabled;
     }
 
     /**
@@ -38,7 +41,7 @@ public class EmailOutbox {
      *            收件人 id → Email，notifications 的收件人都必須在其中
      */
     public void enqueue(List<Notification> notifications, Map<String, String> emails) {
-        if (notifications.isEmpty()) {
+        if (!enabled || notifications.isEmpty()) {
             return;
         }
         List<EmailMessage> messages = notifications.stream().map(notification -> {

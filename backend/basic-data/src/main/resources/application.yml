@@ -2,45 +2,63 @@ server:
   port: 8081
 
 spring:
-  servlet:
-    multipart:
-      # 共用上傳單檔上限，與 web-server 一致
-      max-file-size: 10MB
-      max-request-size: 11MB
   application:
-    # 服務名稱，也是向 Eureka 登記的名稱，呼叫端 @ImportHttpServices 的 group 要用這個
     name: basic-data
   profiles:
-    active: local
+    default: local
   devtools:
     restart:
-      # 改 common 時好幾個模組會一起重新編譯；classpath 靜止 1 秒才重啟，避免編譯到一半就重啟或一次改動重啟好幾次
       poll-interval: 2s
       quiet-period: 1s
     livereload:
-      # 前端熱更新由 vite 負責；每個服務都開 LiveReload 會搶同一個 port（35729）
       enabled: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
   jpa:
-    # 交易結束就歸還連線，不讓連線一路占到 JSON 輸出完（Spring Boot 預設 true）；Entity 回傳前須載入完成
     open-in-view: false
+
+# 健康檢查只在獨立的 loopback port 提供；不公開設定或錯誤細節。
+management:
+  server:
+    address: 127.0.0.1
+    port: 9081
+  endpoints:
+    web:
+      exposure:
+        include: health
+    jmx:
+      exposure:
+        exclude: '*'
+  endpoint:
+    health:
+      show-details: never
+      show-components: always
+  health:
+    mail:
+      enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  jpa:
     hibernate:
-      # 依 Entity 自動建立／更新資料表（開發用）
       ddl-auto: update
   datasource:
     url: jdbc:mysql://localhost:3306/basic_data?createDatabaseIfNotExist=true&serverTimezone=Asia/Taipei&characterEncoding=utf-8&useSSL=false
     username: root
 app:
   upload:
-    # 相對路徑以服務啟動目錄為準；各環境可用 APP_UPLOAD_DIR 指定
-    dir: data/uploads
-
+    dir: ${APP_UPLOAD_DIR:data/uploads}
+    legacy-dir: ${APP_LEGACY_UPLOAD_DIR:}
 eureka:
   client:
-    # Eureka Server 位址
+    registry-fetch-interval-seconds: 5
     service-url:
       defaultZone: http://localhost:8761/eureka/
   instance:
-    # 以 127.0.0.1 登記，本機開發時避免主機名稱解析不到
     prefer-ip-address: true
     ip-address: 127.0.0.1
-

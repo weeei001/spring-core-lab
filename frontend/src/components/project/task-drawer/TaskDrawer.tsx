@@ -305,6 +305,7 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
                   size="small"
                   icon={watching ? <EyeInvisibleOutlined /> : <EyeOutlined />}
                   loading={toggleWatch.isPending}
+                  disabled={!access.isMember}
                   onClick={() => {
                     toggleWatch.mutate();
                   }}

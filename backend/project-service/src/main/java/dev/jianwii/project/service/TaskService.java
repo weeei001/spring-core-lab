@@ -352,7 +352,8 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
      */
     @Override
     protected Specification<Task> toSpecification(TaskQueryParameter parameter) {
-        Specification<Task> specification = super.toSpecification(parameter);
+        Specification<Task> specification = super.toSpecification(parameter)
+                .and(ProjectMemberScope.forUser(parameter.getMemberUserId()));
         Boolean topLevel = parameter.getTopLevel();
         if (topLevel != null) {
             specification = specification.and((root, query, builder) -> topLevel

@@ -33,6 +33,11 @@ public class TaskQueryParameter extends QueryParameter<Task> {
 
     private Long projectId;
 
+    /** web-server 強制設定，查詢時以目前有效的成員關係限制資料。 */
+    @QueryIgnore
+    @Size(max = 100)
+    private String memberUserId;
+
     private Long milestoneId;
 
     private Long sprintId;

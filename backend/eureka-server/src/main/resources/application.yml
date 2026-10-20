@@ -4,9 +4,36 @@ server:
 spring:
   application:
     name: eureka-server
+  profiles:
+    default: local
 
 eureka:
   client:
-    # 單機模式：自己不註冊、也不拉取註冊表
     register-with-eureka: false
     fetch-registry: false
+
+# 健康檢查只在獨立的 loopback port 提供；不公開設定或錯誤細節。
+management:
+  server:
+    address: 127.0.0.1
+    port: 9761
+  endpoints:
+    web:
+      exposure:
+        include: health
+    jmx:
+      exposure:
+        exclude: '*'
+  endpoint:
+    health:
+      show-details: never
+      show-components: always
+  health:
+    mail:
+      enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local

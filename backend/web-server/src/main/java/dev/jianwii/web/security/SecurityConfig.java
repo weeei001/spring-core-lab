@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -15,11 +16,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 /**
  * 登入設定：web-server 以 OAuth2 Client 身分向 authentik 登入，token 留在後端，瀏覽器只拿到 session cookie。
@@ -45,10 +47,23 @@ public class SecurityConfig {
     private static final String CALLBACK_URI = "/auth/callback";
     private static final String LOGOUT_URI = "/auth/logout";
 
+    /** 只有獨立管理 port 的 health 可匿名讀取，主服務 port 不提供此入口。 */
+    @Bean
+    @Order(0)
+    SecurityFilterChain healthFilterChain(HttpSecurity http,
+            @Value("${management.server.port}") int managementPort) throws Exception {
+        http.securityMatcher(request -> request.getLocalPort() == managementPort)
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .anyRequest().denyAll());
+        return http.build();
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http,
             LoginSuccessHandler loginSuccessHandler, UserApi userApi,
             ClientRegistrationRepository clientRegistrationRepository, JsonMapper jsonMapper,
+            @Value("${app.super-admin-subjects:}") Set<String> superAdminSubjects,
             @Value("${app.frontend-url}") String frontendUrl) throws Exception {
         // 登出時也結束 authentik 的登入狀態，否則下次登入會直接通過。
         // 前端用 axios 呼叫，302 導向 authentik（跨網域）跟不過去，所以改成回 JSON，由前端自己跳轉
@@ -64,7 +79,9 @@ public class SecurityConfig {
                 };
         logoutSuccessHandler.setPostLogoutRedirectUri(frontendUrl);
 
-        http.authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+        http.authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator", "/actuator/**").denyAll()
+                        .anyRequest().authenticated())
                 .oauth2Login(login -> login
                         .authorizationEndpoint(endpoint -> endpoint.baseUri(LOGIN_URI))
                         .redirectionEndpoint(endpoint -> endpoint.baseUri(CALLBACK_URI))
@@ -72,9 +89,9 @@ public class SecurityConfig {
                 .logout(logout -> logout.logoutUrl(LOGOUT_URI)
                         .logoutSuccessHandler(logoutSuccessHandler))
                 .csrf(csrf -> csrf.spa())
-                // 在檢查權限之前，把登入者的功能權限放進 Spring Security
-                .addFilterBefore(new PermissionAuthorityFilter(userApi, jsonMapper),
-                        AuthorizationFilter.class)
+                // 先確認帳號有效，再做 CSRF 與功能授權；停用帳號一致回 401。
+                .addFilterBefore(new PermissionAuthorityFilter(userApi, jsonMapper, superAdminSubjects),
+                        CsrfFilter.class)
                 // 預設會把未登入的請求導向登入頁；API 改回 JSON，由前端決定怎麼處理
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, e) -> writeJson(jsonMapper,

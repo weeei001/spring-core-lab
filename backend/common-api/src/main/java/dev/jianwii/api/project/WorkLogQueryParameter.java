@@ -1,6 +1,7 @@
 package dev.jianwii.api.project;
 
 import dev.jianwii.common.query.QueryField;
+import dev.jianwii.common.query.QueryIgnore;
 import dev.jianwii.common.query.QueryOperator;
 import dev.jianwii.common.query.QueryParameter;
 import dev.jianwii.entity.project.WorkLog;
@@ -26,6 +27,11 @@ public class WorkLogQueryParameter extends QueryParameter<WorkLog> {
     private List<@NotNull Long> ids;
 
     private Long projectId;
+
+    /** web-server 強制設定，包含統計查詢也套用成員範圍。 */
+    @QueryIgnore
+    @Size(max = 100)
+    private String memberUserId;
 
     private Long taskId;
 

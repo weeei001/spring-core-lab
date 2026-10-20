@@ -1,0 +1,3 @@
+# 必須明確指定 --spring.profiles.active=deploy。無本機連線或密碼預設值。
+server:
+  address: ${INTERNAL_BIND_ADDRESS}

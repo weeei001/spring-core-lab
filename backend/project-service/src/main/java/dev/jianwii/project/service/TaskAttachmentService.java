@@ -55,7 +55,7 @@ public class TaskAttachmentService extends BaseService<TaskAttachment, TaskAttac
 
     public TaskAttachmentService(TaskAttachmentDAO taskAttachmentDAO, TaskDAO taskDAO,
             ProjectRules projectRules, UploadFileApi uploadFileApi,
-            @Value("${project.attachment.dir:data/attachments}") String dir) {
+            @Value("${project.attachment.dir}") String dir) {
         super(taskAttachmentDAO);
         this.taskAttachmentDAO = taskAttachmentDAO;
         this.taskDAO = taskDAO;

@@ -2,11 +2,29 @@ package dev.jianwii.basicdata.dao;
 
 import dev.jianwii.common.dao.BaseDAO;
 import dev.jianwii.entity.basicdata.User;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface UserDAO extends BaseDAO<User, Long> {
+
+    interface AuthorizationRow {
+        Integer getDbMark();
+        String getPermissionCode();
+    }
+
+    /** LEFT JOIN 保留沒有角色的帳號，一次 SQL 同時確認狀態與權限。 */
+    @Query(value = """
+            select u.db_mark as dbMark, rp.permission_code as permissionCode
+            from sys_user u
+            left join sys_user_role ur on ur.user_id = u.id
+            left join sys_role r on r.id = ur.role_id and r.db_mark = 0
+            left join sys_role_permission rp on rp.role_id = r.id
+            where u.id = :id
+            """, nativeQuery = true)
+    List<AuthorizationRow> authorization(@Param("id") Long id);
 
     /** 含已軟刪除的資料，才分辨得出「已停用」與「第一次登入」。 */
     Optional<User> findBySubject(String subject);

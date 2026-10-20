@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.Set;
 
 /**
  * authentik 登入成功後：把登入者同步到 basic-data 的 user 表，user id 存進 session，再導回前端。
@@ -31,13 +30,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final UserApi userApi;
     private final String frontendUrl;
-    private final Set<String> superAdminSubjects;
 
-    public LoginSuccessHandler(UserApi userApi, @Value("${app.frontend-url}") String frontendUrl,
-            @Value("${app.super-admin-subjects:}") Set<String> superAdminSubjects) {
+    public LoginSuccessHandler(UserApi userApi, @Value("${app.frontend-url}") String frontendUrl) {
         this.userApi = userApi;
         this.frontendUrl = frontendUrl;
-        this.superAdminSubjects = superAdminSubjects;
     }
 
     @Override
@@ -46,7 +42,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         HttpSession session = request.getSession();
         // 同一個瀏覽器換帳號登入時，先清掉上一個登入者，同步時才不會記成他
         session.removeAttribute(OperatorHeaderFilter.SESSION_USER_ID);
-        session.removeAttribute(PermissionAuthorityFilter.SESSION_SUPER_ADMIN);
+        session.removeAttribute("loginSuperAdmin");
         OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
         User user = new User();
         user.setSubject(oidcUser.getSubject());
@@ -57,8 +53,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             User loginUser = userApi.login(user);
             session.setAttribute(OperatorHeaderFilter.SESSION_USER_ID,
                     String.valueOf(loginUser.getId()));
-            session.setAttribute(PermissionAuthorityFilter.SESSION_SUPER_ADMIN,
-                    superAdminSubjects.contains(oidcUser.getSubject()));
             response.sendRedirect(frontendUrl);
         } catch (RuntimeException e) {
             log.warn("登入同步失敗，subject：{}", oidcUser.getSubject(), e);

@@ -54,4 +54,20 @@
         </dependencies>
     </dependencyManagement>
 
+    <!-- JAR 不含本機密碼；IDE 與 spring-boot:run 仍可從 classes 載入 local 設定。 -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>application-local.yml</exclude>
+                        <exclude>application-local.yaml</exclude>
+                        <exclude>application-local.properties</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

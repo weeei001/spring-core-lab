@@ -45,4 +45,8 @@ public interface UserApi {
      */
     @GetExchange("/{id}/permissions")
     Set<String> permissions(@PathVariable("id") Long id);
+
+    /** 內部授權查詢；帳號不存在或停用時 active 為 false。 */
+    @GetExchange("/{id}/authorization")
+    UserAuthorization authorization(@PathVariable("id") Long id);
 }

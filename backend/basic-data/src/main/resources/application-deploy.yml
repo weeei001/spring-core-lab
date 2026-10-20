@@ -1,0 +1,22 @@
+# 必須明確指定 --spring.profiles.active=deploy。無本機連線或密碼預設值。
+server:
+  address: ${INTERNAL_BIND_ADDRESS}
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  datasource:
+    url: ${BASIC_DATA_DB_URL}
+    username: ${BASIC_DATA_DB_USERNAME}
+    password: ${BASIC_DATA_DB_PASSWORD}
+app:
+  upload:
+    dir: ${APP_UPLOAD_DIR}
+    legacy-dir: ${APP_LEGACY_UPLOAD_DIR:}
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
+  instance:
+    prefer-ip-address: true
+    ip-address: ${SERVICE_IP_ADDRESS}

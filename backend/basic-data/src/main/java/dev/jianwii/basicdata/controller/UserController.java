@@ -1,6 +1,7 @@
 package dev.jianwii.basicdata.controller;
 
 import dev.jianwii.api.basicdata.UserApi;
+import dev.jianwii.api.basicdata.UserAuthorization;
 import dev.jianwii.api.basicdata.UserQueryParameter;
 import dev.jianwii.basicdata.service.UserService;
 import dev.jianwii.common.dto.PageResponse;
@@ -42,5 +43,10 @@ public class UserController implements UserApi {
     @Override
     public Set<String> permissions(Long id) {
         return userService.permissions(id);
+    }
+
+    @Override
+    public UserAuthorization authorization(Long id) {
+        return userService.authorization(id);
     }
 }

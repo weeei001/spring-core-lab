@@ -1,6 +1,7 @@
 package dev.jianwii.web.security;
 
 import dev.jianwii.api.basicdata.UserApi;
+import dev.jianwii.api.basicdata.UserAuthorization;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.basicdata.Permission;
 import jakarta.servlet.FilterChain;
@@ -34,15 +35,15 @@ import java.util.Set;
 public class PermissionAuthorityFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(PermissionAuthorityFilter.class);
 
-    /** session 中是否為超級管理員（擁有全部權限），登入成功時由 LoginSuccessHandler 設定。 */
-    public static final String SESSION_SUPER_ADMIN = "loginSuperAdmin";
-
     private final UserApi userApi;
     private final JsonMapper jsonMapper;
+    private final Set<String> superAdminSubjects;
 
-    public PermissionAuthorityFilter(UserApi userApi, JsonMapper jsonMapper) {
+    public PermissionAuthorityFilter(UserApi userApi, JsonMapper jsonMapper,
+            Set<String> superAdminSubjects) {
         this.userApi = userApi;
         this.jsonMapper = jsonMapper;
+        this.superAdminSubjects = Set.copyOf(superAdminSubjects);
     }
 
     @Override
@@ -52,12 +53,21 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
         HttpSession session = request.getSession(false);
         Object userId = session == null ? null
                 : session.getAttribute(OperatorHeaderFilter.SESSION_USER_ID);
-        if (authentication instanceof OAuth2AuthenticationToken token && userId != null) {
-            boolean superAdmin = Boolean.TRUE.equals(session.getAttribute(SESSION_SUPER_ADMIN));
+        if (authentication instanceof OAuth2AuthenticationToken token) {
+            if (userId == null) {
+                unauthorized(session, response);
+                return;
+            }
             Set<String> permissions;
             try {
-                permissions = superAdmin ? Permission.codes()
-                        : Set.copyOf(userApi.permissions(Long.valueOf(userId.toString())));
+                UserAuthorization authorization = userApi.authorization(Long.valueOf(userId.toString()));
+                if (!authorization.active()) {
+                    unauthorized(session, response);
+                    return;
+                }
+                String subject = token.getPrincipal().getAttribute("sub");
+                permissions = subject != null && superAdminSubjects.contains(subject)
+                        ? Permission.codes() : Set.copyOf(authorization.permissions());
             } catch (RuntimeException e) {
                 // Filter 不會經過 ControllerAdvice；無法確認權限時停止請求，不沿用舊授權。
                 log.warn("載入權限失敗，userId：{}", userId, e);
@@ -77,5 +87,17 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
             SecurityContextHolder.setContext(context);
         }
         chain.doFilter(request, response);
+    }
+
+    private void unauthorized(HttpSession session, HttpServletResponse response) throws IOException {
+        if (session != null) {
+            session.invalidate();
+        }
+        SecurityContextHolder.clearContext();
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        jsonMapper.writeValue(response.getOutputStream(),
+                Result.failure("未登入", "帳號不存在或已停用，請重新登入"));
     }
 }
