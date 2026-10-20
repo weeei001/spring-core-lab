@@ -13,16 +13,12 @@ import { percent } from '@/components/project/project-utils';
 import { TaskDrawer } from '@/components/project/task-drawer/TaskDrawer';
 import { useMemberDirectory } from '@/components/project/useMemberDirectory';
 import { PageTour } from '@/shared/ui/PageTour';
-import { LabelTab } from './components/LabelTab';
 import { MemberTab } from './components/MemberTab';
-import { MilestoneTab } from './components/MilestoneTab';
-import { OverviewTab } from './components/OverviewTab';
-import { SprintTab } from './components/SprintTab';
-import { WorkLogTab } from './components/WorkLogTab';
 import { TasksTab } from './components/tasks/TasksTab';
 import { PROJECT_DETAIL_TOUR } from './tour';
 
-const TABS = ['overview', 'tasks', 'sprints', 'milestones', 'labels', 'members', 'work-log'] as const;
+// ponytail: 雛形先完成任務協作；進階管理頁等實際試用有需求再接回。
+const TABS = ['tasks', 'members'] as const;
 type TabKey = (typeof TABS)[number];
 
 function isTab(value: string | null): value is TabKey {
@@ -50,7 +46,7 @@ function ProjectDetail({ projectId }: { projectId: number }) {
   const [editing, setEditing] = useState(false);
 
   const tabParam = searchParams.get('tab');
-  const tab: TabKey = isTab(tabParam) ? tabParam : 'overview';
+  const tab: TabKey = isTab(tabParam) ? tabParam : 'tasks';
 
   const update = useMutation({
     mutationFn: (values: Partial<Project>) => projectApi.update(projectId, values),
@@ -172,11 +168,6 @@ function ProjectDetail({ projectId }: { projectId: number }) {
           }}
           items={[
             {
-              key: 'overview',
-              label: '概覽',
-              children: <OverviewTab project={project} members={members} directory={directory} onOpen={drawer.open} />,
-            },
-            {
               key: 'tasks',
               label: '任務',
               children: (
@@ -191,18 +182,10 @@ function ProjectDetail({ projectId }: { projectId: number }) {
               ),
             },
             {
-              key: 'sprints',
-              label: 'Sprint',
-              children: <SprintTab projectId={projectId} access={access} directory={directory} onOpen={drawer.open} />,
-            },
-            { key: 'milestones', label: '里程碑', children: <MilestoneTab projectId={projectId} access={access} /> },
-            { key: 'labels', label: '標籤', children: <LabelTab projectId={projectId} access={access} /> },
-            {
               key: 'members',
               label: `成員（${String(members.length)}）`,
               children: <MemberTab projectId={projectId} members={members} directory={directory} access={access} />,
             },
-            { key: 'work-log', label: '工時', children: <WorkLogTab projectId={projectId} directory={directory} onOpen={drawer.open} /> },
           ]}
         />
       </div>

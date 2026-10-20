@@ -1,62 +1,24 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { App, Button, Flex, Input, Segmented, Select, Skeleton, Switch, Typography } from 'antd';
-import { BarsOutlined, PlusOutlined, ProjectOutlined, TableOutlined } from '@ant-design/icons';
-import { milestoneApi } from '@/api/project/milestone-api';
-import type { Milestone } from '@/api/project/milestone.types';
-import type { Task, TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
-import { useInvalidateProjectData, useProjectLabels, useProjectMilestones, useProjectSprints, useProjectTasks, type ProjectAccess } from '@/components/project/hooks';
-import { LabelSelect } from '@/components/project/LabelSelect';
-import { TASK_PRIORITY_LABELS, TASK_TYPE_LABELS } from '@/components/project/labels';
+import { Button, Flex, Input, Select, Skeleton, Switch, Typography } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import type { TaskStatus } from '@/api/project/task.types';
+import { useProjectLabels, useProjectMilestones, useProjectTasks, type ProjectAccess } from '@/components/project/hooks';
 import { useTaskActions } from '@/components/project/useTaskActions';
 import type { UserDirectory } from '@/components/user/useUserDirectory';
 import { useAuth } from '@/core/auth/useAuth';
-import { toOptions } from '@/shared/lib/format';
 import { PageTour } from '@/shared/ui/PageTour';
 import { TaskBoardView } from './TaskBoardView';
 import { TaskFormModal } from './TaskFormModal';
-import { TaskGanttView } from './TaskGanttView';
-import { TaskTableView } from './TaskTableView';
 import { TASKS_TOUR } from './tour';
 
-type ViewMode = 'table' | 'board' | 'gantt';
-
-const VIEW_KEY = 'project-task-view';
 /** 指派人篩選的特殊值 */
 const ME = '__me__';
 const NONE = '__none__';
-/** Sprint 篩選的特殊值：進行中的 Sprint、Backlog（沒排入 Sprint） */
-const CURRENT_SPRINT = -1;
-const BACKLOG = -2;
-
-function loadView(): ViewMode {
-  try {
-    const value = localStorage.getItem(VIEW_KEY);
-    return value === 'table' || value === 'gantt' ? value : 'board';
-  } catch {
-    return 'board';
-  }
-}
-
-function saveView(view: ViewMode): void {
-  try {
-    localStorage.setItem(VIEW_KEY, view);
-  } catch {
-    // 存不了就用預設值
-  }
-}
 
 interface Filters {
   keyword: string;
   /** user id，或 ME、NONE；undefined 表示全部 */
   assignee?: string;
-  priorities: TaskPriority[];
-  types: TaskType[];
-  /** 掛了任一個標籤即符合 */
-  labelIds: number[];
-  milestoneId?: number;
-  /** Sprint id，或 CURRENT_SPRINT、BACKLOG；undefined 表示全部 */
-  sprint?: number;
 }
 
 interface TasksTabProps {
@@ -69,38 +31,22 @@ interface TasksTabProps {
   onOpen: (taskId: number) => void;
 }
 
-/** 三種檢視共用同一份任務資料與篩選條件；篩選在前端做，切換檢視不必重查 */
+/** ponytail: 雛形用單一看板，先讓成員能新增、指派與完成任務。 */
 export function TasksTab({ projectId, wipLimits, access, directory, memberOptions, onOpen }: TasksTabProps) {
   const { user } = useAuth();
-  const { message } = App.useApp();
-  const invalidate = useInvalidateProjectData();
   const tasks = useProjectTasks(projectId);
   const milestones = useProjectMilestones(projectId);
   const labels = useProjectLabels(projectId);
-  const sprints = useProjectSprints(projectId);
-  const { create, update } = useTaskActions();
-  const [view, setView] = useState<ViewMode>(loadView);
-  const [filters, setFilters] = useState<Filters>({ keyword: '', priorities: [], types: [], labelIds: [] });
+  const { create } = useTaskActions();
+  const [filters, setFilters] = useState<Filters>({ keyword: '' });
   const [showCancelled, setShowCancelled] = useState(false);
   const [creating, setCreating] = useState<TaskStatus | null>(null);
-
-  const rescheduleMilestone = useMutation({
-    mutationFn: ({ milestone, dueDate }: { milestone: Milestone; dueDate: string }) => milestoneApi.update(milestone.id, { dueDate }),
-    onSuccess: () => {
-      void message.success('已調整里程碑日期');
-    },
-    onSettled: invalidate,
-  });
 
   if (tasks.isPending) {
     return <Skeleton active paragraph={{ rows: 8 }} />;
   }
 
   const allTasks = tasks.data ?? [];
-  const activeSprintId = (sprints.data ?? []).find((sprint) => sprint.status === 'ACTIVE')?.id;
-  // 子任務跟著父任務的 Sprint
-  const sprintOf = (task: Task): number | null =>
-    task.parentId === null ? task.sprintId : (allTasks.find((other) => other.id === task.parentId)?.sprintId ?? null);
   const keyword = filters.keyword.trim().toLowerCase();
   const myId = String(user.id);
   const filtered = allTasks.filter((task) => {
@@ -116,32 +62,8 @@ export function TasksTab({ projectId, wipLimits, access, directory, memberOption
     if (filters.assignee !== undefined && filters.assignee !== ME && filters.assignee !== NONE && task.assigneeId !== filters.assignee) {
       return false;
     }
-    if (filters.priorities.length > 0 && !filters.priorities.includes(task.priority)) {
-      return false;
-    }
-    if (filters.types.length > 0 && !filters.types.includes(task.type)) {
-      return false;
-    }
-    if (filters.labelIds.length > 0 && !task.labelIds.some((id) => filters.labelIds.includes(id))) {
-      return false;
-    }
-    if (filters.sprint !== undefined) {
-      const sprintId = sprintOf(task);
-      const wanted = filters.sprint === CURRENT_SPRINT ? activeSprintId : filters.sprint === BACKLOG ? null : filters.sprint;
-      if (wanted === undefined || sprintId !== wanted) {
-        return false;
-      }
-    }
-    if (filters.milestoneId !== undefined && task.milestoneId !== filters.milestoneId) {
-      return false;
-    }
-    return !(view !== 'board' && !showCancelled && task.status === 'CANCELLED');
+    return true;
   });
-
-  const reschedule = (task: Task, startDate: string, dueDate: string): Promise<unknown> =>
-    task.startDate === startDate && task.dueDate === dueDate
-      ? Promise.resolve()
-      : update.mutateAsync({ id: task.id, values: { startDate, dueDate } });
 
   return (
     <Flex vertical gap={16}>
@@ -157,7 +79,7 @@ export function TasksTab({ projectId, wipLimits, access, directory, memberOption
           />
           <Select<string>
             allowClear
-            placeholder="全部指派人"
+            placeholder="全部負責人"
             style={{ width: 160 }}
             value={filters.assignee}
             options={[{ value: ME, label: '指派給我' }, { value: NONE, label: '未指派' }, ...memberOptions]}
@@ -166,83 +88,12 @@ export function TasksTab({ projectId, wipLimits, access, directory, memberOption
               setFilters({ ...filters, assignee });
             }}
           />
-          <Select<TaskPriority[]>
-            mode="multiple"
-            allowClear
-            placeholder="全部優先度"
-            style={{ minWidth: 150 }}
-            maxTagCount="responsive"
-            value={filters.priorities}
-            options={toOptions(TASK_PRIORITY_LABELS)}
-            onChange={(priorities) => {
-              setFilters({ ...filters, priorities });
-            }}
-          />
-          <Select<TaskType[]>
-            mode="multiple"
-            allowClear
-            placeholder="全部類型"
-            style={{ minWidth: 130 }}
-            maxTagCount="responsive"
-            value={filters.types}
-            options={toOptions(TASK_TYPE_LABELS)}
-            onChange={(types) => {
-              setFilters({ ...filters, types });
-            }}
-          />
-          <LabelSelect
-            labels={labels.data ?? []}
-            value={filters.labelIds}
-            placeholder="全部標籤"
-            style={{ width: 'auto', minWidth: 150 }}
-            onChange={(labelIds) => {
-              setFilters({ ...filters, labelIds });
-            }}
-          />
-          <Select<number>
-            allowClear
-            placeholder="全部 Sprint"
-            style={{ width: 150 }}
-            value={filters.sprint}
-            options={[
-              { value: CURRENT_SPRINT, label: '進行中的 Sprint' },
-              { value: BACKLOG, label: 'Backlog' },
-              ...(sprints.data ?? []).map((sprint) => ({ value: sprint.id, label: sprint.name })),
-            ]}
-            onChange={(sprint: number | undefined) => {
-              setFilters({ ...filters, sprint });
-            }}
-          />
-          <Select<number>
-            allowClear
-            placeholder="全部里程碑"
-            style={{ width: 160 }}
-            value={filters.milestoneId}
-            options={(milestones.data ?? []).map((milestone) => ({ value: milestone.id, label: milestone.name }))}
-            onChange={(milestoneId: number | undefined) => {
-              setFilters({ ...filters, milestoneId });
-            }}
-          />
           <Flex gap={6} align="center">
-            <Switch size="small" checked={showCancelled} onChange={setShowCancelled} />
+            <Switch aria-label="顯示已取消" size="small" checked={showCancelled} onChange={setShowCancelled} />
             <Typography.Text>顯示已取消</Typography.Text>
           </Flex>
         </Flex>
         <Flex gap={8} align="center">
-          <div data-tour="task-views">
-            <Segmented<ViewMode>
-              value={view}
-              onChange={(next) => {
-                setView(next);
-                saveView(next);
-              }}
-              options={[
-                { value: 'table', icon: <TableOutlined />, label: '表格' },
-                { value: 'board', icon: <ProjectOutlined />, label: '看板' },
-                { value: 'gantt', icon: <BarsOutlined />, label: '甘特' },
-              ]}
-            />
-          </div>
           {access.canEditTasks ? (
             <Button
               type="primary"
@@ -259,42 +110,18 @@ export function TasksTab({ projectId, wipLimits, access, directory, memberOption
       </Flex>
 
       <div data-tour="task-content">
-        {view === 'table' ? (
-          <TaskTableView
-            tasks={filtered}
-            allTasks={allTasks}
-            directory={directory}
-            memberOptions={memberOptions}
-            milestones={milestones.data ?? []}
-            editable={access.canEditTasks}
-            onOpen={onOpen}
-          />
-        ) : view === 'board' ? (
-          <TaskBoardView
-            tasks={filtered}
-            allTasks={allTasks}
-            directory={directory}
-            editable={access.canEditTasks}
-            showCancelled={showCancelled}
-            wipLimits={wipLimits}
-            onOpen={onOpen}
-            onQuickAdd={(status, title) => {
-              create.mutate({ projectId, status, title });
-            }}
-          />
-        ) : (
-          <TaskGanttView
-            tasks={filtered}
-            milestones={filters.milestoneId === undefined ? (milestones.data ?? []) : (milestones.data ?? []).filter((m) => m.id === filters.milestoneId)}
-            editable={access.canEditTasks}
-            milestoneEditable={access.canManage}
-            onOpen={onOpen}
-            onReschedule={reschedule}
-            onMilestoneReschedule={(milestone, dueDate) =>
-              milestone.dueDate === dueDate ? Promise.resolve() : rescheduleMilestone.mutateAsync({ milestone, dueDate })
-            }
-          />
-        )}
+        <TaskBoardView
+          tasks={filtered}
+          allTasks={allTasks}
+          directory={directory}
+          editable={access.canEditTasks}
+          showCancelled={showCancelled}
+          wipLimits={wipLimits}
+          onOpen={onOpen}
+          onQuickAdd={(status, title) => {
+            create.mutate({ projectId, status, title });
+          }}
+        />
       </div>
 
       <TaskFormModal

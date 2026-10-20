@@ -11,19 +11,19 @@ export const TASK_DRAWER_TOUR: GuideStep[] = [
   {
     target: 'drawer-fields',
     title: '改了就存',
-    description: '狀態、指派人、日期等欄位改完立即儲存，不用按儲存鍵。按欄位的 ✕ 就是清空。',
+    description: '狀態、負責人與日期改完立即儲存，不用按儲存鍵。按欄位的 ✕ 就是清空。',
     placement: 'left',
   },
   {
-    target: 'drawer-predecessors',
-    title: '前置任務',
-    description: '設定「哪些任務完成後才能開始這個」。前置任務會在甘特圖畫成箭頭，系統也會擋下循環相依。',
+    target: 'drawer-more',
+    title: '需要時再補設定',
+    description: '展開「更多設定」可調整分類、優先度、Sprint、預估工時與前置任務。日常更新進度只要使用上方欄位。',
     placement: 'left',
   },
   {
     target: 'drawer-tabs',
-    title: '子任務、留言與工時',
-    description: '把大任務拆成子任務勾選完成；在留言與活動看誰改了什麼、和同事討論；在工時登記你花在這個任務的時間。',
+    title: '留言討論',
+    description: '預設開啟「留言與活動」，可和同事討論並查看修改紀錄。需要時再切換到子任務、附件或工時。',
     placement: 'top',
   },
 ];

@@ -90,31 +90,11 @@ export function TaskFormModal({
         <Input.TextArea autoSize={{ minRows: 2, maxRows: 6 }} />
       </Form.Item>
       <Flex gap={12}>
-        <Form.Item name="type" label="類型" style={{ flex: 1 }}>
-          <Select options={toOptions(TASK_TYPE_LABELS)} />
-        </Form.Item>
-        <Form.Item name="labelIds" label="標籤" style={{ flex: 2 }}>
-          <LabelSelect labels={labels} />
-        </Form.Item>
-      </Flex>
-      <Flex gap={12}>
         <Form.Item name="status" label="狀態" style={{ flex: 1 }}>
           <Select options={toOptions(TASK_STATUS_LABELS)} />
         </Form.Item>
-        <Form.Item name="priority" label="優先度" style={{ flex: 1 }}>
-          <Select options={toOptions(TASK_PRIORITY_LABELS)} />
-        </Form.Item>
-      </Flex>
-      <Flex gap={12}>
-        <Form.Item name="assigneeId" label="指派人" style={{ flex: 1 }}>
+        <Form.Item name="assigneeId" label="負責人" style={{ flex: 1 }}>
           <Select allowClear options={memberOptions} placeholder="未指派" showSearch={{ optionFilterProp: 'label' }} />
-        </Form.Item>
-        <Form.Item name="milestoneId" label="里程碑" style={{ flex: 1 }}>
-          <Select
-            allowClear
-            placeholder="不屬於里程碑"
-            options={milestones.map((milestone) => ({ value: milestone.id, label: milestone.name }))}
-          />
         </Form.Item>
       </Flex>
       <Flex gap={12}>
@@ -139,10 +119,34 @@ export function TaskFormModal({
         >
           <DatePicker style={{ width: '100%' }} />
         </Form.Item>
-        <Form.Item name="estimateHours" label="預估工時" style={{ flex: 1 }}>
-          <InputNumber min={0} max={99999} step={0.5} precision={1} suffix="h" style={{ width: '100%' }} />
-        </Form.Item>
       </Flex>
+      {/* ponytail: 用原生收合保留欄位與預設值，建立任務不用先學分類與估時。 */}
+      <details>
+        <summary style={{ cursor: 'pointer', marginBottom: 12 }}>更多設定（選填）</summary>
+        <Flex gap={12}>
+          <Form.Item name="type" label="類型" style={{ flex: 1 }}>
+            <Select options={toOptions(TASK_TYPE_LABELS)} />
+          </Form.Item>
+          <Form.Item name="priority" label="優先度" style={{ flex: 1 }}>
+            <Select options={toOptions(TASK_PRIORITY_LABELS)} />
+          </Form.Item>
+        </Flex>
+        <Form.Item name="labelIds" label="標籤">
+          <LabelSelect labels={labels} />
+        </Form.Item>
+        <Flex gap={12}>
+          <Form.Item name="milestoneId" label="里程碑" style={{ flex: 1 }}>
+            <Select
+              allowClear
+              placeholder="不屬於里程碑"
+              options={milestones.map((milestone) => ({ value: milestone.id, label: milestone.name }))}
+            />
+          </Form.Item>
+          <Form.Item name="estimateHours" label="預估工時" style={{ flex: 1 }}>
+            <InputNumber min={0} max={99999} step={0.5} precision={1} suffix="h" style={{ width: '100%' }} />
+          </Form.Item>
+        </Flex>
+      </details>
     </FormModal>
   );
 }

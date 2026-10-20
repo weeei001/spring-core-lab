@@ -247,7 +247,7 @@ export function DashboardPage() {
                   {project === undefined ? null : (
                     <Typography.Link
                       onClick={() => {
-                        void navigate(`/projects/${String(project.id)}?tab=milestones`);
+                        void navigate(`/projects/${String(project.id)}`);
                       }}
                     >
                       <Badge color={project.color ?? DEFAULT_PROJECT_COLOR} /> {project.name}

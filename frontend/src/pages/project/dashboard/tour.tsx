@@ -10,10 +10,9 @@ export const DASHBOARD_TOUR: GuideStep[] = [
         <Typography.Text>一個專案通常這樣進行：</Typography.Text>
         <ol style={{ margin: 0, paddingInlineStart: 20 }}>
           <li>建立專案，你會自動成為專案經理</li>
-          <li>加入成員、設定里程碑</li>
+          <li>加入一起工作的成員</li>
           <li>把工作拆成任務，指派給成員</li>
-          <li>在看板拖曳卡片更新進度，用甘特圖排時程</li>
-          <li>每天在工時表登記花了多少時間</li>
+          <li>在看板拖曳卡片更新進度，有問題就到任務裡留言</li>
         </ol>
         <Typography.Text type="secondary">接下來帶你認識畫面，約 1 分鐘。</Typography.Text>
       </Flex>

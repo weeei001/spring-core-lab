@@ -141,39 +141,7 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
             }}
           />
         </Field>
-        <Field label="類型">
-          <Select<TaskType>
-            value={task.type}
-            disabled={!editable}
-            options={toOptions(TASK_TYPE_LABELS)}
-            style={{ width: 160 }}
-            onChange={(type) => {
-              save({ type });
-            }}
-          />
-        </Field>
-        <Field label="標籤">
-          <LabelSelect
-            labels={labels.data ?? []}
-            value={task.labelIds}
-            disabled={!editable}
-            onChange={(labelIds) => {
-              save({ labelIds });
-            }}
-          />
-        </Field>
-        <Field label="優先度">
-          <Select<TaskPriority>
-            value={task.priority}
-            disabled={!editable}
-            options={toOptions(TASK_PRIORITY_LABELS)}
-            style={{ width: 160 }}
-            onChange={(priority) => {
-              save({ priority });
-            }}
-          />
-        </Field>
-        <Field label="指派人">
+        <Field label="負責人">
           <Select<string>
             value={task.assigneeId ?? undefined}
             disabled={!editable}
@@ -190,68 +158,6 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
               }
             }}
           />
-        </Field>
-        <Field label="里程碑">
-          <Select<number>
-            value={task.milestoneId ?? undefined}
-            disabled={!editable}
-            allowClear
-            placeholder="不屬於里程碑"
-            options={(milestones.data ?? []).map((milestone) => ({ value: milestone.id, label: milestone.name }))}
-            style={{ width: 240 }}
-            onChange={(milestoneId: number | undefined) => {
-              if (milestoneId === undefined) {
-                clear('milestoneId');
-              } else {
-                save({ milestoneId });
-              }
-            }}
-          />
-        </Field>
-        <Field label="Sprint">
-          {task.parentId === null ? (
-            <Flex gap={8} align="center" wrap>
-              <Select<number>
-                value={task.sprintId ?? undefined}
-                disabled={!editable}
-                allowClear
-                placeholder="Backlog"
-                // 已結束的 Sprint 不能再排入，但目前所在的仍要顯示名稱
-                options={(sprints.data ?? [])
-                  .filter((sprint) => sprint.status !== 'CLOSED' || sprint.id === task.sprintId)
-                  .map((sprint) => ({
-                    value: sprint.id,
-                    label: `${sprint.name}（${SPRINT_STATUS_LABELS[sprint.status]}）`,
-                    disabled: sprint.status === 'CLOSED',
-                  }))}
-                style={{ width: 240 }}
-                onChange={(sprintId: number | undefined) => {
-                  if (sprintId === undefined) {
-                    clear('sprintId');
-                  } else {
-                    save({ sprintId });
-                  }
-                }}
-              />
-              <Select<number>
-                value={task.storyPoints ?? undefined}
-                disabled={!editable}
-                allowClear
-                placeholder="點數"
-                options={STORY_POINT_OPTIONS.map((points) => ({ value: points, label: `${String(points)} 點` }))}
-                style={{ width: 100 }}
-                onChange={(storyPoints: number | undefined) => {
-                  if (storyPoints === undefined) {
-                    clear('storyPoints');
-                  } else {
-                    save({ storyPoints });
-                  }
-                }}
-              />
-            </Flex>
-          ) : (
-            <Typography.Text type="secondary">跟著父任務</Typography.Text>
-          )}
         </Field>
         <Field label="日期">
           <Flex gap={8} align="center" wrap>
@@ -284,76 +190,176 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
             />
           </Flex>
         </Field>
-        <Field label="關注者">
-          <Flex align="center" gap={8} wrap>
-            {task.watcherIds.length === 0 ? (
-              <Typography.Text type="secondary">沒有人關注</Typography.Text>
-            ) : (
-              <Avatar.Group max={{ count: 8 }}>
-                {task.watcherIds.map((id) => (
-                  <UserAvatar key={id} userId={id} user={directory.user(id)} />
-                ))}
-              </Avatar.Group>
-            )}
-            {access.isMember && !access.closed ? (
-              <Button
-                size="small"
-                icon={watching ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-                loading={toggleWatch.isPending}
-                onClick={() => {
-                  toggleWatch.mutate();
-                }}
-              >
-                {watching ? '取消關注' : '關注'}
-              </Button>
-            ) : null}
-          </Flex>
-        </Field>
-        <Field label="預估工時">
-          <InputNumber
-            key={`estimate-${String(task.estimateHours)}`}
-            defaultValue={task.estimateHours ?? undefined}
-            disabled={!editable}
-            min={0}
-            max={99999}
-            step={0.5}
-            precision={1}
-            suffix="h"
-            placeholder="未估"
-            style={{ width: 160 }}
-            onBlur={(event) => {
-              // 這裡比 InputNumber 自己的範圍修正早執行，拿到的是原始輸入，要自己檢查
-              const text = event.target.value.trim();
-              const hours = text === '' ? null : Number(text);
-              if (hours === task.estimateHours || (hours !== null && (Number.isNaN(hours) || hours < 0 || hours > 99999))) {
-                return;
-              }
-              if (hours === null) {
-                clear('estimateHours');
-              } else {
-                save({ estimateHours: hours });
-              }
-            }}
-          />
-        </Field>
-        <div data-tour="drawer-predecessors">
-          <Field label="前置任務">
-            <Select<number[]>
-              mode="multiple"
-              value={task.predecessorIds}
+      </Flex>
+
+      <details data-tour="drawer-more">
+        <summary style={{ cursor: 'pointer', marginBottom: 12 }}>更多設定</summary>
+        <Flex vertical gap={4}>
+          <Field label="類型">
+            <Select<TaskType>
+              value={task.type}
               disabled={!editable}
-              placeholder="完成後才開始的任務"
-              options={predecessorOptions}
-              showSearch={{ optionFilterProp: 'label' }}
-              suffix={<LinkOutlined />}
-              style={{ width: '100%' }}
-              onChange={(predecessorIds) => {
-                save({ predecessorIds });
+              options={toOptions(TASK_TYPE_LABELS)}
+              style={{ width: 160 }}
+              onChange={(type) => {
+                save({ type });
               }}
             />
           </Field>
-        </div>
-      </Flex>
+          <Field label="標籤">
+            <LabelSelect
+              labels={labels.data ?? []}
+              value={task.labelIds}
+              disabled={!editable}
+              onChange={(labelIds) => {
+                save({ labelIds });
+              }}
+            />
+          </Field>
+          <Field label="優先度">
+            <Select<TaskPriority>
+              value={task.priority}
+              disabled={!editable}
+              options={toOptions(TASK_PRIORITY_LABELS)}
+              style={{ width: 160 }}
+              onChange={(priority) => {
+                save({ priority });
+              }}
+            />
+          </Field>
+          <Field label="里程碑">
+            <Select<number>
+              value={task.milestoneId ?? undefined}
+              disabled={!editable}
+              allowClear
+              placeholder="不屬於里程碑"
+              options={(milestones.data ?? []).map((milestone) => ({ value: milestone.id, label: milestone.name }))}
+              style={{ width: 240 }}
+              onChange={(milestoneId: number | undefined) => {
+                if (milestoneId === undefined) {
+                  clear('milestoneId');
+                } else {
+                  save({ milestoneId });
+                }
+              }}
+            />
+          </Field>
+          <Field label="Sprint">
+            {task.parentId === null ? (
+              <Flex gap={8} align="center" wrap>
+                <Select<number>
+                  value={task.sprintId ?? undefined}
+                  disabled={!editable}
+                  allowClear
+                  placeholder="Backlog"
+                  // 已結束的 Sprint 不能再排入，但目前所在的仍要顯示名稱
+                  options={(sprints.data ?? [])
+                    .filter((sprint) => sprint.status !== 'CLOSED' || sprint.id === task.sprintId)
+                    .map((sprint) => ({
+                      value: sprint.id,
+                      label: `${sprint.name}（${SPRINT_STATUS_LABELS[sprint.status]}）`,
+                      disabled: sprint.status === 'CLOSED',
+                    }))}
+                  style={{ width: 240 }}
+                  onChange={(sprintId: number | undefined) => {
+                    if (sprintId === undefined) {
+                      clear('sprintId');
+                    } else {
+                      save({ sprintId });
+                    }
+                  }}
+                />
+                <Select<number>
+                  value={task.storyPoints ?? undefined}
+                  disabled={!editable}
+                  allowClear
+                  placeholder="點數"
+                  options={STORY_POINT_OPTIONS.map((points) => ({ value: points, label: `${String(points)} 點` }))}
+                  style={{ width: 100 }}
+                  onChange={(storyPoints: number | undefined) => {
+                    if (storyPoints === undefined) {
+                      clear('storyPoints');
+                    } else {
+                      save({ storyPoints });
+                    }
+                  }}
+                />
+              </Flex>
+            ) : (
+              <Typography.Text type="secondary">跟著父任務</Typography.Text>
+            )}
+          </Field>
+          <Field label="關注者">
+            <Flex align="center" gap={8} wrap>
+              {task.watcherIds.length === 0 ? (
+                <Typography.Text type="secondary">沒有人關注</Typography.Text>
+              ) : (
+                <Avatar.Group max={{ count: 8 }}>
+                  {task.watcherIds.map((id) => (
+                    <UserAvatar key={id} userId={id} user={directory.user(id)} />
+                  ))}
+                </Avatar.Group>
+              )}
+              {access.isMember && !access.closed ? (
+                <Button
+                  size="small"
+                  icon={watching ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                  loading={toggleWatch.isPending}
+                  onClick={() => {
+                    toggleWatch.mutate();
+                  }}
+                >
+                  {watching ? '取消關注' : '關注'}
+                </Button>
+              ) : null}
+            </Flex>
+          </Field>
+          <Field label="預估工時">
+            <InputNumber
+              key={`estimate-${String(task.estimateHours)}`}
+              defaultValue={task.estimateHours ?? undefined}
+              disabled={!editable}
+              min={0}
+              max={99999}
+              step={0.5}
+              precision={1}
+              suffix="h"
+              placeholder="未估"
+              style={{ width: 160 }}
+              onBlur={(event) => {
+                // 這裡比 InputNumber 自己的範圍修正早執行，拿到的是原始輸入，要自己檢查
+                const text = event.target.value.trim();
+                const hours = text === '' ? null : Number(text);
+                if (hours === task.estimateHours || (hours !== null && (Number.isNaN(hours) || hours < 0 || hours > 99999))) {
+                  return;
+                }
+                if (hours === null) {
+                  clear('estimateHours');
+                } else {
+                  save({ estimateHours: hours });
+                }
+              }}
+            />
+          </Field>
+          <div data-tour="drawer-predecessors">
+            <Field label="前置任務">
+              <Select<number[]>
+                mode="multiple"
+                value={task.predecessorIds}
+                disabled={!editable}
+                placeholder="完成後才開始的任務"
+                options={predecessorOptions}
+                showSearch={{ optionFilterProp: 'label' }}
+                suffix={<LinkOutlined />}
+                style={{ width: '100%' }}
+                onChange={(predecessorIds) => {
+                  save({ predecessorIds });
+                }}
+              />
+            </Field>
+          </div>
+        </Flex>
+      </details>
 
       <Flex vertical gap={4}>
         <Typography.Text type="secondary">說明</Typography.Text>
@@ -387,6 +393,7 @@ function TaskDrawerBody({ task, onClose, onOpen }: { task: Task; onClose: () => 
 
       <div data-tour="drawer-tabs" data-tour-inner=".ant-tabs-nav">
         <Tabs
+          defaultActiveKey="activity"
           items={[
             ...(task.parentId === null
               ? [
