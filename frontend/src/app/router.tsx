@@ -5,6 +5,7 @@ import { PERMISSIONS } from '@/core/auth/permissions';
 import { SerialNumberPage } from '@/pages/basic-data/serial-number/SerialNumberPage';
 import { LeavePage } from '@/pages/leave/LeavePage';
 import { DashboardPage } from '@/pages/project/dashboard/DashboardPage';
+import { CalendarPage } from '@/pages/project/calendar/CalendarPage';
 import { MyTasksPage } from '@/pages/project/my-tasks/MyTasksPage';
 import { ProjectDetailPage } from '@/pages/project/project-detail/ProjectDetailPage';
 import { ProjectListPage } from '@/pages/project/project-list/ProjectListPage';
@@ -43,6 +44,14 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
             <DashboardPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'calendar',
+        element: (
+          <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
+            <CalendarPage />
           </RequirePermission>
         ),
       },

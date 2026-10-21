@@ -3,13 +3,12 @@ package dev.jianwii.api.notification;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.notification.Notification;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
-
-import java.util.List;
 
 /**
  * notification-service 的通知 API，用法同 {@link dev.jianwii.api.project.ProjectApi}。 通知由 {@link #send}

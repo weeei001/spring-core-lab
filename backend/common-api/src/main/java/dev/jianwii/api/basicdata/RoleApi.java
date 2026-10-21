@@ -4,6 +4,7 @@ import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.entity.basicdata.Role;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,8 +12,6 @@ import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PatchExchange;
 import org.springframework.web.service.annotation.PostExchange;
-
-import java.util.List;
 
 /**
  * basic-data 的角色 API（Spring HTTP Interface），用法同 {@link SerialNumberApi}。
@@ -36,8 +35,7 @@ public interface RoleApi {
 
     /** 部分更新：只更新有給值（非 null）的欄位；code 不可修改，permissionCodes 給了就整批取代。 */
     @PatchExchange("/{id}")
-    Role update(@PathVariable("id") Long id,
-            @Validated(ValidGroup.Update.class) @RequestBody Role role);
+    Role update(@PathVariable("id") Long id, @Validated(ValidGroup.Update.class) @RequestBody Role role);
 
     /** 軟刪除；仍有使用者擁有此角色時回 409。 */
     @DeleteExchange("/{id}")

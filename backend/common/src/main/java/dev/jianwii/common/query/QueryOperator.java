@@ -13,6 +13,13 @@ package dev.jianwii.common.query;
  * </ul>
  */
 public enum QueryOperator {
-
-    EQUAL, NOT_EQUAL, LIKE, STARTS_WITH, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN
+    EQUAL,
+    NOT_EQUAL,
+    LIKE,
+    STARTS_WITH,
+    GREATER_THAN,
+    GREATER_THAN_OR_EQUAL,
+    LESS_THAN,
+    LESS_THAN_OR_EQUAL,
+    IN
 }

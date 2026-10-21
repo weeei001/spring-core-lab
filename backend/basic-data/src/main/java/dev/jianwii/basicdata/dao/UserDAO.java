@@ -2,11 +2,10 @@ package dev.jianwii.basicdata.dao;
 
 import dev.jianwii.common.dao.BaseDAO;
 import dev.jianwii.entity.basicdata.User;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface UserDAO extends BaseDAO<User, Long> {
 

@@ -7,15 +7,15 @@ import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.service.BaseService;
 import dev.jianwii.entity.notification.Notification;
 import dev.jianwii.notification.dao.NotificationDAO;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 站內通知的建立、查詢與已讀。建立要透過 {@link NotificationSender}（先向 basic-data 查收件人）， BaseService 的
@@ -37,11 +37,20 @@ public class NotificationService extends BaseService<Notification, NotificationQ
      *
      * @param emails 收件人 id → Email，沒有 Email 的不在其中
      */
-    public List<Notification> createAll(NotificationSendRequest request,
-            Map<String, String> emails) {
+    public List<Notification> createAll(NotificationSendRequest request, Map<String, String> emails) {
         List<Notification> notifications = new ArrayList<>();
+        List<Notification> existing = new ArrayList<>();
         for (String recipientId : request.getRecipientIds()) {
+            if (request.getDedupKey() != null) {
+                Optional<Notification> duplicate =
+                        notificationDAO.findByRecipientIdAndDedupKey(recipientId, request.getDedupKey());
+                if (duplicate.isPresent()) {
+                    existing.add(duplicate.get());
+                    continue;
+                }
+            }
             Notification notification = new Notification();
+            notification.setDedupKey(request.getDedupKey());
             notification.setRecipientId(recipientId);
             notification.setType(request.getType());
             notification.setTitle(request.getTitle());
@@ -51,22 +60,20 @@ public class NotificationService extends BaseService<Notification, NotificationQ
             notifications.add(notification);
         }
         List<Notification> saved = notificationDAO.saveAllAndFlush(notifications);
-        if (request.isEmail()) {
-            emailOutbox
-                    .enqueue(
-                            saved.stream()
-                                    .filter(notification -> emails
-                                            .containsKey(notification.getRecipientId()))
-                                    .toList(),
-                            emails);
+        if (request.isEmail() && !saved.isEmpty()) {
+            emailOutbox.enqueue(
+                    saved.stream()
+                            .filter(notification -> emails.containsKey(notification.getRecipientId()))
+                            .toList(),
+                    emails);
         }
-        return saved;
+        existing.addAll(saved);
+        return existing;
     }
 
     @Transactional(readOnly = true)
     public long unreadCount(String recipientId) {
-        return notificationDAO.countByRecipientIdAndReadTimeIsNullAndDbMark(recipientId,
-                BaseEntity.VALID);
+        return notificationDAO.countByRecipientIdAndReadTimeIsNullAndDbMark(recipientId, BaseEntity.VALID);
     }
 
     /** 只能標記自己的通知；已讀的不改，已讀時間維持第一次讀的時間。 */
@@ -86,8 +93,8 @@ public class NotificationService extends BaseService<Notification, NotificationQ
      * 逐筆更新而不是一句 UPDATE：批次 UPDATE 會略過 JPA Auditing，transId、transTime 不會更新（見 BaseDAO）。
      */
     public int markAllRead(String recipientId) {
-        List<Notification> unread = notificationDAO
-                .findByRecipientIdAndReadTimeIsNullAndDbMark(recipientId, BaseEntity.VALID);
+        List<Notification> unread =
+                notificationDAO.findByRecipientIdAndReadTimeIsNullAndDbMark(recipientId, BaseEntity.VALID);
         LocalDateTime now = LocalDateTime.now();
         unread.forEach(notification -> notification.setReadTime(now));
         notificationDAO.saveAll(unread);
@@ -102,9 +109,8 @@ public class NotificationService extends BaseService<Notification, NotificationQ
         if (unread == null) {
             return specification;
         }
-        return specification
-                .and((root, query, builder) -> unread ? builder.isNull(root.get("readTime"))
-                        : builder.isNotNull(root.get("readTime")));
+        return specification.and((root, query, builder) ->
+                unread ? builder.isNull(root.get("readTime")) : builder.isNotNull(root.get("readTime")));
     }
 
     @Override

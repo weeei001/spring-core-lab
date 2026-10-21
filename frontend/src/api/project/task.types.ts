@@ -5,18 +5,13 @@ export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 /** 功能、Bug、雜務、技術調查 */
 export type TaskType = 'FEATURE' | 'BUG' | 'CHORE' | 'SPIKE';
 /** 可用 clearFields 清空的欄位 */
-export type ClearableTaskField = 'milestoneId' | 'sprintId' | 'storyPoints' | 'assigneeId' | 'startDate' | 'dueDate' | 'estimateHours' | 'description';
+export type ClearableTaskField = 'assigneeId' | 'startDate' | 'dueDate' | 'estimateHours' | 'description';
 
 /** 任務（後端 Task）；parentId 有值的是子任務 */
 export interface Task extends BaseEntity {
   /** 系統編號，例如 T26100001 */
   code: string;
   projectId: number;
-  milestoneId: number | null;
-  /** 排入的 Sprint；只有主任務能排入，null 即在 Backlog */
-  sprintId: number | null;
-  /** 故事點數，燃盡圖以此計算 */
-  storyPoints: number | null;
   parentId: number | null;
   title: string;
   description: string | null;
@@ -47,8 +42,6 @@ export interface Task extends BaseEntity {
 export interface TaskQuery {
   ids?: number[];
   projectId?: number;
-  milestoneId?: number;
-  sprintId?: number;
   parentId?: number;
   /** true 只查主任務、false 只查子任務 */
   topLevel?: boolean;

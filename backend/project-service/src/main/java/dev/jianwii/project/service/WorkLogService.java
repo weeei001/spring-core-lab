@@ -15,15 +15,14 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /** 工時；只能登記、修改、刪除自己的，同一人同一天合計不超過 24 小時。 */
 @Service
@@ -37,8 +36,8 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
     private final ProjectRules projectRules;
     private final EntityManager entityManager;
 
-    public WorkLogService(WorkLogDAO workLogDAO, TaskDAO taskDAO, ProjectRules projectRules,
-            EntityManager entityManager) {
+    public WorkLogService(
+            WorkLogDAO workLogDAO, TaskDAO taskDAO, ProjectRules projectRules, EntityManager entityManager) {
         super(workLogDAO);
         this.workLogDAO = workLogDAO;
         this.taskDAO = taskDAO;
@@ -63,10 +62,13 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<WorkLogSummary> query = builder.createQuery(WorkLogSummary.class);
         Root<WorkLog> root = query.from(WorkLog.class);
-        Specification<WorkLog> valid = (workLog, criteria, criteriaBuilder) -> criteriaBuilder
-                .equal(workLog.get("dbMark"), BaseEntity.VALID);
-        query.select(builder.construct(WorkLogSummary.class, root.get("userId"),
-                root.get("workDate"), builder.sum(root.<BigDecimal>get("hours"))))
+        Specification<WorkLog> valid =
+                (workLog, criteria, criteriaBuilder) -> criteriaBuilder.equal(workLog.get("dbMark"), BaseEntity.VALID);
+        query.select(builder.construct(
+                        WorkLogSummary.class,
+                        root.get("userId"),
+                        root.get("workDate"),
+                        builder.sum(root.<BigDecimal>get("hours"))))
                 .where(valid.and(toSpecification(parameter)).toPredicate(root, query, builder))
                 .groupBy(root.get("userId"), root.get("workDate"))
                 .orderBy(builder.asc(root.get("workDate")), builder.asc(root.get("userId")));
@@ -94,7 +96,8 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
         request.setUserId(null);
         requireOwner(entity);
         projectRules.requireOpen(entity.getProjectId());
-        requireHours(entity.getUserId(),
+        requireHours(
+                entity.getUserId(),
                 request.getWorkDate() != null ? request.getWorkDate() : entity.getWorkDate(),
                 request.getHours() != null ? request.getHours() : entity.getHours(),
                 entity.getId());
@@ -108,8 +111,7 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
 
     @Override
     protected Specification<WorkLog> toSpecification(WorkLogQueryParameter parameter) {
-        return super.toSpecification(parameter)
-                .and(ProjectMemberScope.forUser(parameter.getMemberUserId()));
+        return super.toSpecification(parameter).and(ProjectMemberScope.forUser(parameter.getMemberUserId()));
     }
 
     @Override
@@ -124,8 +126,8 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
         }
         BigDecimal logged = workLogDAO.sumHoursOfDay(userId, workDate, excludeId);
         if (logged.add(hours).compareTo(DAILY_LIMIT) > 0) {
-            throw new BusinessException(workDate + " 已登記 "
-                    + logged.stripTrailingZeros().toPlainString() + " 小時，同一天合計不可超過 24 小時");
+            throw new BusinessException(
+                    workDate + " 已登記 " + logged.stripTrailingZeros().toPlainString() + " 小時，同一天合計不可超過 24 小時");
         }
     }
 

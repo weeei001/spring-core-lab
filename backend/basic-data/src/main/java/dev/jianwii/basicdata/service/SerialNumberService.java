@@ -7,13 +7,12 @@ import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.service.BaseService;
 import dev.jianwii.entity.basicdata.SerialNumber;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /** 編號規則的 CRUD（繼承 BaseService）與取號。 */
 @Service
@@ -33,12 +32,13 @@ public class SerialNumberService extends BaseService<SerialNumber, SerialNumberQ
      */
     @Transactional
     public String next(String serialKey) {
-        SerialNumber serialNumber =
-                serialNumberDAO.findWithLockBySerialKeyAndDbMark(serialKey, SerialNumber.VALID)
-                        .orElseThrow(() -> new NotFoundException("查無編號規則：" + serialKey));
+        SerialNumber serialNumber = serialNumberDAO
+                .findWithLockBySerialKeyAndDbMark(serialKey, SerialNumber.VALID)
+                .orElseThrow(() -> new NotFoundException("查無編號規則：" + serialKey));
         // 與 JPA Auditing 寫入 transTime 使用同一個時區（系統預設）
         LocalDate today = LocalDate.now();
-        boolean samePeriod = serialNumber.getResetCycle()
+        boolean samePeriod = serialNumber
+                .getResetCycle()
                 .samePeriod(serialNumber.getTransTime().toLocalDate(), today);
         long index = samePeriod ? serialNumber.getLastIndex() + 1 : 1;
         String result = render(serialNumber.getRule(), today, index);
@@ -60,8 +60,7 @@ public class SerialNumberService extends BaseService<SerialNumber, SerialNumberQ
 
     @Override
     protected void beforeUpdate(SerialNumber entity, SerialNumber request) {
-        if (request.getSerialKey() != null
-                && !request.getSerialKey().equals(entity.getSerialKey())) {
+        if (request.getSerialKey() != null && !request.getSerialKey().equals(entity.getSerialKey())) {
             throw new BusinessException("serialKey 建立後不可修改");
         }
         if (request.getRule() != null) {

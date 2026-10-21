@@ -2,12 +2,11 @@ package dev.jianwii.notification.dao;
 
 import dev.jianwii.common.dao.BaseDAO;
 import dev.jianwii.entity.notification.EmailMessage;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 /** dbMark = 0 即 BaseEntity.VALID。 */
 public interface EmailMessageDAO extends BaseDAO<EmailMessage, Long> {
@@ -30,8 +29,10 @@ public interface EmailMessageDAO extends BaseDAO<EmailMessage, Long> {
                 or (e.status = dev.jianwii.entity.notification.EmailStatus.SENDING
                     and e.transTime < :sendingBefore))
             order by e.id""")
-    List<Long> findRetryableIds(@Param("maxAttempts") int maxAttempts,
+    List<Long> findRetryableIds(
+            @Param("maxAttempts") int maxAttempts,
             @Param("pendingBefore") LocalDateTime pendingBefore,
             @Param("failedBefore") LocalDateTime failedBefore,
-            @Param("sendingBefore") LocalDateTime sendingBefore, Pageable pageable);
+            @Param("sendingBefore") LocalDateTime sendingBefore,
+            Pageable pageable);
 }

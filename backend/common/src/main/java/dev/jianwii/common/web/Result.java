@@ -8,6 +8,7 @@ public class Result<T> {
 
     /** true 成功、false 失敗。 */
     private final boolean result;
+
     private final T data;
     private final String errorCode;
     private final String message;

@@ -11,10 +11,9 @@ import dev.jianwii.entity.project.ProjectStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 /**
  * 專案查詢條件，寫法說明見 {@link QueryParameter}。

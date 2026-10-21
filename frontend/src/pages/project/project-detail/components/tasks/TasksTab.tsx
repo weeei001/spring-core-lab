@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Flex, Input, Select, Skeleton, Switch, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { TaskStatus } from '@/api/project/task.types';
-import { useProjectLabels, useProjectMilestones, useProjectTasks, type ProjectAccess } from '@/components/project/hooks';
+import { useProjectLabels, useProjectTasks, type ProjectAccess } from '@/components/project/hooks';
 import { useTaskActions } from '@/components/project/useTaskActions';
 import type { UserDirectory } from '@/components/user/useUserDirectory';
 import { useAuth } from '@/core/auth/useAuth';
@@ -35,7 +35,6 @@ interface TasksTabProps {
 export function TasksTab({ projectId, wipLimits, access, directory, memberOptions, onOpen }: TasksTabProps) {
   const { user } = useAuth();
   const tasks = useProjectTasks(projectId);
-  const milestones = useProjectMilestones(projectId);
   const labels = useProjectLabels(projectId);
   const { create } = useTaskActions();
   const [filters, setFilters] = useState<Filters>({ keyword: '' });
@@ -129,7 +128,6 @@ export function TasksTab({ projectId, wipLimits, access, directory, memberOption
         projectId={projectId}
         defaultStatus={creating ?? 'TODO'}
         memberOptions={memberOptions}
-        milestones={milestones.data ?? []}
         labels={labels.data ?? []}
         saving={create.isPending}
         onCancel={() => {

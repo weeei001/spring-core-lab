@@ -12,10 +12,9 @@ import dev.jianwii.entity.project.ProjectRole;
 import dev.jianwii.entity.project.Task;
 import dev.jianwii.project.dao.ProjectMemberDAO;
 import dev.jianwii.project.dao.TaskDAO;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Set;
+import org.springframework.stereotype.Service;
 
 /** 專案成員；每個專案至少保留一位經理。 */
 @Service
@@ -26,8 +25,12 @@ public class ProjectMemberService extends BaseService<ProjectMember, ProjectMemb
     private final TaskActivityRecorder taskActivityRecorder;
     private final UserApi userApi;
 
-    public ProjectMemberService(ProjectMemberDAO projectMemberDAO, TaskDAO taskDAO,
-            ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder, UserApi userApi) {
+    public ProjectMemberService(
+            ProjectMemberDAO projectMemberDAO,
+            TaskDAO taskDAO,
+            ProjectRules projectRules,
+            TaskActivityRecorder taskActivityRecorder,
+            UserApi userApi) {
         super(projectMemberDAO);
         this.projectMemberDAO = projectMemberDAO;
         this.taskDAO = taskDAO;
@@ -39,8 +42,8 @@ public class ProjectMemberService extends BaseService<ProjectMember, ProjectMemb
     @Override
     protected void beforeCreate(ProjectMember request) {
         projectRules.requireOpen(request.getProjectId());
-        if (projectMemberDAO.existsByProjectIdAndUserIdAndDbMark(request.getProjectId(),
-                request.getUserId(), BaseEntity.VALID)) {
+        if (projectMemberDAO.existsByProjectIdAndUserIdAndDbMark(
+                request.getProjectId(), request.getUserId(), BaseEntity.VALID)) {
             throw new ConflictException("已經是此專案的成員：" + request.getUserId());
         }
         requireUser(request.getUserId());
@@ -65,9 +68,10 @@ public class ProjectMemberService extends BaseService<ProjectMember, ProjectMemb
             requireAnotherManager(entity);
         }
         List<Task> tasks = taskDAO
-                .findByProjectIdAndAssigneeIdAndDbMark(entity.getProjectId(), entity.getUserId(),
-                        BaseEntity.VALID)
-                .stream().filter(task -> !task.getStatus().isFinished()).toList();
+                .findByProjectIdAndAssigneeIdAndDbMark(entity.getProjectId(), entity.getUserId(), BaseEntity.VALID)
+                .stream()
+                .filter(task -> !task.getStatus().isFinished())
+                .toList();
         for (Task task : tasks) {
             taskActivityRecorder.changed(task.getId(), "assigneeId", task.getAssigneeId(), null);
             task.setAssigneeId(null);
@@ -85,8 +89,9 @@ public class ProjectMemberService extends BaseService<ProjectMember, ProjectMemb
     }
 
     private void requireAnotherManager(ProjectMember manager) {
-        if (projectMemberDAO.countByProjectIdAndRoleAndDbMark(manager.getProjectId(),
-                ProjectRole.MANAGER, BaseEntity.VALID) <= 1) {
+        if (projectMemberDAO.countByProjectIdAndRoleAndDbMark(
+                        manager.getProjectId(), ProjectRole.MANAGER, BaseEntity.VALID)
+                <= 1) {
             throw new BusinessException("專案至少要有一位經理");
         }
     }

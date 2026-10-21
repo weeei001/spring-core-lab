@@ -8,12 +8,11 @@ import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.basicdata.Permission;
 import dev.jianwii.entity.basicdata.Role;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 前端用的角色維護：呼叫 basic-data 的 {@link RoleApi}，結果包成 Result。 整個 Controller 都需要 role:manage
@@ -48,8 +47,7 @@ public class WebRoleController {
     }
 
     @PatchMapping("/{id}")
-    public Result<Role> update(@PathVariable Long id,
-            @Validated(ValidGroup.Update.class) @RequestBody Role role) {
+    public Result<Role> update(@PathVariable Long id, @Validated(ValidGroup.Update.class) @RequestBody Role role) {
         return Result.success(roleApi.update(id, role));
     }
 

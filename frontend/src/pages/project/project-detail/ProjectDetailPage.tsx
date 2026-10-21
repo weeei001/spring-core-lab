@@ -79,7 +79,7 @@ function ProjectDetail({ projectId }: { projectId: number }) {
     if (status === 'DONE' || status === 'CANCELLED') {
       modal.confirm({
         title: `確定將專案改為「${PROJECT_STATUS_LABELS[status]}」？`,
-        content: '結案或取消後，專案底下的任務、里程碑、成員、工時都會變成唯讀，直到重新開啟。',
+        content: '結案或取消後，專案底下的任務、成員、工時都會變成唯讀，直到重新開啟。',
         okText: '確定',
         cancelText: '取消',
         onOk: run,

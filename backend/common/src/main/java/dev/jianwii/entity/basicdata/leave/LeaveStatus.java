@@ -1,5 +1,9 @@
 package dev.jianwii.entity.basicdata.leave;
 
 public enum LeaveStatus {
-    PENDING, APPROVED, REJECTED
+    PENDING,
+    APPROVED,
+    REJECTED,
+    WITHDRAWN,
+    CANCELLED
 }

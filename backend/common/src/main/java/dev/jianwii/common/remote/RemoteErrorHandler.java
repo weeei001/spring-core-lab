@@ -1,6 +1,7 @@
 package dev.jianwii.common.remote;
 
 import dev.jianwii.common.exception.RemoteServiceException;
+import java.io.IOException;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
@@ -8,8 +9,6 @@ import org.springframework.web.client.RestClient;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
-
-import java.io.IOException;
 
 /**
  * 對方回 4xx/5xx 時，解析 {@code Result.failure} 的 errorCode、message，轉成 {@link RemoteServiceException}。

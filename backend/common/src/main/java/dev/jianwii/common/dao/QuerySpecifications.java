@@ -9,13 +9,12 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.util.ClassUtils;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.ClassUtils;
 
 /**
  * 把 {@link QueryConditions} 轉成 Spring Data 的 {@link Specification}（動態 WHERE 條件，底層是 JPA Criteria
@@ -29,20 +28,21 @@ public final class QuerySpecifications {
     public static <T> Specification<T> of(QueryConditions conditions) {
         List<QueryCondition> list = conditions.getConditions();
         return (root, query, builder) -> builder.and(list.stream()
-                .map(condition -> toPredicate(root, builder, condition)).toArray(Predicate[]::new));
+                .map(condition -> toPredicate(root, builder, condition))
+                .toArray(Predicate[]::new));
     }
 
-    private static Predicate toPredicate(Root<?> root, CriteriaBuilder builder,
-            QueryCondition condition) {
+    private static Predicate toPredicate(Root<?> root, CriteriaBuilder builder, QueryCondition condition) {
         return switch (condition) {
             case QueryCondition.Compare compare -> compare(root, builder, compare);
-            case QueryCondition.AnyOf anyOf -> builder.or(anyOf.conditions().stream()
-                    .map(child -> toPredicate(root, builder, child)).toArray(Predicate[]::new));
+            case QueryCondition.AnyOf anyOf ->
+                builder.or(anyOf.conditions().stream()
+                        .map(child -> toPredicate(root, builder, child))
+                        .toArray(Predicate[]::new));
         };
     }
 
-    private static Predicate compare(Root<?> root, CriteriaBuilder builder,
-            QueryCondition.Compare condition) {
+    private static Predicate compare(Root<?> root, CriteriaBuilder builder, QueryCondition.Compare condition) {
         String property = condition.property();
         Path<?> path = path(root, property);
         Class<?> type = ClassUtils.resolvePrimitiveIfNecessary(path.getJavaType());
@@ -54,11 +54,10 @@ public final class QuerySpecifications {
         return switch (operator) {
             case EQUAL -> builder.equal(path, typed(property, type, value));
             case NOT_EQUAL -> builder.notEqual(path, typed(property, type, value));
-            case LIKE, STARTS_WITH -> like(builder, path, property, typed(property, type, value),
-                    operator == QueryOperator.LIKE);
+            case LIKE, STARTS_WITH ->
+                like(builder, path, property, typed(property, type, value), operator == QueryOperator.LIKE);
             case GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL -> {
-                if (!Number.class.isAssignableFrom(type) && type != LocalDateTime.class
-                        && type != LocalDate.class) {
+                if (!Number.class.isAssignableFrom(type) && type != LocalDateTime.class && type != LocalDate.class) {
                     throw new IllegalStateException("範圍查詢條件必須對應數字、日期或時間：" + property);
                 }
                 yield range(builder, path, operator, typed(property, type, value));
@@ -67,18 +66,19 @@ public final class QuerySpecifications {
                 if (!(value instanceof Collection<?> values)) {
                     throw new IllegalStateException("IN 條件的值必須是 Collection：" + property);
                 }
-                yield path.in(values.stream().map(item -> typed(property, type, item)).toList());
+                yield path.in(
+                        values.stream().map(item -> typed(property, type, item)).toList());
             }
         };
     }
 
-    private static Predicate like(CriteriaBuilder builder, Path<?> path, String property,
-            Object value, boolean contains) {
+    private static Predicate like(
+            CriteriaBuilder builder, Path<?> path, String property, Object value, boolean contains) {
         if (!(value instanceof String text)) {
             throw new IllegalStateException("文字查詢條件必須對應 String：" + property);
         }
-        if (text.codePoints().allMatch(character -> Character.isWhitespace(character)
-                || Character.isSpaceChar(character))) {
+        if (text.codePoints()
+                .allMatch(character -> Character.isWhitespace(character) || Character.isSpaceChar(character))) {
             throw new BusinessException("查詢文字不可空白");
         }
         // 跳脫 LIKE 萬用字元，使用者輸入的 % 與 _ 當一般字元比對
@@ -87,8 +87,8 @@ public final class QuerySpecifications {
     }
 
     @SuppressWarnings("unchecked")
-    private static <V extends Comparable<? super V>> Predicate range(CriteriaBuilder builder,
-            Path<?> path, QueryOperator operator, Object value) {
+    private static <V extends Comparable<? super V>> Predicate range(
+            CriteriaBuilder builder, Path<?> path, QueryOperator operator, Object value) {
         Expression<V> expression = (Expression<V>) path;
         V typedValue = (V) value;
         return switch (operator) {
@@ -103,8 +103,7 @@ public final class QuerySpecifications {
     /** 值必須與 property 同型別；例外是 property 為 id／xxxId（Long）而值是字串時，轉成 Long。 */
     private static Object typed(String property, Class<?> type, Object value) {
         String name = property.substring(property.lastIndexOf('.') + 1);
-        if (type == Long.class && value instanceof String text
-                && (name.equals("id") || name.endsWith("Id"))) {
+        if (type == Long.class && value instanceof String text && (name.equals("id") || name.endsWith("Id"))) {
             return queryId(text);
         }
         if (!type.isInstance(value)) {
@@ -128,8 +127,12 @@ public final class QuerySpecifications {
 
     /** 可以當查詢條件的欄位型別。 */
     private static boolean supports(Class<?> type) {
-        return type == String.class || type == Boolean.class || Number.class.isAssignableFrom(type)
-                || type.isEnum() || type == LocalDateTime.class || type == LocalDate.class;
+        return type == String.class
+                || type == Boolean.class
+                || Number.class.isAssignableFrom(type)
+                || type.isEnum()
+                || type == LocalDateTime.class
+                || type == LocalDate.class;
     }
 
     /** 依 {@code .} 逐層取得 property，例如 {@code category.code}。 */

@@ -18,6 +18,7 @@ export const MENU: MenuGroup[] = [
     label: '專案',
     pages: [
       { path: '/dashboard', label: '儀表板', permission: PERMISSIONS.PROJECT_READ },
+      { path: '/calendar', label: '團隊行事曆', permission: PERMISSIONS.PROJECT_READ },
       { path: '/projects', label: '專案', permission: PERMISSIONS.PROJECT_READ },
       { path: '/my-tasks', label: '我的任務', permission: PERMISSIONS.PROJECT_READ },
       { path: '/timesheet', label: '工時', permission: PERMISSIONS.PROJECT_READ },

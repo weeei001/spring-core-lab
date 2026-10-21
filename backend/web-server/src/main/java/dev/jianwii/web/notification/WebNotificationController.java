@@ -12,12 +12,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * 前端用的通知 API：呼叫 notification-service 的 {@link NotificationApi}，結果包成 Result。
@@ -30,15 +29,13 @@ public class WebNotificationController {
     private final NotificationApi notificationApi;
 
     @PostMapping("/query")
-    public Result<List<Notification>> query(
-            @Valid @RequestBody NotificationQueryParameter parameter) {
+    public Result<List<Notification>> query(@Valid @RequestBody NotificationQueryParameter parameter) {
         parameter.setRecipientId(Operator.current());
         return Result.success(notificationApi.query(parameter));
     }
 
     @PostMapping("/queryPage")
-    public Result<PageResponse<Notification>> queryPage(
-            @Valid @RequestBody NotificationQueryParameter parameter) {
+    public Result<PageResponse<Notification>> queryPage(@Valid @RequestBody NotificationQueryParameter parameter) {
         parameter.setRecipientId(Operator.current());
         return Result.success(notificationApi.queryPage(parameter));
     }
@@ -72,8 +69,9 @@ public class WebNotificationController {
     }
 
     /** 公告內容；email 為 true 時同時寄信給有 Email 的收件人。 */
-    public record AnnouncementRequest(@NotEmpty @Size(max = 100) Set<@NotBlank String> recipientIds,
-            @NotBlank @Size(max = 200) String title, @Size(max = 2000) String content,
-            boolean email) {
-    }
+    public record AnnouncementRequest(
+            @NotEmpty @Size(max = 100) Set<@NotBlank String> recipientIds,
+            @NotBlank @Size(max = 200) String title,
+            @Size(max = 2000) String content,
+            boolean email) {}
 }

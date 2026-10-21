@@ -8,10 +8,9 @@ import dev.jianwii.common.web.Operator;
 import dev.jianwii.entity.notification.Notification;
 import dev.jianwii.notification.service.NotificationSender;
 import dev.jianwii.notification.service.NotificationService;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * 路徑、參數與驗證註解都寫在 {@link NotificationApi} 介面上，Spring MVC 會沿用，這裡只要轉呼叫 Service。 「我的」通知以

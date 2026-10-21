@@ -9,6 +9,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -20,11 +24,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.json.JsonMapper;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Set;
 
 /**
  * 每個請求把登入者的功能權限放進 Spring Security， {@code @PreAuthorize("hasAuthority('task:write')")} 才判斷得到。
@@ -38,20 +37,18 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
     private final JsonMapper jsonMapper;
     private final Set<String> superAdminSubjects;
 
-    public PermissionAuthorityFilter(UserApi userApi, JsonMapper jsonMapper,
-            Set<String> superAdminSubjects) {
+    public PermissionAuthorityFilter(UserApi userApi, JsonMapper jsonMapper, Set<String> superAdminSubjects) {
         this.userApi = userApi;
         this.jsonMapper = jsonMapper;
         this.superAdminSubjects = Set.copyOf(superAdminSubjects);
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-            FilterChain chain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         HttpSession session = request.getSession(false);
-        Object userId =
-                session == null ? null : session.getAttribute(OperatorHeaderFilter.SESSION_USER_ID);
+        Object userId = session == null ? null : session.getAttribute(OperatorHeaderFilter.SESSION_USER_ID);
         if (authentication instanceof OAuth2AuthenticationToken token) {
             if (userId == null) {
                 unauthorized(session, response);
@@ -59,16 +56,15 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
             }
             Set<String> permissions;
             try {
-                UserAuthorization authorization =
-                        userApi.authorization(Long.valueOf(userId.toString()));
+                UserAuthorization authorization = userApi.authorization(Long.valueOf(userId.toString()));
                 if (!authorization.active()) {
                     unauthorized(session, response);
                     return;
                 }
                 String subject = token.getPrincipal().getAttribute("sub");
-                permissions =
-                        subject != null && superAdminSubjects.contains(subject) ? Permission.codes()
-                                : Set.copyOf(authorization.permissions());
+                permissions = subject != null && superAdminSubjects.contains(subject)
+                        ? Permission.codes()
+                        : Set.copyOf(authorization.permissions());
             } catch (RuntimeException e) {
                 // Filter 不會經過 ControllerAdvice；無法確認權限時停止請求，不沿用舊授權。
                 log.warn("載入權限失敗，userId：{}", userId, e);
@@ -76,22 +72,21 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
                 response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-                jsonMapper.writeValue(response.getOutputStream(),
-                        Result.failure("權限查詢失敗", "暫時無法確認權限，請稍後再試"));
+                jsonMapper.writeValue(response.getOutputStream(), Result.failure("權限查詢失敗", "暫時無法確認權限，請稍後再試"));
                 return;
             }
             List<GrantedAuthority> authorities = permissions.stream()
-                    .<GrantedAuthority>map(SimpleGrantedAuthority::new).toList();
+                    .<GrantedAuthority>map(SimpleGrantedAuthority::new)
+                    .toList();
             SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(new OAuth2AuthenticationToken(token.getPrincipal(),
-                    authorities, token.getAuthorizedClientRegistrationId()));
+            context.setAuthentication(new OAuth2AuthenticationToken(
+                    token.getPrincipal(), authorities, token.getAuthorizedClientRegistrationId()));
             SecurityContextHolder.setContext(context);
         }
         chain.doFilter(request, response);
     }
 
-    private void unauthorized(HttpSession session, HttpServletResponse response)
-            throws IOException {
+    private void unauthorized(HttpSession session, HttpServletResponse response) throws IOException {
         if (session != null) {
             session.invalidate();
         }

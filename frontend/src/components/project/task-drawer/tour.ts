@@ -17,7 +17,7 @@ export const TASK_DRAWER_TOUR: GuideStep[] = [
   {
     target: 'drawer-more',
     title: '需要時再補設定',
-    description: '展開「更多設定」可調整分類、優先度、Sprint、預估工時與前置任務。日常更新進度只要使用上方欄位。',
+    description: '展開「更多設定」可調整分類、優先度、預估工時與前置任務。日常更新進度只要使用上方欄位。',
     placement: 'left',
   },
   {

@@ -17,10 +17,11 @@ final class ProjectMemberScope {
             }
             Subquery<Long> members = query.subquery(Long.class);
             Root<ProjectMember> member = members.from(ProjectMember.class);
-            members.select(member.get("id")).where(
-                    builder.equal(member.get("projectId"), root.get("projectId")),
-                    builder.equal(member.get("userId"), userId),
-                    builder.equal(member.get("dbMark"), BaseEntity.VALID));
+            members.select(member.get("id"))
+                    .where(
+                            builder.equal(member.get("projectId"), root.get("projectId")),
+                            builder.equal(member.get("userId"), userId),
+                            builder.equal(member.get("dbMark"), BaseEntity.VALID));
             return builder.exists(members);
         };
     }

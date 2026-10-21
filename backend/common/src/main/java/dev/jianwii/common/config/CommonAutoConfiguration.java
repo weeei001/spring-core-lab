@@ -5,6 +5,7 @@ import dev.jianwii.common.remote.RemoteErrorHandler;
 import dev.jianwii.common.web.ExceptionHandleController;
 import dev.jianwii.common.web.Operator;
 import jakarta.persistence.EntityManagerFactory;
+import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -17,8 +18,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.http.HttpStatusCode;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.util.Optional;
-
 /**
  * 服務只要依賴 common 就會自動套用：全域例外處理、JPA Auditing（自動填 BaseEntity 的建立／修改者與時間）、 呼叫其他服務時的操作者傳遞與錯誤轉換。 跟 Spring
  * Boot 各 starter 的自動設定同一套機制：類別名稱列在
@@ -26,8 +25,7 @@ import java.util.Optional;
  * 因此服務的 @SpringBootApplication 不必掃描 dev.jianwii.common。
  */
 // 排在 JPA 自動設定之後，下面的 @ConditionalOnBean(EntityManagerFactory) 才判斷得準
-@AutoConfiguration(
-        afterName = "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration")
+@AutoConfiguration(afterName = "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration")
 // 註冊全域例外處理
 @Import(ExceptionHandleController.class)
 public class CommonAutoConfiguration {

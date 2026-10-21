@@ -2,14 +2,13 @@ package dev.jianwii.common.query;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.util.ReflectionUtils;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * 查詢參數基底（查詢 API 的 request body）：分頁、排序，以及把子類別的欄位自動轉成查詢條件， 子類別只要宣告欄位，不必手寫「有值才加條件」的判斷。
@@ -31,10 +30,12 @@ public abstract class QueryParameter<T> {
     @QueryIgnore
     @Min(1)
     private int page = 1;
+
     @QueryIgnore
     @Min(1)
     @Max(100)
     private int size = 20;
+
     @QueryIgnore
     @NotNull
     @Size(max = 100)
@@ -47,7 +48,8 @@ public abstract class QueryParameter<T> {
         for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
             for (Field field : type.getDeclaredFields()) {
                 if (Modifier.isStatic(field.getModifiers())
-                        || Modifier.isTransient(field.getModifiers()) || field.isSynthetic()
+                        || Modifier.isTransient(field.getModifiers())
+                        || field.isSynthetic()
                         || field.isAnnotationPresent(QueryIgnore.class)) {
                     continue;
                 }
@@ -59,10 +61,8 @@ public abstract class QueryParameter<T> {
                 }
                 QueryField queryField = field.getAnnotation(QueryField.class);
                 String property =
-                        queryField == null || queryField.property().isEmpty() ? field.getName()
-                                : queryField.property();
-                QueryOperator operator =
-                        queryField == null ? QueryOperator.EQUAL : queryField.operator();
+                        queryField == null || queryField.property().isEmpty() ? field.getName() : queryField.property();
+                QueryOperator operator = queryField == null ? QueryOperator.EQUAL : queryField.operator();
                 conditions.add(property, operator, ReflectionUtils.getField(field, this));
             }
         }
@@ -76,6 +76,7 @@ public abstract class QueryParameter<T> {
 
         @NotBlank
         private String field;
+
         @NotNull
         @Pattern(regexp = "asc|desc")
         private String direction = "asc";

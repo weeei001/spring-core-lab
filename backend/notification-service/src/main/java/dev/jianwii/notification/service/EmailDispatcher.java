@@ -3,6 +3,8 @@ package dev.jianwii.notification.service;
 import dev.jianwii.entity.notification.EmailMessage;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,9 +17,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  * 寄信。兩個入口都走 {@link #dispatch}：
@@ -36,7 +35,9 @@ public class EmailDispatcher {
     private final EmailMessageService emailMessageService;
     private final String from;
 
-    public EmailDispatcher(JavaMailSender mailSender, EmailMessageService emailMessageService,
+    public EmailDispatcher(
+            JavaMailSender mailSender,
+            EmailMessageService emailMessageService,
             @Value("${app.mail.from}") String from) {
         this.mailSender = mailSender;
         this.emailMessageService = emailMessageService;
@@ -50,8 +51,7 @@ public class EmailDispatcher {
         dispatchAll(event.ids());
     }
 
-    @Scheduled(fixedDelayString = "${app.mail.retry-interval}",
-            initialDelayString = "${app.mail.retry-interval}")
+    @Scheduled(fixedDelayString = "${app.mail.retry-interval}", initialDelayString = "${app.mail.retry-interval}")
     public void retry() {
         dispatchAll(emailMessageService.findRetryableIds());
     }
@@ -82,8 +82,7 @@ public class EmailDispatcher {
             mailSender.send(toMimeMessage(message));
             emailMessageService.markSent(id);
         } catch (MailException | MessagingException e) {
-            log.warn("寄信失敗（第 {} 次），id：{}，收件人：{}", message.getAttempts(), id, message.getRecipient(),
-                    e);
+            log.warn("寄信失敗（第 {} 次），id：{}，收件人：{}", message.getAttempts(), id, message.getRecipient(), e);
             emailMessageService.markFailed(id, e.getMessage());
         }
     }

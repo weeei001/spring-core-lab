@@ -6,32 +6,33 @@ import dev.jianwii.common.validation.ValidGroup;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Set;
-
 /**
- * 任務。parentId 有值的是子任務；子任務只有一層，子任務底下不能再有子任務。 類型、標籤、狀態、指派人、優先度、日期、里程碑的變更由 TaskService
+ * 任務。parentId 有值的是子任務；子任務只有一層，子任務底下不能再有子任務。 類型、標籤、狀態、指派人、優先度與日期的變更由 TaskService
  * 自動寫進活動紀錄（{@link TaskActivity}）。 狀態變更與新留言會通知指派人與關注者（{@link #watcherIds}）。
  *
  * <p>
  * 更新是部分更新（null 表示不改），要清空選填欄位時把欄位名稱放進 {@link #clearFields}。
  */
 @Entity
-@Table(name = "task",
-        indexes = {@Index(columnList = "project_id, status"), @Index(columnList = "assignee_id"),
-                @Index(columnList = "parent_id"), @Index(columnList = "sprint_id")})
+@Table(
+        name = "task",
+        indexes = {
+            @Index(columnList = "project_id, status"),
+            @Index(columnList = "assignee_id"),
+            @Index(columnList = "parent_id")
+        })
 @Getter
 @Setter
 public class Task extends BaseEntity {
@@ -44,22 +45,6 @@ public class Task extends BaseEntity {
     @NotNull(groups = ValidGroup.Create.class)
     @Column(name = "project_id", nullable = false, updatable = false)
     private Long projectId;
-
-    /** 所屬里程碑，必須是同一專案的里程碑；選填。 */
-    @Column(name = "milestone_id")
-    private Long milestoneId;
-
-    /**
-     * 排入的 Sprint，必須是同一專案、未結束的 Sprint；只有主任務能排入，子任務跟著父任務。 選填，null 即在 Backlog。
-     */
-    @Column(name = "sprint_id")
-    private Long sprintId;
-
-    /** 故事點數（相對工作量，例如 1、2、3、5、8），燃盡圖以此計算；選填。 */
-    @Min(0)
-    @Max(100)
-    @Column(name = "story_points")
-    private Integer storyPoints;
 
     /** 父任務；有值即為子任務。建立後不可修改。 */
     @Column(name = "parent_id", updatable = false)
@@ -129,7 +114,9 @@ public class Task extends BaseEntity {
      */
     @Size(max = 20)
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "task_label", joinColumns = @JoinColumn(name = "task_id"),
+    @CollectionTable(
+            name = "task_label",
+            joinColumns = @JoinColumn(name = "task_id"),
             indexes = @Index(columnList = "label_id"))
     @Column(name = "label_id", nullable = false)
     @BatchSize(size = 100)
@@ -140,14 +127,16 @@ public class Task extends BaseEntity {
      * TaskApi.watch／unwatch。
      */
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "task_watcher", joinColumns = @JoinColumn(name = "task_id"),
+    @CollectionTable(
+            name = "task_watcher",
+            joinColumns = @JoinColumn(name = "task_id"),
             indexes = @Index(columnList = "user_id"))
     @Column(name = "user_id", nullable = false, length = 100)
     @BatchSize(size = 100)
     private Set<String> watcherIds;
 
     /**
-     * 只在更新時使用：要清空的選填欄位，可用 milestoneId、sprintId、storyPoints、assigneeId、startDate、dueDate、
+     * 只在更新時使用：要清空的選填欄位，可用 assigneeId、startDate、dueDate、
      * estimateHours、description。 不存資料庫，也不會回傳。
      */
     @Transient

@@ -13,11 +13,10 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.LocalDate;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 任務查詢條件，寫法說明見 {@link QueryParameter}。 沒有 project:admin 的人：給 projectId 時必須是該專案成員；只給 ids
@@ -37,10 +36,6 @@ public class TaskQueryParameter extends QueryParameter<Task> {
     @QueryIgnore
     @Size(max = 100)
     private String memberUserId;
-
-    private Long milestoneId;
-
-    private Long sprintId;
 
     /** 查某任務的子任務。 */
     private Long parentId;

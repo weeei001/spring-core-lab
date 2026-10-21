@@ -6,11 +6,10 @@ import dev.jianwii.api.basicdata.UserQueryParameter;
 import dev.jianwii.basicdata.service.UserService;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.basicdata.User;
-import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 路徑、參數與驗證註解都寫在 {@link UserApi} 介面上，Spring MVC 會沿用，這裡只要轉呼叫 Service。

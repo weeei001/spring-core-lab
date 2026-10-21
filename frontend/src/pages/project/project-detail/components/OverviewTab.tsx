@@ -3,9 +3,9 @@ import type { ProjectMember } from '@/api/project/member.types';
 import type { Project } from '@/api/project/project.types';
 import { DueDate } from '@/components/project/DueDate';
 import { TaskStatusTag } from '@/components/project/Tags';
-import { useProjectMilestones, useProjectTasks } from '@/components/project/hooks';
+import { useProjectTasks } from '@/components/project/hooks';
 import { PROJECT_ROLE_LABELS, TASK_STATUSES, TASK_STATUS_COLORS, TASK_STATUS_LABELS } from '@/components/project/labels';
-import { dueText, hasText, isOverdue, isTaskFinished, percent, todayText } from '@/components/project/project-utils';
+import { hasText, isOverdue, isTaskFinished, percent } from '@/components/project/project-utils';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import type { UserDirectory } from '@/components/user/useUserDirectory';
 import { useAuth } from '@/core/auth/useAuth';
@@ -19,11 +19,10 @@ interface OverviewTabProps {
   onOpen: (taskId: number) => void;
 }
 
-/** 專案概覽：數字卡片、任務狀態分布、即將到期的里程碑、我的待辦、成員 */
+/** 專案概覽：數字卡片、任務狀態分布、我的待辦、成員 */
 export function OverviewTab({ project, members, directory, onOpen }: OverviewTabProps) {
   const { user } = useAuth();
   const tasks = useProjectTasks(project.id);
-  const milestones = useProjectMilestones(project.id);
 
   // 只算主任務，與後端的專案進度一致
   const mainTasks = (tasks.data ?? []).filter((task) => task.parentId === null);
@@ -31,8 +30,6 @@ export function OverviewTab({ project, members, directory, onOpen }: OverviewTab
   const done = counted.filter((task) => task.status === 'DONE').length;
   const overdue = counted.filter(isOverdue).length;
   const progress = percent(done, counted.length);
-  const today = todayText();
-  const upcoming = (milestones.data ?? []).filter((milestone) => !milestone.achieved).slice(0, 4);
   const mine = (tasks.data ?? [])
     .filter((task) => task.assigneeId === String(user.id) && !isTaskFinished(task.status))
     .sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'))
@@ -44,7 +41,6 @@ export function OverviewTab({ project, members, directory, onOpen }: OverviewTab
         <StatTile title="主任務" value={counted.length} />
         <StatTile title="已完成" value={done} />
         <StatTile title="逾期" value={overdue} />
-        <StatTile title="里程碑" value={(milestones.data ?? []).length} />
       </Flex>
 
       <Row gutter={[16, 16]}>
@@ -100,27 +96,6 @@ export function OverviewTab({ project, members, directory, onOpen }: OverviewTab
         </Col>
         <Col xs={24} lg={8}>
           <Flex vertical gap={16}>
-            <Card size="small" title="接下來的里程碑">
-              {upcoming.length === 0 ? (
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="沒有未達成的里程碑" />
-              ) : (
-                <Flex vertical gap={12}>
-                  {upcoming.map((milestone) => (
-                    <Flex key={milestone.id} vertical gap={4}>
-                      <Flex justify="space-between" gap={8}>
-                        <Typography.Text strong ellipsis>
-                          {milestone.name}
-                        </Typography.Text>
-                        <Typography.Text type={milestone.dueDate < today ? 'danger' : 'secondary'} style={{ whiteSpace: 'nowrap' }}>
-                          {dueText(milestone.dueDate)}
-                        </Typography.Text>
-                      </Flex>
-                      <Progress percent={percent(milestone.doneTaskCount, milestone.taskCount)} size="small" />
-                    </Flex>
-                  ))}
-                </Flex>
-              )}
-            </Card>
             <Card size="small" title={`成員（${String(members.length)}）`}>
               <Flex vertical gap={10}>
                 <Avatar.Group max={{ count: 8 }}>
@@ -136,7 +111,7 @@ export function OverviewTab({ project, members, directory, onOpen }: OverviewTab
                     .join('、') || '—'}
                 </Typography.Text>
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  {PROJECT_ROLE_LABELS.MANAGER}可維護專案資料、成員與里程碑
+                  {PROJECT_ROLE_LABELS.MANAGER}可維護專案資料與成員
                 </Typography.Text>
               </Flex>
             </Card>

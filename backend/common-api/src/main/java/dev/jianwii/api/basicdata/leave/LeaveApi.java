@@ -3,6 +3,7 @@ package dev.jianwii.api.basicdata.leave;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.basicdata.leave.LeaveRequest;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.GetExchange;
@@ -28,4 +29,13 @@ public interface LeaveApi {
 
     @PostExchange("/{id}/review")
     LeaveRequest review(@PathVariable("id") Long id, @Valid @RequestBody LeaveReview review);
+
+    @PostExchange("/{id}/withdraw")
+    LeaveRequest withdraw(@PathVariable("id") Long id, @Valid @RequestBody LeaveCancellation cancellation);
+
+    @PostExchange("/{id}/cancel")
+    LeaveRequest cancel(@PathVariable("id") Long id, @Valid @RequestBody LeaveCancellation cancellation);
+
+    @PostExchange("/calendar")
+    List<LeaveAbsence> calendar(@Valid @RequestBody LeaveCalendarQuery query);
 }

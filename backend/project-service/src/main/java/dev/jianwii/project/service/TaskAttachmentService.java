@@ -13,6 +13,12 @@ import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskAttachment;
 import dev.jianwii.project.dao.TaskAttachmentDAO;
 import dev.jianwii.project.dao.TaskDAO;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,26 +32,17 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
-
 /**
  * 任務附件的新檔案透過 UploadFileApi 交給 basic-data；專案規則與任務關聯留在這裡。 project.attachment.dir
  * 只供舊附件讀取。只有上傳者能刪除附件關聯。
  */
 @Service
-public class TaskAttachmentService
-        extends BaseService<TaskAttachment, TaskAttachmentQueryParameter> {
+public class TaskAttachmentService extends BaseService<TaskAttachment, TaskAttachmentQueryParameter> {
     private static final Logger log = LoggerFactory.getLogger(TaskAttachmentService.class);
     /**
      * 可以直接在瀏覽器顯示的類型；其他（含 SVG、HTML）一律下載，並固定為 octet-stream， 避免上傳的檔案在同網域執行 script。
      */
-    private static final Set<String> INLINE_TYPES =
-            Set.of("image/png", "image/jpeg", "image/gif", "image/webp");
+    private static final Set<String> INLINE_TYPES = Set.of("image/png", "image/jpeg", "image/gif", "image/webp");
 
     private final TaskAttachmentDAO taskAttachmentDAO;
     private final TaskDAO taskDAO;
@@ -53,8 +50,11 @@ public class TaskAttachmentService
     private final UploadFileApi uploadFileApi;
     private final Path root;
 
-    public TaskAttachmentService(TaskAttachmentDAO taskAttachmentDAO, TaskDAO taskDAO,
-            ProjectRules projectRules, UploadFileApi uploadFileApi,
+    public TaskAttachmentService(
+            TaskAttachmentDAO taskAttachmentDAO,
+            TaskDAO taskDAO,
+            ProjectRules projectRules,
+            UploadFileApi uploadFileApi,
             @Value("${project.attachment.dir}") String dir) {
         super(taskAttachmentDAO);
         this.taskAttachmentDAO = taskAttachmentDAO;
@@ -66,9 +66,9 @@ public class TaskAttachmentService
 
     /** 先檢查業務規則，再呼叫共用上傳，任務只保存檔案 id 與列表顯示資訊。 */
     public TaskAttachment upload(Long taskId, MultipartFile file) {
-        Task task =
-                taskDAO.findById(taskId).filter(entity -> entity.getDbMark() == BaseEntity.VALID)
-                        .orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
+        Task task = taskDAO.findById(taskId)
+                .filter(entity -> entity.getDbMark() == BaseEntity.VALID)
+                .orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
         projectRules.requireOpen(task.getProjectId());
         UploadFile uploaded = uploadFileApi.uploadManaged(file);
         // basic-data 已獨立提交；本地關聯存檔失敗時，盡可能停用尚未被引用的共用檔案。
@@ -114,13 +114,16 @@ public class TaskAttachmentService
             throw new UncheckedIOException("附件讀取失敗：" + path, e);
         }
         boolean inline = INLINE_TYPES.contains(attachment.getContentType());
-        ContentDisposition disposition =
-                (inline ? ContentDisposition.inline() : ContentDisposition.attachment())
-                        .filename(attachment.getFileName(), StandardCharsets.UTF_8).build();
+        ContentDisposition disposition = (inline ? ContentDisposition.inline() : ContentDisposition.attachment())
+                .filename(attachment.getFileName(), StandardCharsets.UTF_8)
+                .build();
         return ResponseEntity.ok()
-                .contentType(inline ? MediaType.parseMediaType(attachment.getContentType())
-                        : MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString()).body(bytes);
+                .contentType(
+                        inline
+                                ? MediaType.parseMediaType(attachment.getContentType())
+                                : MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .body(bytes);
     }
 
     @Override

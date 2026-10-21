@@ -5,10 +5,9 @@ import dev.jianwii.api.basicdata.SerialNumberQueryParameter;
 import dev.jianwii.basicdata.service.SerialNumberService;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.basicdata.SerialNumber;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * 路徑、參數與驗證註解都寫在 {@link SerialNumberApi} 介面上，Spring MVC 會沿用，這裡只要轉呼叫 Service。

@@ -6,10 +6,9 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Set;
 
 /** 發送通知：每位收件人各建一筆站內通知；email 為 true 時另寄一封信給有 Email 的收件人。 */
 @Getter
@@ -37,4 +36,9 @@ public class NotificationSendRequest {
     private String link;
 
     private boolean email;
+
+    /** 同一收件人與此鍵只建立一筆通知；排程重試時避免重複通知及寄信。 */
+    @Size(max = 100)
+    @Pattern(regexp = "[A-Za-z0-9:._-]+")
+    private String dedupKey;
 }

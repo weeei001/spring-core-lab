@@ -1,7 +1,7 @@
 import type { BaseEntity } from '@/core/http/types';
 
 export type LeaveType = 'PERSONAL' | 'SICK' | 'ANNUAL' | 'OTHER';
-export type LeaveStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type LeaveStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN' | 'CANCELLED';
 export type LeaveScope = 'mine' | 'review';
 
 export interface LeaveRequest extends BaseEntity {
@@ -14,6 +14,8 @@ export interface LeaveRequest extends BaseEntity {
   status: LeaveStatus;
   reviewComment: string | null;
   reviewedAt: string | null;
+  cancelReason: string | null;
+  cancelledAt: string | null;
   version: number;
 }
 
@@ -26,10 +28,21 @@ export interface LeaveSubmission {
 }
 
 export interface LeaveReview {
-  decision: Exclude<LeaveStatus, 'PENDING'>;
+  decision: 'APPROVED' | 'REJECTED';
   comment?: string;
 }
 
 export interface LeaveQuery {
   status?: LeaveStatus;
+}
+
+export interface LeaveCancellation {
+  reason: string;
+}
+
+/** 團隊行事曆只取得休假人員與日期。 */
+export interface LeaveAbsence {
+  applicantId: string;
+  startDate: string;
+  endDate: string;
 }

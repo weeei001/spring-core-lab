@@ -9,6 +9,10 @@ server:
         http-only: true
         same-site: lax
 spring:
+  datasource:
+    url: ${WEB_SESSION_DB_URL}
+    username: ${WEB_SESSION_DB_USERNAME}
+    password: ${WEB_SESSION_DB_PASSWORD}
   security:
     oauth2:
       client:

@@ -10,15 +10,14 @@ import dev.jianwii.entity.project.Task;
 import dev.jianwii.project.dao.ProjectLabelDAO;
 import dev.jianwii.project.dao.TaskCount;
 import dev.jianwii.project.dao.TaskDAO;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /** 專案標籤 CRUD；同專案名稱不可重複，刪除時從任務上移除。 */
 @Service
@@ -27,8 +26,7 @@ public class ProjectLabelService extends BaseService<ProjectLabel, ProjectLabelQ
     private final TaskDAO taskDAO;
     private final ProjectRules projectRules;
 
-    public ProjectLabelService(ProjectLabelDAO projectLabelDAO, TaskDAO taskDAO,
-            ProjectRules projectRules) {
+    public ProjectLabelService(ProjectLabelDAO projectLabelDAO, TaskDAO taskDAO, ProjectRules projectRules) {
         super(projectLabelDAO);
         this.projectLabelDAO = projectLabelDAO;
         this.taskDAO = taskDAO;
@@ -42,9 +40,10 @@ public class ProjectLabelService extends BaseService<ProjectLabel, ProjectLabelQ
         PageResponse<ProjectLabel> page = super.queryPage(parameter);
         List<ProjectLabel> labels = page.getItems();
         if (!labels.isEmpty()) {
-            Map<Long, Long> counts =
-                    taskDAO.labelCounts(labels.stream().map(ProjectLabel::getId).toList()).stream()
-                            .collect(Collectors.toMap(TaskCount::getGroupId, TaskCount::getTotal));
+            Map<Long, Long> counts = taskDAO
+                    .labelCounts(labels.stream().map(ProjectLabel::getId).toList())
+                    .stream()
+                    .collect(Collectors.toMap(TaskCount::getGroupId, TaskCount::getTotal));
             for (ProjectLabel label : labels) {
                 label.setTaskCount(counts.getOrDefault(label.getId(), 0L));
             }
@@ -77,8 +76,7 @@ public class ProjectLabelService extends BaseService<ProjectLabel, ProjectLabelQ
     @Override
     protected void beforeDelete(ProjectLabel entity) {
         projectRules.requireOpen(entity.getProjectId());
-        List<Task> tagged =
-                taskDAO.findByLabelIdsContainingAndDbMark(entity.getId(), BaseEntity.VALID);
+        List<Task> tagged = taskDAO.findByLabelIdsContainingAndDbMark(entity.getId(), BaseEntity.VALID);
         for (Task task : tagged) {
             task.getLabelIds().remove(entity.getId());
             // 只改中間表時主表不會 UPDATE，強制更新修改者與時間
@@ -93,9 +91,9 @@ public class ProjectLabelService extends BaseService<ProjectLabel, ProjectLabelQ
     }
 
     private void requireUniqueName(Long projectId, Long selfId, String name) {
-        boolean duplicated = projectLabelDAO.findByProjectIdAndDbMark(projectId, BaseEntity.VALID)
-                .stream().anyMatch(label -> !label.getId().equals(selfId)
-                        && label.getName().equalsIgnoreCase(name));
+        boolean duplicated = projectLabelDAO.findByProjectIdAndDbMark(projectId, BaseEntity.VALID).stream()
+                .anyMatch(label ->
+                        !label.getId().equals(selfId) && label.getName().equalsIgnoreCase(name));
         if (duplicated) {
             throw new ConflictException("此專案已有同名標籤：" + name);
         }

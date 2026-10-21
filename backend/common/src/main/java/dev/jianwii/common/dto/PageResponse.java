@@ -4,16 +4,15 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.query.QueryParameter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 
 /**
  * 分頁查詢結果：items 為這一頁的資料，page 從 1 起算，total 為符合條件的總筆數。
@@ -41,8 +40,11 @@ public class PageResponse<T> {
 
     /** 呼叫端透過 XxxApi 收到 JSON 時還原用。 */
     @JsonCreator
-    public PageResponse(@JsonProperty("items") List<T> items, @JsonProperty("page") int page,
-            @JsonProperty("size") int size, @JsonProperty("total") long total) {
+    public PageResponse(
+            @JsonProperty("items") List<T> items,
+            @JsonProperty("page") int page,
+            @JsonProperty("size") int size,
+            @JsonProperty("total") long total) {
         this.items = items;
         this.page = page;
         this.size = size;
@@ -55,24 +57,23 @@ public class PageResponse<T> {
      */
     public static Pageable pageable(QueryParameter<?> parameter, Set<String> allowed) {
         // 最後一個條件：跳過的筆數（offset）不可超過 int 範圍
-        if (parameter.getPage() < 1 || parameter.getSize() < 1 || parameter.getSize() > 100
+        if (parameter.getPage() < 1
+                || parameter.getSize() < 1
+                || parameter.getSize() > 100
                 || (long) (parameter.getPage() - 1) * parameter.getSize() > Integer.MAX_VALUE) {
             throw new BusinessException("page 從 1 起算，size 介於 1 至 100");
         }
         List<Sort.Order> orders = new ArrayList<>();
         for (QueryParameter.Order order : parameter.getSort()) {
-            if (!allowed.contains(order.getField())
-                    || !Set.of("asc", "desc").contains(order.getDirection())) {
+            if (!allowed.contains(order.getField()) || !Set.of("asc", "desc").contains(order.getDirection())) {
                 throw new BusinessException("不支援的排序欄位或方向");
             }
             orders.add(new Sort.Order(
-                    order.getDirection().equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC,
-                    order.getField()));
+                    order.getDirection().equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, order.getField()));
         }
         if (orders.stream().noneMatch(order -> order.getProperty().equals("id"))) {
             orders.add(Sort.Order.asc("id"));
         }
         return PageRequest.of(parameter.getPage() - 1, parameter.getSize(), Sort.by(orders));
     }
-
 }

@@ -1,14 +1,10 @@
 package dev.jianwii.web.project;
 
-import dev.jianwii.api.project.MilestoneApi;
-import dev.jianwii.api.project.MilestoneQueryParameter;
 import dev.jianwii.api.project.ProjectLabelApi;
 import dev.jianwii.api.project.ProjectLabelQueryParameter;
 import dev.jianwii.api.project.ProjectMemberApi;
 import dev.jianwii.api.project.ProjectMemberQueryParameter;
 import dev.jianwii.api.project.ProjectQueryParameter;
-import dev.jianwii.api.project.SprintApi;
-import dev.jianwii.api.project.SprintQueryParameter;
 import dev.jianwii.api.project.TaskApi;
 import dev.jianwii.api.project.TaskAttachmentApi;
 import dev.jianwii.api.project.TaskAttachmentQueryParameter;
@@ -28,17 +24,16 @@ import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskAttachment;
 import dev.jianwii.entity.project.TaskComment;
 import dev.jianwii.entity.project.WorkLog;
-import lombok.AllArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 /**
  * 專案的資料範圍：一般使用者只能存取自己是成員的專案，有 project:admin 的人不受限制。 功能權限由 Controller 的 {@code @PreAuthorize}
@@ -53,9 +48,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ProjectAccessGuard {
     private final ProjectMemberApi projectMemberApi;
-    private final MilestoneApi milestoneApi;
     private final ProjectLabelApi projectLabelApi;
-    private final SprintApi sprintApi;
     private final TaskApi taskApi;
     private final TaskCommentApi taskCommentApi;
     private final TaskAttachmentApi taskAttachmentApi;
@@ -83,17 +76,7 @@ public class ProjectAccessGuard {
     }
 
     /** 必須指定專案，且都是自己參與的專案。 */
-    public void scopeMilestones(MilestoneQueryParameter parameter) {
-        requireMemberOfProjects(parameter.getProjectId(), parameter.getProjectIds());
-    }
-
-    /** 必須指定專案，且都是自己參與的專案。 */
     public void scopeLabels(ProjectLabelQueryParameter parameter) {
-        requireMemberOfProjects(parameter.getProjectId(), parameter.getProjectIds());
-    }
-
-    /** 必須指定專案，且都是自己參與的專案。 */
-    public void scopeSprints(SprintQueryParameter parameter) {
         requireMemberOfProjects(parameter.getProjectId(), parameter.getProjectIds());
     }
 
@@ -111,8 +94,8 @@ public class ProjectAccessGuard {
             TaskQueryParameter byIds = new TaskQueryParameter();
             byIds.setIds(parameter.getIds());
             byIds.setSize(100);
-            requireMemberOfAll(taskApi.query(byIds).stream().map(Task::getProjectId)
-                    .collect(Collectors.toSet()));
+            requireMemberOfAll(
+                    taskApi.query(byIds).stream().map(Task::getProjectId).collect(Collectors.toSet()));
         } else {
             parameter.setAssigneeId(currentUserId());
         }
@@ -175,18 +158,6 @@ public class ProjectAccessGuard {
         ProjectMemberQueryParameter parameter = new ProjectMemberQueryParameter();
         parameter.setIds(List.of(memberId));
         return first(projectMemberApi.query(parameter), memberId).getProjectId();
-    }
-
-    public Long projectOfMilestone(Long milestoneId) {
-        MilestoneQueryParameter parameter = new MilestoneQueryParameter();
-        parameter.setIds(List.of(milestoneId));
-        return first(milestoneApi.query(parameter), milestoneId).getProjectId();
-    }
-
-    public Long projectOfSprint(Long sprintId) {
-        SprintQueryParameter parameter = new SprintQueryParameter();
-        parameter.setIds(List.of(sprintId));
-        return first(sprintApi.query(parameter), sprintId).getProjectId();
     }
 
     public Long projectOfLabel(Long labelId) {
@@ -253,8 +224,9 @@ public class ProjectAccessGuard {
         mine.setUserId(currentUserId());
         mine.setProjectIds(List.copyOf(projectIds));
         mine.setSize(100);
-        Set<Long> joined = new HashSet<>(
-                projectMemberApi.query(mine).stream().map(ProjectMember::getProjectId).toList());
+        Set<Long> joined = new HashSet<>(projectMemberApi.query(mine).stream()
+                .map(ProjectMember::getProjectId)
+                .toList());
         if (!joined.containsAll(projectIds)) {
             throw new ForbiddenException("不是此專案的成員");
         }
@@ -280,7 +252,8 @@ public class ProjectAccessGuard {
     private static boolean isAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null
-                && authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                && authentication.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
                         .anyMatch(Permission.PROJECT_ADMIN.getCode()::equals);
     }
 }

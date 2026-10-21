@@ -11,10 +11,14 @@ export const LEAVE_STATUS_LABELS: Record<LeaveStatus, string> = {
   PENDING: '待審核',
   APPROVED: '已核准',
   REJECTED: '已退回',
+  WITHDRAWN: '已撤回',
+  CANCELLED: '已銷假',
 };
 
 export const LEAVE_STATUS_COLORS: Record<LeaveStatus, string> = {
   PENDING: 'processing',
   APPROVED: 'success',
   REJECTED: 'error',
+  WITHDRAWN: 'default',
+  CANCELLED: 'warning',
 };

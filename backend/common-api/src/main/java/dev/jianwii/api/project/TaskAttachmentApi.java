@@ -2,6 +2,7 @@ package dev.jianwii.api.project;
 
 import dev.jianwii.entity.project.TaskAttachment;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,8 +14,6 @@ import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
-
-import java.util.List;
 
 /**
  * project-service 的任務附件 API，用法同 {@link ProjectApi}。 上傳用 multipart，單檔上限
@@ -29,8 +28,7 @@ public interface TaskAttachmentApi {
 
     /** 上傳附件到任務；檔案由 basic-data 管理，專案必須未結案。 */
     @PostExchange(value = "/upload", contentType = MediaType.MULTIPART_FORM_DATA_VALUE)
-    TaskAttachment upload(@RequestParam("taskId") Long taskId,
-            @RequestPart("file") MultipartFile file);
+    TaskAttachment upload(@RequestParam("taskId") Long taskId, @RequestPart("file") MultipartFile file);
 
     /** 檔案內容；Content-Type、Content-Disposition 已依檔案類型設定好，呼叫端照轉即可。 */
     @GetExchange("/{id}/content")

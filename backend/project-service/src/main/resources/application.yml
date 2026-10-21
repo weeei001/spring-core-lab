@@ -1,6 +1,14 @@
 server:
   port: 8082
 
+# 09:00 開始寄每日摘要；每 15 分鐘補送，通知服務以收件人與日期去重。
+app:
+  task-digest:
+    enabled: ${APP_TASK_DIGEST_ENABLED:true}
+    zone: Asia/Taipei
+    cron: '0 */15 9-23 * * *'
+    email: ${APP_TASK_DIGEST_EMAIL:false}
+
 spring:
   application:
     name: project-service

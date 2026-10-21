@@ -2,17 +2,16 @@ package dev.jianwii.entity.basicdata.leave;
 
 import dev.jianwii.common.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
-/** 送出後不修改內容，只審核一次；建立與審核資訊即為完整操作紀錄。 */
+/** 原始申請與審核資訊保留；撤回或銷假另記原因與時間。 */
 @Entity
-@Table(name = "leave_request",
-        indexes = {@Index(columnList = "applicant_id, status"),
-                @Index(columnList = "approver_id, status")})
+@Table(
+        name = "leave_request",
+        indexes = {@Index(columnList = "applicant_id, status"), @Index(columnList = "approver_id, status")})
 @Getter
 @Setter
 public class LeaveRequest extends BaseEntity {
@@ -45,6 +44,12 @@ public class LeaveRequest extends BaseEntity {
 
     @Column(name = "reviewed_at", columnDefinition = "datetime(6)")
     private LocalDateTime reviewedAt;
+
+    @Column(name = "cancel_reason", length = 1000)
+    private String cancelReason;
+
+    @Column(name = "cancelled_at", columnDefinition = "datetime(6)")
+    private LocalDateTime cancelledAt;
 
     /** 同時核准／退回時只允許一筆成功，衝突由共用例外處理回 409。 */
     @Version

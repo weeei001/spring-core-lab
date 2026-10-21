@@ -7,12 +7,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
-
-import java.time.LocalDate;
-import java.util.Map;
 
 /**
  * 專案。只有 project-service 會建這張表（它的 @EntityScan 只掃這個 package），其他服務透過 ProjectApi 取得。

@@ -74,7 +74,7 @@ export function TaskSubtasks({ parent, allTasks, directory, editable, onOpen }: 
               return;
             }
             create.mutate(
-              { projectId: parent.projectId, parentId: parent.id, milestoneId: parent.milestoneId, title: trimmed },
+              { projectId: parent.projectId, parentId: parent.id, title: trimmed },
               {
                 onSuccess: () => {
                   setTitle('');

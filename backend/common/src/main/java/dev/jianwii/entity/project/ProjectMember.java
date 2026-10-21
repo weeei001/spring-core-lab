@@ -13,7 +13,8 @@ import lombok.Setter;
  * 專案成員。一般使用者只看得到自己是成員的專案；每個專案至少要有一位經理。 同一人在同一專案只能有一筆有效資料；不設資料庫唯一約束，被移除（軟刪除）後可以再加入。
  */
 @Entity
-@Table(name = "project_member",
+@Table(
+        name = "project_member",
         indexes = {@Index(columnList = "project_id"), @Index(columnList = "user_id")})
 @Getter
 @Setter

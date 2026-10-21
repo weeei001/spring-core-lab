@@ -1,7 +1,6 @@
 import type { TaskActivityType } from '@/api/project/activity.types';
 import type { ProjectRole } from '@/api/project/member.types';
 import type { ProjectStatus } from '@/api/project/project.types';
-import type { SprintStatus } from '@/api/project/sprint.types';
 import type { TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -83,22 +82,6 @@ export const TASK_TYPE_COLORS: Record<TaskType, string> = {
   SPIKE: 'purple',
 };
 
-export const SPRINT_STATUS_LABELS: Record<SprintStatus, string> = {
-  PLANNED: '規劃中',
-  ACTIVE: '進行中',
-  CLOSED: '已結束',
-};
-
-/** antd Tag 的顏色 */
-export const SPRINT_STATUS_COLORS: Record<SprintStatus, string> = {
-  PLANNED: 'default',
-  ACTIVE: 'processing',
-  CLOSED: 'success',
-};
-
-/** 故事點數的常用值（費氏數列） */
-export const STORY_POINT_OPTIONS = [1, 2, 3, 5, 8, 13];
-
 export const PROJECT_ROLE_LABELS: Record<ProjectRole, string> = {
   MANAGER: '經理',
   MEMBER: '成員',
@@ -120,9 +103,6 @@ export const ACTIVITY_FIELD_LABELS: Partial<Record<string, string>> = {
   assigneeId: '指派人',
   startDate: '開始日',
   dueDate: '到期日',
-  milestoneId: '里程碑',
-  sprintId: 'Sprint',
-  storyPoints: '點數',
 };
 
 /** 新專案可選的顏色 */

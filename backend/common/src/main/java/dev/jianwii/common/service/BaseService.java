@@ -7,18 +7,17 @@ import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.query.QueryParameter;
+import java.beans.PropertyDescriptor;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.beans.PropertyDescriptor;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * 共用 CRUD：query、queryPage、create、update（部分更新）、delete（軟刪除），輸入輸出直接用 Entity， 查詢條件用
@@ -59,10 +58,9 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
     @Transactional(readOnly = true)
     public PageResponse<E> queryPage(Q parameter) {
         beforeList();
-        Specification<E> valid =
-                (root, query, builder) -> builder.equal(root.get("dbMark"), BaseEntity.VALID);
-        Page<E> page = dao.findAll(valid.and(toSpecification(parameter)),
-                PageResponse.pageable(parameter, sortableFields()));
+        Specification<E> valid = (root, query, builder) -> builder.equal(root.get("dbMark"), BaseEntity.VALID);
+        Page<E> page =
+                dao.findAll(valid.and(toSpecification(parameter)), PageResponse.pageable(parameter, sortableFields()));
         page.forEach(this::initialize);
         return new PageResponse<>(page);
     }
@@ -98,7 +96,8 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
 
     /** 取得有效資料；不存在或已軟刪除時丟 {@link NotFoundException}。 */
     protected E find(Long id) {
-        return dao.findById(id).filter(entity -> entity.getDbMark() == BaseEntity.VALID)
+        return dao.findById(id)
+                .filter(entity -> entity.getDbMark() == BaseEntity.VALID)
                 .orElseThrow(() -> new NotFoundException("查無資料，id：" + id));
     }
 
@@ -108,12 +107,12 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
      */
     protected void applyUpdate(E request, E entity) {
         BeanWrapper source = new BeanWrapperImpl(request);
-        String[] ignored =
-                Stream.of(source.getPropertyDescriptors()).map(PropertyDescriptor::getName)
-                        .filter(name -> MANAGED_PROPERTIES.contains(name)
-                                || !source.isReadableProperty(name)
-                                || source.getPropertyValue(name) == null)
-                        .toArray(String[]::new);
+        String[] ignored = Stream.of(source.getPropertyDescriptors())
+                .map(PropertyDescriptor::getName)
+                .filter(name -> MANAGED_PROPERTIES.contains(name)
+                        || !source.isReadableProperty(name)
+                        || source.getPropertyValue(name) == null)
+                .toArray(String[]::new);
         BeanUtils.copyProperties(request, entity, ignored);
     }
 

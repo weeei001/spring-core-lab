@@ -4,6 +4,7 @@ import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.entity.basicdata.SerialNumber;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,8 +12,6 @@ import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PatchExchange;
 import org.springframework.web.service.annotation.PostExchange;
-
-import java.util.List;
 
 /**
  * basic-data 的系統編號 API（Spring HTTP Interface），提供端與呼叫端共用同一個介面：
@@ -44,8 +43,8 @@ public interface SerialNumberApi {
 
     /** 部分更新：只更新有給值（非 null）的欄位；serialKey 不可改，lastIndex 由取號維護、不接受修改。 */
     @PatchExchange("/{id}")
-    SerialNumber update(@PathVariable("id") Long id,
-            @Validated(ValidGroup.Update.class) @RequestBody SerialNumber serialNumber);
+    SerialNumber update(
+            @PathVariable("id") Long id, @Validated(ValidGroup.Update.class) @RequestBody SerialNumber serialNumber);
 
     /** 軟刪除（只標記為已刪除，資料仍在資料表）；刪除後該規則無法取號，serialKey 也不能再用來建立新規則。 */
     @DeleteExchange("/{id}")

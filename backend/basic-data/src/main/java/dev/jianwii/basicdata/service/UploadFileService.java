@@ -7,6 +7,14 @@ import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.web.Operator;
 import dev.jianwii.entity.basicdata.UploadFile;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDate;
+import java.util.Set;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,29 +29,21 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDate;
-import java.util.Set;
-import java.util.UUID;
-
 /** 集中處理檔案儲存與 metadata；業務模組不需要自行操作磁碟。 */
 @Service
 @Transactional
 public class UploadFileService {
     private static final Logger log = LoggerFactory.getLogger(UploadFileService.class);
     private static final long MAX_SIZE = 10L * 1024 * 1024;
-    private static final Set<String> INLINE_TYPES =
-            Set.of("image/png", "image/jpeg", "image/gif", "image/webp");
+    private static final Set<String> INLINE_TYPES = Set.of("image/png", "image/jpeg", "image/gif", "image/webp");
 
     private final UploadFileDAO uploadFileDAO;
     private final Path root;
     private final Path legacyRoot;
 
-    public UploadFileService(UploadFileDAO uploadFileDAO, @Value("${app.upload.dir}") String dir,
+    public UploadFileService(
+            UploadFileDAO uploadFileDAO,
+            @Value("${app.upload.dir}") String dir,
             @Value("${app.upload.legacy-dir:}") String legacyDir) {
         this.uploadFileDAO = uploadFileDAO;
         this.root = Path.of(dir).toAbsolutePath().normalize();
@@ -58,8 +58,8 @@ public class UploadFileService {
         if (file.getSize() > MAX_SIZE) {
             throw new BusinessException("檔案不可超過 10MB");
         }
-        String name = StringUtils.getFilename(StringUtils
-                .cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename()));
+        String name = StringUtils.getFilename(
+                StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename()));
         if (name == null || name.isBlank()) {
             name = "file";
         }
@@ -70,15 +70,14 @@ public class UploadFileService {
         Path target = root.resolve(relative);
         // 包含 flush 後、commit 才失敗的情況，交易未提交就清除本次新檔案。
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager
-                    .registerSynchronization(new TransactionSynchronization() {
-                        @Override
-                        public void afterCompletion(int status) {
-                            if (status == STATUS_ROLLED_BACK) {
-                                removeFailedUpload(target);
-                            }
-                        }
-                    });
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_ROLLED_BACK) {
+                        removeFailedUpload(target);
+                    }
+                }
+            });
         }
         try {
             Files.createDirectories(target.getParent());
@@ -86,9 +85,10 @@ public class UploadFileService {
             UploadFile uploaded = new UploadFile();
             uploaded.setFileName(name.length() > 255 ? name.substring(name.length() - 255) : name);
             String contentType = file.getContentType();
-            uploaded.setContentType(contentType == null || contentType.length() > 100
-                    ? MediaType.APPLICATION_OCTET_STREAM_VALUE
-                    : contentType);
+            uploaded.setContentType(
+                    contentType == null || contentType.length() > 100
+                            ? MediaType.APPLICATION_OCTET_STREAM_VALUE
+                            : contentType);
             uploaded.setSize(file.getSize());
             uploaded.setBusinessManaged(businessManaged);
             uploaded.setStoragePath(relative);
@@ -105,7 +105,8 @@ public class UploadFileService {
 
     @Transactional(readOnly = true)
     public UploadFile get(Long id) {
-        return uploadFileDAO.findById(id)
+        return uploadFileDAO
+                .findById(id)
                 .filter(file -> Integer.valueOf(BaseEntity.VALID).equals(file.getDbMark()))
                 .orElseThrow(() -> new NotFoundException("查無檔案，id：" + id));
     }
@@ -133,15 +134,16 @@ public class UploadFileService {
         }
         // HTML、SVG 等可執行內容一律下載，避免同網域執行 script。
         boolean inline = INLINE_TYPES.contains(file.getContentType());
-        ContentDisposition disposition =
-                (inline ? ContentDisposition.inline() : ContentDisposition.attachment())
-                        .filename(file.getFileName(), StandardCharsets.UTF_8).build();
+        ContentDisposition disposition = (inline ? ContentDisposition.inline() : ContentDisposition.attachment())
+                .filename(file.getFileName(), StandardCharsets.UTF_8)
+                .build();
         return ResponseEntity.ok()
-                .contentType(inline ? MediaType.parseMediaType(file.getContentType())
-                        : MediaType.APPLICATION_OCTET_STREAM)
+                .contentType(
+                        inline ? MediaType.parseMediaType(file.getContentType()) : MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .header("X-Content-Type-Options", "nosniff")
-                .header(HttpHeaders.CACHE_CONTROL, "private, no-store").body(bytes);
+                .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
+                .body(bytes);
     }
 
     public void delete(Long id) {

@@ -2,6 +2,7 @@ package dev.jianwii.common.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedBy;
@@ -9,8 +10,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 /**
  * 所有 Entity 的共用欄位：主鍵 id（資料庫自動遞增）、軟刪除標記 {@link #dbMark}，以及建立／最後修改的人與時間（審計欄位）。 審計欄位由 JPA Auditing
@@ -45,8 +44,7 @@ public abstract class BaseEntity {
 
     /** 建立時間 */
     @CreatedDate
-    @Column(name = "create_time", nullable = false, updatable = false,
-            columnDefinition = "datetime(6)")
+    @Column(name = "create_time", nullable = false, updatable = false, columnDefinition = "datetime(6)")
     private LocalDateTime createTime;
 
     /** 最後修改者的使用者 id；系統操作為 system */

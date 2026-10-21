@@ -1,11 +1,10 @@
 package dev.jianwii.common.dao;
 
+import java.io.Serializable;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.NoRepositoryBean;
-
-import java.io.Serializable;
-import java.util.List;
 
 /**
  * 共用 DAO（Spring Data JPA Repository），XxxDAO 繼承此介面即可。 多繼承 {@link JpaSpecificationExecutor} 是為了用
@@ -13,8 +12,7 @@ import java.util.List;
  * Listener（審計欄位不會更新），因此停用。
  */
 @NoRepositoryBean
-public interface BaseDAO<E, ID extends Serializable>
-        extends JpaRepository<E, ID>, JpaSpecificationExecutor<E> {
+public interface BaseDAO<E, ID extends Serializable> extends JpaRepository<E, ID>, JpaSpecificationExecutor<E> {
 
     default <S extends E> S update(S entity) {
         return save(entity);

@@ -8,12 +8,11 @@ import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskStatus;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /** 前端用的任務 API，寫法同 {@link WebProjectController}；專案成員都能維護任務。 */
 @RestController
@@ -46,8 +45,7 @@ public class WebTaskController {
 
     @PreAuthorize("hasAuthority('task:write')")
     @PatchMapping("/{id}")
-    public Result<Task> update(@PathVariable Long id,
-            @Validated(ValidGroup.Update.class) @RequestBody Task task) {
+    public Result<Task> update(@PathVariable Long id, @Validated(ValidGroup.Update.class) @RequestBody Task task) {
         projectAccessGuard.requireMember(projectAccessGuard.projectOfTask(id));
         return Result.success(taskApi.update(id, task));
     }
@@ -63,8 +61,8 @@ public class WebTaskController {
     /** 看板拖曳：改狀態並排在 previousId 之後，previousId 不給表示排第一。 */
     @PreAuthorize("hasAuthority('task:write')")
     @PostMapping("/{id}/move")
-    public Result<Task> move(@PathVariable Long id, @RequestParam TaskStatus status,
-            @RequestParam(required = false) Long previousId) {
+    public Result<Task> move(
+            @PathVariable Long id, @RequestParam TaskStatus status, @RequestParam(required = false) Long previousId) {
         projectAccessGuard.requireMember(projectAccessGuard.projectOfTask(id));
         return Result.success(taskApi.move(id, status, previousId));
     }

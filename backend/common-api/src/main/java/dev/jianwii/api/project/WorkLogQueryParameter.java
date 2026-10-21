@@ -8,11 +8,10 @@ import dev.jianwii.entity.project.WorkLog;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.LocalDate;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 工時查詢條件，寫法說明見 {@link QueryParameter}。 沒有 project:admin 的人：給 projectId 或 taskId 時必須是該專案成員；都沒給時

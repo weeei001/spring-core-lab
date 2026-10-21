@@ -2,13 +2,12 @@ package dev.jianwii.project.dao;
 
 import dev.jianwii.common.dao.BaseDAO;
 import dev.jianwii.entity.project.WorkLog;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /** 統計查詢只算有效資料（dbMark = 0 即 BaseEntity.VALID）。 */
 public interface WorkLogDAO extends BaseDAO<WorkLog, Long> {
@@ -26,6 +25,6 @@ public interface WorkLogDAO extends BaseDAO<WorkLog, Long> {
             select coalesce(sum(w.hours), 0)
             from WorkLog w
             where w.userId = :userId and w.workDate = :workDate and w.id <> :excludeId and w.dbMark = 0""")
-    BigDecimal sumHoursOfDay(@Param("userId") String userId, @Param("workDate") LocalDate workDate,
-            @Param("excludeId") Long excludeId);
+    BigDecimal sumHoursOfDay(
+            @Param("userId") String userId, @Param("workDate") LocalDate workDate, @Param("excludeId") Long excludeId);
 }

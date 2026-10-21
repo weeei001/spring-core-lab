@@ -1,7 +1,6 @@
 import { DatePicker, Flex, Form, Input, InputNumber, Select } from 'antd';
 import type { Dayjs } from 'dayjs';
 import type { ProjectLabel } from '@/api/project/label.types';
-import type { Milestone } from '@/api/project/milestone.types';
 import type { Task, TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
 import { LabelSelect } from '@/components/project/LabelSelect';
 import { TASK_PRIORITY_LABELS, TASK_STATUS_LABELS, TASK_TYPE_LABELS } from '@/components/project/labels';
@@ -17,7 +16,6 @@ interface TaskFormValues {
   status: TaskStatus;
   priority: TaskPriority;
   assigneeId?: string;
-  milestoneId?: number;
   /** DatePicker 清除後是 null */
   startDate?: Dayjs | null;
   dueDate?: Dayjs | null;
@@ -32,7 +30,6 @@ interface TaskFormModalProps {
   /** 預設狀態，例如在看板某一欄新增 */
   defaultStatus?: TaskStatus;
   memberOptions: { value: string; label: string }[];
-  milestones: readonly Milestone[];
   labels: readonly ProjectLabel[];
   saving: boolean;
   onCancel: () => void;
@@ -46,7 +43,6 @@ export function TaskFormModal({
   parent,
   defaultStatus = 'TODO',
   memberOptions,
-  milestones,
   labels,
   saving,
   onCancel,
@@ -61,7 +57,6 @@ export function TaskFormModal({
         labelIds: parent?.labelIds ?? [],
         status: defaultStatus,
         priority: 'MEDIUM',
-        milestoneId: parent?.milestoneId ?? undefined,
       }}
       saving={saving}
       onCancel={onCancel}
@@ -76,7 +71,6 @@ export function TaskFormModal({
           status: values.status,
           priority: values.priority,
           assigneeId: values.assigneeId,
-          milestoneId: values.milestoneId,
           startDate: values.startDate?.format(DATE_FORMAT),
           dueDate: values.dueDate?.format(DATE_FORMAT),
           estimateHours: values.estimateHours,
@@ -135,13 +129,6 @@ export function TaskFormModal({
           <LabelSelect labels={labels} />
         </Form.Item>
         <Flex gap={12}>
-          <Form.Item name="milestoneId" label="里程碑" style={{ flex: 1 }}>
-            <Select
-              allowClear
-              placeholder="不屬於里程碑"
-              options={milestones.map((milestone) => ({ value: milestone.id, label: milestone.name }))}
-            />
-          </Form.Item>
           <Form.Item name="estimateHours" label="預估工時" style={{ flex: 1 }}>
             <InputNumber min={0} max={99999} step={0.5} precision={1} suffix="h" style={{ width: '100%' }} />
           </Form.Item>

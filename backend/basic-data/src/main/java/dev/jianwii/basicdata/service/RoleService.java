@@ -9,12 +9,11 @@ import dev.jianwii.common.service.BaseService;
 import dev.jianwii.entity.basicdata.Permission;
 import dev.jianwii.entity.basicdata.Role;
 import dev.jianwii.entity.basicdata.User;
-import org.hibernate.Hibernate;
-import org.springframework.stereotype.Service;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hibernate.Hibernate;
+import org.springframework.stereotype.Service;
 
 /** 角色 CRUD；權限 code 必須是 {@link Permission} 定義過的，有使用者擁有時與預設角色不可刪除。 */
 @Service

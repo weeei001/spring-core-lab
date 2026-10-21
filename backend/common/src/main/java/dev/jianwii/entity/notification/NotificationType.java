@@ -15,5 +15,9 @@ public enum NotificationType {
     /** 請假核准或退回 */
     LEAVE_REVIEWED,
     /** 管理員發送的公告 */
-    ANNOUNCEMENT
+    ANNOUNCEMENT,
+    /** 申請人撤回或銷假 */
+    LEAVE_CANCELLED,
+    /** 每日逾期及即將到期任務摘要 */
+    TASK_DAILY_DIGEST
 }

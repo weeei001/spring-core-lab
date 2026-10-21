@@ -20,11 +20,6 @@ import dev.jianwii.project.dao.TaskDAO;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
-import org.hibernate.Hibernate;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +28,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.hibernate.Hibernate;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /** 專案 CRUD；建立者自動成為經理，查詢結果帶任務統計。 */
 @Service
@@ -45,7 +44,10 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
     private final TaskDAO taskDAO;
     private final SerialNumberApi serialNumberApi;
 
-    public ProjectService(ProjectDAO projectDAO, ProjectMemberDAO projectMemberDAO, TaskDAO taskDAO,
+    public ProjectService(
+            ProjectDAO projectDAO,
+            ProjectMemberDAO projectMemberDAO,
+            TaskDAO taskDAO,
             SerialNumberApi serialNumberApi) {
         super(projectDAO);
         this.projectMemberDAO = projectMemberDAO;
@@ -60,9 +62,10 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
         PageResponse<Project> page = super.queryPage(parameter);
         List<Project> projects = page.getItems();
         if (!projects.isEmpty()) {
-            Map<Long, TaskCount> counts =
-                    taskDAO.projectCounts(projects.stream().map(Project::getId).toList()).stream()
-                            .collect(Collectors.toMap(TaskCount::getGroupId, Function.identity()));
+            Map<Long, TaskCount> counts = taskDAO
+                    .projectCounts(projects.stream().map(Project::getId).toList())
+                    .stream()
+                    .collect(Collectors.toMap(TaskCount::getGroupId, Function.identity()));
             for (Project project : projects) {
                 TaskCount count = counts.get(project.getId());
                 project.setTaskCount(count == null ? 0L : count.getTotal());
@@ -98,8 +101,7 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
             throw new BusinessException("新專案不能是結案或取消");
         }
         requireDateRange(request.getStartDate(), request.getEndDate());
-        request.setWipLimits(request.getWipLimits() == null ? new HashMap<>()
-                : new HashMap<>(request.getWipLimits()));
+        request.setWipLimits(request.getWipLimits() == null ? new HashMap<>() : new HashMap<>(request.getWipLimits()));
         requireWipLimits(request.getWipLimits());
         // 號碼取走就不會退回，所以檢查都通過才取號，減少跳號
         request.setCode(serialNumberApi.next(SERIAL_KEY));
@@ -153,10 +155,10 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
         return specification.and((root, query, builder) -> {
             Subquery<Long> members = query.subquery(Long.class);
             Root<ProjectMember> member = members.from(ProjectMember.class);
-            List<Predicate> predicates =
-                    new ArrayList<>(List.of(builder.equal(member.get("projectId"), root.get("id")),
-                            builder.equal(member.get("userId"), memberUserId),
-                            builder.equal(member.get("dbMark"), BaseEntity.VALID)));
+            List<Predicate> predicates = new ArrayList<>(List.of(
+                    builder.equal(member.get("projectId"), root.get("id")),
+                    builder.equal(member.get("userId"), memberUserId),
+                    builder.equal(member.get("dbMark"), BaseEntity.VALID)));
             if (memberRole != null) {
                 predicates.add(builder.equal(member.get("role"), memberRole));
             }

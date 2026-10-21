@@ -3,7 +3,6 @@ import { Badge, Button, Card, Col, Empty, Flex, Row, Skeleton, Typography } from
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router';
 import { memberApi } from '@/api/project/member-api';
-import { milestoneApi } from '@/api/project/milestone-api';
 import { projectApi } from '@/api/project/project-api';
 import type { ProjectStatus } from '@/api/project/project.types';
 import { taskApi } from '@/api/project/task-api';
@@ -13,7 +12,7 @@ import { ProjectCard } from '@/components/project/ProjectCard';
 import { PriorityTag } from '@/components/project/Tags';
 import { useTaskDrawer } from '@/components/project/hooks';
 import { DEFAULT_PROJECT_COLOR } from '@/components/project/labels';
-import { DATE_FORMAT, dueText, hoursText, isOverdue, todayText, weekStart } from '@/components/project/project-utils';
+import { DATE_FORMAT, hoursText, isOverdue, todayText, weekStart } from '@/components/project/project-utils';
 import { TaskDrawer } from '@/components/project/task-drawer/TaskDrawer';
 import { useAuth } from '@/core/auth/useAuth';
 import { BarChart } from '@/shared/ui/BarChart';
@@ -32,7 +31,7 @@ function greeting(): string {
   return hour < 18 ? '午安' : '晚安';
 }
 
-/** 儀表板：我的待辦與逾期、本週工時、參與中的專案、即將到期的里程碑 */
+/** 儀表板：我的待辦與逾期、本週工時、參與中的專案 */
 export function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -62,14 +61,6 @@ export function DashboardPage() {
     queryFn: () => memberApi.query({ projectIds, userId: myId }),
     enabled: projectIds.length > 0,
   });
-  const milestones = useQuery({
-    queryKey: ['milestone', 'dashboard', projectIds],
-    queryFn: () =>
-      milestoneApi.query({ projectIds, achieved: false, toDueDate: dayjs().add(14, 'day').format(DATE_FORMAT) }),
-    enabled: projectIds.length > 0,
-    select: (items) => [...items].sort((a, b) => a.dueDate.localeCompare(b.dueDate)),
-  });
-
   const myTasks = tasks.data ?? [];
   const overdue = myTasks.filter(isOverdue);
   const dueSoon = myTasks
@@ -228,40 +219,6 @@ export function DashboardPage() {
           </Row>
         )}
       </Flex>
-
-      <Card
-        size="small"
-        title="兩週內到期的里程碑"
-      >
-        {(milestones.data ?? []).length === 0 ? (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="兩週內沒有到期的里程碑" />
-        ) : (
-          <Flex vertical gap={10}>
-            {(milestones.data ?? []).map((milestone) => {
-              const project = projectName(milestone.projectId);
-              return (
-                <Flex key={milestone.id} align="center" gap={8} wrap>
-                  <Typography.Text strong style={{ flex: 1 }}>
-                    {milestone.name}
-                  </Typography.Text>
-                  {project === undefined ? null : (
-                    <Typography.Link
-                      onClick={() => {
-                        void navigate(`/projects/${String(project.id)}`);
-                      }}
-                    >
-                      <Badge color={project.color ?? DEFAULT_PROJECT_COLOR} /> {project.name}
-                    </Typography.Link>
-                  )}
-                  <Typography.Text type={milestone.dueDate < today ? 'danger' : 'secondary'}>
-                    {milestone.dueDate}（{dueText(milestone.dueDate)}）
-                  </Typography.Text>
-                </Flex>
-              );
-            })}
-          </Flex>
-        )}
-      </Card>
 
       <TaskDrawer taskId={drawer.taskId} onClose={drawer.close} onOpen={drawer.open} />
       <PageTour id="dashboard" steps={DASHBOARD_TOUR} />

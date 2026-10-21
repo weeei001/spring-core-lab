@@ -8,7 +8,7 @@ export interface TaskActivity extends BaseEntity {
   type: TaskActivityType;
   /** CHANGED 時改的欄位，例如 status */
   field: string | null;
-  /** 舊值、新值都是文字：enum 名稱、YYYY-MM-DD、user id、里程碑 id */
+  /** 舊值、新值都是文字：enum 名稱、YYYY-MM-DD、user id */
   oldValue: string | null;
   newValue: string | null;
 }

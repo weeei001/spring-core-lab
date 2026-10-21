@@ -1,9 +1,10 @@
 package dev.jianwii.basicdata.leave.controller;
 
 import dev.jianwii.api.basicdata.leave.*;
+import dev.jianwii.basicdata.leave.service.LeaveRequestService;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.basicdata.leave.LeaveRequest;
-import dev.jianwii.basicdata.leave.service.LeaveRequestService;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,5 +41,20 @@ public class LeaveRequestController implements LeaveApi {
     @Override
     public LeaveRequest review(Long id, LeaveReview review) {
         return leaveRequestService.review(id, review);
+    }
+
+    @Override
+    public LeaveRequest withdraw(Long id, LeaveCancellation cancellation) {
+        return leaveRequestService.withdraw(id, cancellation);
+    }
+
+    @Override
+    public LeaveRequest cancel(Long id, LeaveCancellation cancellation) {
+        return leaveRequestService.cancel(id, cancellation);
+    }
+
+    @Override
+    public List<LeaveAbsence> calendar(LeaveCalendarQuery query) {
+        return leaveRequestService.calendar(query);
     }
 }

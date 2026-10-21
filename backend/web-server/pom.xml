@@ -35,6 +35,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-client</artifactId>
         </dependency>
+        <!-- 登入 session 存入 MySQL，web-server 重啟後仍可恢復。 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-session-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <!-- 開發時熱重啟：classpath 有變動（重新編譯）就自動重啟；spring-boot-maven-plugin 打包時會排除，不會進正式 jar -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

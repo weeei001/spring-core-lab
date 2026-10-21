@@ -7,12 +7,11 @@ import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.project.Project;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 前端用的專案 API：檢查功能權限（@PreAuthorize）與成員資格（{@link ProjectAccessGuard}）， 再呼叫 project-service 的
@@ -35,8 +34,7 @@ public class WebProjectController {
 
     @PreAuthorize("hasAuthority('project:read')")
     @PostMapping("/queryPage")
-    public Result<PageResponse<Project>> queryPage(
-            @Valid @RequestBody ProjectQueryParameter parameter) {
+    public Result<PageResponse<Project>> queryPage(@Valid @RequestBody ProjectQueryParameter parameter) {
         projectAccessGuard.scopeProjects(parameter);
         return Result.success(projectApi.queryPage(parameter));
     }
@@ -44,15 +42,14 @@ public class WebProjectController {
     /** 建立者自動成為專案經理。 */
     @PreAuthorize("hasAuthority('project:write')")
     @PostMapping
-    public Result<Project> create(
-            @Validated(ValidGroup.Create.class) @RequestBody Project project) {
+    public Result<Project> create(@Validated(ValidGroup.Create.class) @RequestBody Project project) {
         return Result.success(projectApi.create(project));
     }
 
     @PreAuthorize("hasAuthority('project:write')")
     @PatchMapping("/{id}")
-    public Result<Project> update(@PathVariable Long id,
-            @Validated(ValidGroup.Update.class) @RequestBody Project project) {
+    public Result<Project> update(
+            @PathVariable Long id, @Validated(ValidGroup.Update.class) @RequestBody Project project) {
         projectAccessGuard.requireManager(id);
         return Result.success(projectApi.update(id, project));
     }

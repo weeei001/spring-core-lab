@@ -1,7 +1,7 @@
 /* frappe-gantt 的樣式，路徑由 vite.config.ts 的 alias 指到套件裡的 CSS 檔 */
 @import 'frappe-gantt/style.css';
 
-/* frappe-gantt 的長條顏色：依任務狀態，逾期一律紅色，里程碑金色 */
+/* frappe-gantt 的長條顏色：依任務狀態，逾期一律紅色 */
 .project-gantt .bar-wrapper.gantt-status-TODO .bar { fill: #d9d9d9; }
 .project-gantt .bar-wrapper.gantt-status-TODO .bar-progress { fill: #8c8c8c; }
 .project-gantt .bar-wrapper.gantt-status-IN_PROGRESS .bar { fill: #bae0ff; }
@@ -13,6 +13,4 @@
 .project-gantt .bar-wrapper.gantt-status-CANCELLED .bar { fill: #f0f0f0; opacity: 0.6; }
 .project-gantt .bar-wrapper.gantt-overdue .bar { fill: #ffccc7; }
 .project-gantt .bar-wrapper.gantt-overdue .bar-progress { fill: #f5222d; }
-.project-gantt .bar-wrapper.gantt-milestone .bar { fill: #faad14; }
-.project-gantt .bar-wrapper.gantt-milestone-achieved .bar { fill: #52c41a; }
 .project-gantt .bar-wrapper .bar-label { fill: #1f1f1f; font-weight: 500; }

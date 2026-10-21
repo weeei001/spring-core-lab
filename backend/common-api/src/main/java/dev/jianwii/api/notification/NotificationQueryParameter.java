@@ -8,10 +8,9 @@ import dev.jianwii.entity.notification.Notification;
 import dev.jianwii.entity.notification.NotificationType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 /** 通知查詢條件；web-server 一律把 recipientId 設為登入者，只查得到自己的通知。 */
 @Getter

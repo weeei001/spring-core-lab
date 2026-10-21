@@ -21,6 +21,8 @@ const TYPE_ICONS: Record<NotificationType, ReactNode> = {
   ANNOUNCEMENT: <NotificationOutlined />,
   LEAVE_SUBMITTED: <CalendarOutlined />,
   LEAVE_REVIEWED: <CheckCircleOutlined />,
+  LEAVE_CANCELLED: <CalendarOutlined />,
+  TASK_DAILY_DIGEST: <BellOutlined />,
 };
 
 /**

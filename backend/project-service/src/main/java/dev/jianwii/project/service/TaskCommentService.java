@@ -10,12 +10,11 @@ import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskComment;
 import dev.jianwii.project.dao.TaskCommentDAO;
 import dev.jianwii.project.dao.TaskDAO;
-import org.hibernate.Hibernate;
-import org.springframework.stereotype.Service;
-
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.hibernate.Hibernate;
+import org.springframework.stereotype.Service;
 
 /**
  * 任務留言；只有作者能修改或刪除。新增時寫一筆活動紀錄、通知指派人與關注者， 被 @ 的人另外收到通知；留言者與被 @ 的人自動關注任務。
@@ -27,8 +26,11 @@ public class TaskCommentService extends BaseService<TaskComment, TaskCommentQuer
     private final TaskActivityRecorder taskActivityRecorder;
     private final TaskNotifier taskNotifier;
 
-    public TaskCommentService(TaskCommentDAO taskCommentDAO, TaskDAO taskDAO,
-            ProjectRules projectRules, TaskActivityRecorder taskActivityRecorder,
+    public TaskCommentService(
+            TaskCommentDAO taskCommentDAO,
+            TaskDAO taskDAO,
+            ProjectRules projectRules,
+            TaskActivityRecorder taskActivityRecorder,
             TaskNotifier taskNotifier) {
         super(taskCommentDAO);
         this.taskDAO = taskDAO;
@@ -112,9 +114,9 @@ public class TaskCommentService extends BaseService<TaskComment, TaskCommentQuer
 
     /** 任務必須有效，且所屬專案未結案。 */
     private Task requireOpenTask(Long taskId) {
-        Task task =
-                taskDAO.findById(taskId).filter(entity -> entity.getDbMark() == BaseEntity.VALID)
-                        .orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
+        Task task = taskDAO.findById(taskId)
+                .filter(entity -> entity.getDbMark() == BaseEntity.VALID)
+                .orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
         projectRules.requireOpen(task.getProjectId());
         return task;
     }

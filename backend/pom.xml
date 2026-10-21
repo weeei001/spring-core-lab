@@ -57,22 +57,26 @@
     <!-- JAR 不含本機密碼；IDE 與 spring-boot:run 仍可從 classes 載入 local 設定。 -->
     <build>
         <plugins>
-            <!-- IDE 可匯入同一份 Eclipse formatter XML；編譯前統一 Java 縮排與換行。 -->
+            <!-- 使用 Palantir Java Format；可執行 spotless:apply 排版、spotless:check 檢查。 -->
             <plugin>
-                <groupId>net.revelc.code.formatter</groupId>
-                <artifactId>formatter-maven-plugin</artifactId>
-                <version>2.29.0</version>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>3.10.4</version>
                 <configuration>
-                    <configFile>${maven.multiModuleProjectDirectory}/eclipse-java-google-style.xml</configFile>
-                    <compilerSource>${java.version}</compilerSource>
-                    <compilerCompliance>${java.version}</compilerCompliance>
-                    <compilerTargetPlatform>${java.version}</compilerTargetPlatform>
-                    <lineEnding>LF</lineEnding>
+                    <encoding>UTF-8</encoding>
+                    <lineEndings>UNIX</lineEndings>
+                    <java>
+                        <palantirJavaFormat>
+                            <version>2.102.0</version>
+                            <style>PALANTIR</style>
+                        </palantirJavaFormat>
+                    </java>
                 </configuration>
                 <executions>
                     <execution>
+                        <phase>process-sources</phase>
                         <goals>
-                            <goal>format</goal>
+                            <goal>apply</goal>
                         </goals>
                     </execution>
                 </executions>

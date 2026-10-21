@@ -1,6 +1,6 @@
 import type { BaseEntity } from '@/core/http/types';
 
-export type NotificationType = 'TASK_ASSIGNED' | 'TASK_STATUS_CHANGED' | 'TASK_COMMENTED' | 'TASK_MENTIONED' | 'ANNOUNCEMENT' | 'LEAVE_SUBMITTED' | 'LEAVE_REVIEWED';
+export type NotificationType = 'TASK_ASSIGNED' | 'TASK_STATUS_CHANGED' | 'TASK_COMMENTED' | 'TASK_MENTIONED' | 'ANNOUNCEMENT' | 'LEAVE_SUBMITTED' | 'LEAVE_REVIEWED' | 'LEAVE_CANCELLED' | 'TASK_DAILY_DIGEST';
 
 /** 站內通知（後端 Notification）；觸發的人是 createId，系統觸發為 system */
 export interface Notification extends BaseEntity {

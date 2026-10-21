@@ -1,7 +1,7 @@
 package dev.jianwii.basicdata.service;
 
-import dev.jianwii.api.basicdata.UserQueryParameter;
 import dev.jianwii.api.basicdata.UserAuthorization;
+import dev.jianwii.api.basicdata.UserQueryParameter;
 import dev.jianwii.basicdata.dao.RoleDAO;
 import dev.jianwii.basicdata.dao.UserDAO;
 import dev.jianwii.common.exception.BusinessException;
@@ -10,15 +10,9 @@ import dev.jianwii.common.service.BaseService;
 import dev.jianwii.entity.basicdata.Permission;
 import dev.jianwii.entity.basicdata.Role;
 import dev.jianwii.entity.basicdata.User;
-import org.hibernate.Hibernate;
-import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -26,6 +20,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import org.hibernate.Hibernate;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /** 使用者查詢、登入同步、指派角色與載入權限。 */
 @Service
@@ -44,9 +43,9 @@ public class UserService extends BaseService<User, UserQueryParameter> {
      */
     @Transactional
     public User login(User login) {
-        String name = StringUtils.hasText(login.getName()) ? login.getName()
-                : StringUtils.hasText(login.getUsername()) ? login.getUsername()
-                        : login.getSubject();
+        String name = StringUtils.hasText(login.getName())
+                ? login.getName()
+                : StringUtils.hasText(login.getUsername()) ? login.getUsername() : login.getSubject();
         User user = userDAO.findBySubject(login.getSubject()).orElse(null);
         if (user == null) {
             login.setName(name);
@@ -103,11 +102,14 @@ public class UserService extends BaseService<User, UserQueryParameter> {
     @Transactional(readOnly = true)
     public UserAuthorization authorization(Long id) {
         List<UserDAO.AuthorizationRow> rows = userDAO.authorization(id);
-        if (rows.isEmpty() || !Integer.valueOf(User.VALID).equals(rows.getFirst().getDbMark())) {
+        if (rows.isEmpty()
+                || !Integer.valueOf(User.VALID).equals(rows.getFirst().getDbMark())) {
             return new UserAuthorization(false, Set.of());
         }
-        Set<String> permissions = rows.stream().map(UserDAO.AuthorizationRow::getPermissionCode)
-                .filter(Objects::nonNull).filter(Permission::exists)
+        Set<String> permissions = rows.stream()
+                .map(UserDAO.AuthorizationRow::getPermissionCode)
+                .filter(Objects::nonNull)
+                .filter(Permission::exists)
                 .collect(Collectors.toCollection(TreeSet::new));
         return new UserAuthorization(true, permissions);
     }
@@ -127,10 +129,12 @@ public class UserService extends BaseService<User, UserQueryParameter> {
             Root<User> user = eligible.from(User.class);
             Join<User, Long> roleId = user.join("roleIds");
             Root<Role> role = eligible.from(Role.class);
-            eligible.select(user.get("id")).where(builder.equal(user.get("id"), root.get("id")),
-                    builder.equal(role.get("id"), roleId),
-                    builder.equal(role.get("dbMark"), Role.VALID),
-                    builder.isMember(permission, role.get("permissionCodes")));
+            eligible.select(user.get("id"))
+                    .where(
+                            builder.equal(user.get("id"), root.get("id")),
+                            builder.equal(role.get("id"), roleId),
+                            builder.equal(role.get("dbMark"), Role.VALID),
+                            builder.isMember(permission, role.get("permissionCodes")));
             return builder.exists(eligible);
         });
     }
@@ -153,8 +157,10 @@ public class UserService extends BaseService<User, UserQueryParameter> {
             return;
         }
         Set<Long> found = roleDAO.findAllByIdInAndDbMark(roleIds, Role.VALID).stream()
-                .map(Role::getId).collect(Collectors.toSet());
-        List<Long> missing = roleIds.stream().filter(id -> !found.contains(id)).sorted().toList();
+                .map(Role::getId)
+                .collect(Collectors.toSet());
+        List<Long> missing =
+                roleIds.stream().filter(id -> !found.contains(id)).sorted().toList();
         if (!missing.isEmpty()) {
             throw new BusinessException("角色不存在：" + missing);
         }

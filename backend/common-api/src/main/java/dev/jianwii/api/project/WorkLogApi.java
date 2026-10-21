@@ -4,6 +4,7 @@ import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.entity.project.WorkLog;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,8 +12,6 @@ import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PatchExchange;
 import org.springframework.web.service.annotation.PostExchange;
-
-import java.util.List;
 
 /** project-service 的工時 API，用法同 {@link ProjectApi}。 */
 @HttpExchange("/api/work-log")
@@ -32,8 +31,7 @@ public interface WorkLogApi {
 
     /** 只有登記者能修改；taskId 不可修改。 */
     @PatchExchange("/{id}")
-    WorkLog update(@PathVariable("id") Long id,
-            @Validated(ValidGroup.Update.class) @RequestBody WorkLog workLog);
+    WorkLog update(@PathVariable("id") Long id, @Validated(ValidGroup.Update.class) @RequestBody WorkLog workLog);
 
     /** 只有登記者能刪除（軟刪除）。 */
     @DeleteExchange("/{id}")

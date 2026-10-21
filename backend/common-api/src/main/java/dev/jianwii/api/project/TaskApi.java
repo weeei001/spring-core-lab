@@ -5,6 +5,7 @@ import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.entity.project.Task;
 import dev.jianwii.entity.project.TaskStatus;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,8 +14,6 @@ import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PatchExchange;
 import org.springframework.web.service.annotation.PostExchange;
-
-import java.util.List;
 
 /** project-service 的任務 API，用法同 {@link ProjectApi}。 */
 @HttpExchange("/api/task")
@@ -40,8 +39,7 @@ public interface TaskApi {
      * {@link #move}。
      */
     @PatchExchange("/{id}")
-    Task update(@PathVariable("id") Long id,
-            @Validated(ValidGroup.Update.class) @RequestBody Task task);
+    Task update(@PathVariable("id") Long id, @Validated(ValidGroup.Update.class) @RequestBody Task task);
 
     /** 軟刪除；還有子任務時回 409。其他任務的前置任務若含此任務，一併移除。 */
     @DeleteExchange("/{id}")
@@ -53,7 +51,9 @@ public interface TaskApi {
      * 看板拖曳：改成 status，並排在同專案、同狀態的 previousId 之後；previousId 不給表示排第一。
      */
     @PostExchange("/{id}/move")
-    Task move(@PathVariable("id") Long id, @RequestParam("status") TaskStatus status,
+    Task move(
+            @PathVariable("id") Long id,
+            @RequestParam("status") TaskStatus status,
             @RequestParam(name = "previousId", required = false) Long previousId);
 
     /** 操作者（X-Operator）關注任務，之後的狀態變更、新留言會通知他；必須是專案成員。 */

@@ -1,6 +1,5 @@
 import { Flex, Select, Table, Tag, Tooltip, Typography, type TableColumnsType } from 'antd';
 import { BranchesOutlined, LinkOutlined } from '@ant-design/icons';
-import type { Milestone } from '@/api/project/milestone.types';
 import type { Task, TaskStatus } from '@/api/project/task.types';
 import { DueDate } from '@/components/project/DueDate';
 import { PriorityTag, TaskLabelTags, TaskStatusTag, TaskTypeTag } from '@/components/project/Tags';
@@ -20,7 +19,6 @@ interface TaskTableViewProps {
   allTasks: readonly Task[];
   directory: UserDirectory;
   memberOptions: { value: string; label: string }[];
-  milestones: readonly Milestone[];
   editable: boolean;
   onOpen: (taskId: number) => void;
 }
@@ -45,9 +43,8 @@ function toRows(tasks: readonly Task[]): TaskRow[] {
 }
 
 /** 表格檢視：可排序、展開子任務，狀態與指派人可直接在格子裡改 */
-export function TaskTableView({ tasks, allTasks, directory, memberOptions, milestones, editable, onOpen }: TaskTableViewProps) {
+export function TaskTableView({ tasks, allTasks, directory, memberOptions, editable, onOpen }: TaskTableViewProps) {
   const { update, confirmStatus } = useTaskActions();
-  const milestoneNames = new Map(milestones.map((milestone) => [milestone.id, milestone.name] as const));
 
   const changeStatus = async (task: Task, status: TaskStatus): Promise<void> => {
     if (await confirmStatus(task, status, allTasks)) {
@@ -154,13 +151,6 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, miles
             {directory.name(task.assigneeId)}
           </Flex>
         ),
-    },
-    {
-      title: '里程碑',
-      key: 'milestone',
-      width: 140,
-      render: (_value, task) =>
-        task.milestoneId === null ? null : (milestoneNames.get(task.milestoneId) ?? String(task.milestoneId)),
     },
     {
       title: '開始',

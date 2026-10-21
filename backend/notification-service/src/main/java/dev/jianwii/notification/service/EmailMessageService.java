@@ -4,15 +4,14 @@ import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.entity.notification.EmailMessage;
 import dev.jianwii.entity.notification.EmailStatus;
 import dev.jianwii.notification.dao.EmailMessageDAO;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 寄信狀態的變更，每個方法各自一個短交易；寄信本身（連 SMTP）在交易外，由 {@link EmailDispatcher} 執行， 不會在等 SMTP 時占著資料庫連線。
@@ -32,8 +31,7 @@ public class EmailMessageService {
     private final EmailMessageDAO emailMessageDAO;
     private final int maxAttempts;
 
-    public EmailMessageService(EmailMessageDAO emailMessageDAO,
-            @Value("${app.mail.max-attempts}") int maxAttempts) {
+    public EmailMessageService(EmailMessageDAO emailMessageDAO, @Value("${app.mail.max-attempts}") int maxAttempts) {
         this.emailMessageDAO = emailMessageDAO;
         this.maxAttempts = maxAttempts;
     }
@@ -41,8 +39,11 @@ public class EmailMessageService {
     @Transactional(readOnly = true)
     public List<Long> findRetryableIds() {
         LocalDateTime now = LocalDateTime.now();
-        return emailMessageDAO.findRetryableIds(maxAttempts, now.minus(PENDING_GRACE),
-                now.minus(FAILED_BACKOFF), now.minus(SENDING_TIMEOUT),
+        return emailMessageDAO.findRetryableIds(
+                maxAttempts,
+                now.minus(PENDING_GRACE),
+                now.minus(FAILED_BACKOFF),
+                now.minus(SENDING_TIMEOUT),
                 PageRequest.of(0, BATCH_SIZE));
     }
 
@@ -51,8 +52,10 @@ public class EmailMessageService {
      * OptimisticLockingFailureException，由呼叫端放棄。
      */
     public Optional<EmailMessage> claim(Long id) {
-        EmailMessage message = emailMessageDAO.findById(id)
-                .filter(found -> found.getDbMark() == BaseEntity.VALID).orElse(null);
+        EmailMessage message = emailMessageDAO
+                .findById(id)
+                .filter(found -> found.getDbMark() == BaseEntity.VALID)
+                .orElse(null);
         if (message == null || !claimable(message)) {
             return Optional.empty();
         }

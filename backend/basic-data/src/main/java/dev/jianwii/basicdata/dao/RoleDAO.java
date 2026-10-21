@@ -2,7 +2,6 @@ package dev.jianwii.basicdata.dao;
 
 import dev.jianwii.common.dao.BaseDAO;
 import dev.jianwii.entity.basicdata.Role;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

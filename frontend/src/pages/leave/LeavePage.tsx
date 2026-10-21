@@ -5,7 +5,7 @@ import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import { useSearchParams } from 'react-router';
 import { leaveApi } from '@/api/leave/leave-api';
-import type { LeaveQuery, LeaveRequest, LeaveReview, LeaveScope, LeaveStatus, LeaveType } from '@/api/leave/leave.types';
+import type { LeaveCancellation, LeaveQuery, LeaveRequest, LeaveReview, LeaveScope, LeaveStatus, LeaveType } from '@/api/leave/leave.types';
 import { UserSelect } from '@/components/user/UserSelect';
 import { useUserDirectory } from '@/components/user/useUserDirectory';
 import { PERMISSIONS } from '@/core/auth/permissions';
@@ -176,6 +176,7 @@ function LeaveDetail({ scope, id, refresh }: { scope: LeaveScope; id: number; re
   const { can } = useAuth();
   const { message } = App.useApp();
   const [form] = Form.useForm<LeaveReview>();
+  const [cancellationAction, setCancellationAction] = useState<'withdraw' | 'cancel'>();
   const detail = useQuery({
     queryKey: ['leave-detail', scope, id],
     queryFn: () => leaveApi.detail(scope, id),
@@ -192,6 +193,16 @@ function LeaveDetail({ scope, id, refresh }: { scope: LeaveScope; id: number; re
     // 包含另一個視窗已審核的 409，重新讀取才能收回過期的審核按鈕。
     onSettled: refresh,
   });
+  const cancel = useMutation({
+    mutationFn: (values: LeaveCancellation) => cancellationAction === 'withdraw'
+      ? leaveApi.withdraw(id, values)
+      : leaveApi.cancel(id, values),
+    onSuccess: (saved) => {
+      setCancellationAction(undefined);
+      void message.success(saved.status === 'WITHDRAWN' ? '已撤回請假申請' : '已銷假');
+    },
+    onSettled: refresh,
+  });
   if (detail.isPending) {
     return <Skeleton active />;
   }
@@ -200,6 +211,9 @@ function LeaveDetail({ scope, id, refresh }: { scope: LeaveScope; id: number; re
   }
   const request = detail.data;
   const canReview = scope === 'review' && can(PERMISSIONS.LEAVE_APPROVE) && request.status === 'PENDING';
+  const canCancel = scope === 'mine' && can(PERMISSIONS.LEAVE_APPLY)
+    && (request.status === 'PENDING' || request.status === 'APPROVED');
+  const cancelLabel = request.status === 'PENDING' ? '撤回申請' : '整筆銷假';
 
   return (
     <Flex vertical gap={24}>
@@ -218,19 +232,49 @@ function LeaveDetail({ scope, id, refresh }: { scope: LeaveScope; id: number; re
             content: `${formatTime(request.createTime)} · ${directory.name(request.applicantId)} 送出申請`,
           },
           ...(request.reviewedAt !== null ? [{
-            color: request.status === 'APPROVED' ? 'green' : 'red',
+            color: request.status === 'REJECTED' ? 'red' : 'green',
             content: (
               <Flex vertical gap={4}>
-                <span>{formatTime(request.reviewedAt)} · {directory.name(request.approverId)} {LEAVE_STATUS_LABELS[request.status]}</span>
+                <span>{formatTime(request.reviewedAt)} · {directory.name(request.approverId)} {request.status === 'REJECTED' ? '已退回' : '已核准'}</span>
                 {request.reviewComment !== null && <Typography.Paragraph style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', margin: 0 }}>{request.reviewComment}</Typography.Paragraph>}
               </Flex>
             ),
-          }] : [{
+          }] : request.status === 'PENDING' ? [{
             color: 'gray',
             content: `等待 ${directory.name(request.approverId)} 審核`,
-          }]),
+          }] : []),
+          ...(request.cancelledAt !== null ? [{
+            color: 'gray',
+            content: (
+              <Flex vertical gap={4}>
+                <span>{formatTime(request.cancelledAt)} · {directory.name(request.applicantId)} {LEAVE_STATUS_LABELS[request.status]}</span>
+                <Typography.Paragraph style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', margin: 0 }}>{request.cancelReason}</Typography.Paragraph>
+              </Flex>
+            ),
+          }] : []),
         ]} />
       </div>
+      {canCancel && (
+        <>
+          <Button danger onClick={() => { setCancellationAction(request.status === 'PENDING' ? 'withdraw' : 'cancel'); }}>{cancelLabel}</Button>
+          <FormModal<LeaveCancellation>
+            open={cancellationAction !== undefined}
+            title={cancelLabel}
+            okText={`確認${cancelLabel}`}
+            saving={cancel.isPending}
+            onCancel={() => { if (!cancel.isPending) setCancellationAction(undefined); }}
+            onSubmit={(values) => { if (!cancel.isPending) cancel.mutate({ reason: values.reason.trim() }); }}
+          >
+            <Typography.Paragraph>
+              {request.status === 'PENDING' ? '撤回後審核人無法再核准這筆申請。' : '銷假會取消這筆申請的全部休假日期，原核准紀錄仍會保留。'}
+              如需更改日期，請另送新申請。
+            </Typography.Paragraph>
+            <Form.Item name="reason" label="原因" rules={[{ required: true, whitespace: true, message: '請填寫原因' }, { max: 1000 }]}>
+              <Input.TextArea rows={3} maxLength={1000} showCount />
+            </Form.Item>
+          </FormModal>
+        </>
+      )}
       {canReview && (
         <Form<LeaveReview>
           form={form}

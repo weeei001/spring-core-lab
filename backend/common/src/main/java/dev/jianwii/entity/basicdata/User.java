@@ -12,11 +12,10 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
-
-import java.util.Set;
 
 /**
  * 使用者。authentik 只負責驗證身分，使用者資料以這張表為準； 各表的 createId、transId 存的是這裡的 id，前端再以 id 查名字。 登入時由 web-server 呼叫
