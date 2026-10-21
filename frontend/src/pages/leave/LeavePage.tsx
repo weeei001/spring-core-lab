@@ -151,7 +151,6 @@ export function LeavePage({ scope }: { scope: LeaveScope }) {
         <Form.Item name="reason" label="請假原因" rules={[{ required: true, whitespace: true, message: '請填寫請假原因' }, { max: 1000 }]}>
           <Input.TextArea rows={4} maxLength={1000} showCount />
         </Form.Item>
-        <Typography.Text type="secondary">送出後保留原始內容，等待審核人核准或退回。</Typography.Text>
       </FormModal>
       <Drawer
         title={selectedId === undefined ? '請假申請' : `請假申請 #${String(selectedId)}`}

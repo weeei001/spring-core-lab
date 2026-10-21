@@ -4,7 +4,7 @@ import type { Project } from '@/api/project/project.types';
 import { DueDate } from '@/components/project/DueDate';
 import { TaskStatusTag } from '@/components/project/Tags';
 import { useProjectTasks } from '@/components/project/hooks';
-import { PROJECT_ROLE_LABELS, TASK_STATUSES, TASK_STATUS_COLORS, TASK_STATUS_LABELS } from '@/components/project/labels';
+import { TASK_STATUSES, TASK_STATUS_COLORS, TASK_STATUS_LABELS } from '@/components/project/labels';
 import { hasText, isOverdue, isTaskFinished, percent } from '@/components/project/project-utils';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import type { UserDirectory } from '@/components/user/useUserDirectory';
@@ -51,7 +51,7 @@ export function OverviewTab({ project, members, directory, onOpen }: OverviewTab
                 <Progress type="circle" percent={progress} size={110} />
                 <Flex vertical gap={12} style={{ flex: 1, minWidth: 240 }}>
                   <Typography.Text type="secondary">
-                    主任務 {String(done)} / {String(counted.length)} 完成（取消的不計）
+                    主任務 {String(done)} / {String(counted.length)} 完成
                   </Typography.Text>
                   <StackedBar
                     segments={TASK_STATUSES.map((status) => ({
@@ -109,9 +109,6 @@ export function OverviewTab({ project, members, directory, onOpen }: OverviewTab
                     .filter((member) => member.role === 'MANAGER')
                     .map((member) => directory.name(member.userId))
                     .join('、') || '—'}
-                </Typography.Text>
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  {PROJECT_ROLE_LABELS.MANAGER}可維護專案資料與成員
                 </Typography.Text>
               </Flex>
             </Card>

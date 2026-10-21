@@ -150,10 +150,7 @@ export function TaskGanttView({
   return (
     <Flex gap={16} align="flex-start" wrap>
       <Flex vertical gap={12} style={{ flex: '1 1 600px', minWidth: 0 }}>
-        <Flex justify="space-between" align="center">
-          <Typography.Text type="secondary">
-            {editable ? '拖曳長條可調整開始日與到期日；箭頭表示前置任務' : '箭頭表示前置任務'}
-          </Typography.Text>
+        <Flex justify="flex-end" align="center">
           <Segmented<FrappeGanttViewMode> options={VIEW_MODES} value={viewMode} onChange={setViewMode} />
         </Flex>
         {ganttTasks.length === 0 ? (

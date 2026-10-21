@@ -116,8 +116,7 @@ export function WorkLogTab({ projectId, directory, onOpen }: WorkLogTabProps) {
 
   return (
     <Flex vertical gap={16}>
-      <Flex justify="space-between" align="center" wrap gap={12}>
-        <Typography.Text type="secondary">依週統計，週一為一週的開始</Typography.Text>
+      <Flex justify="flex-end" align="center" wrap gap={12}>
         <DatePicker.RangePicker
           picker="week"
           allowClear={false}

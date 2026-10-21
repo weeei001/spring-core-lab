@@ -95,8 +95,7 @@ export function LabelTab({ projectId, access }: LabelTabProps) {
 
   return (
     <Flex vertical gap={16}>
-      <Flex justify="space-between" align="center" wrap gap={8}>
-        <Typography.Text type="secondary">用標籤區分任務的範圍，例如 frontend、backend、API、UI，在任務分頁可以依標籤篩選。</Typography.Text>
+      <Flex justify="flex-end" align="center" wrap gap={8}>
         {access.canManage ? (
           <Button
             type="primary"

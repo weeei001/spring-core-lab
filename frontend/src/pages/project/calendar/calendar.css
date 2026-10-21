@@ -1,0 +1,181 @@
+/* 團隊行事曆的月曆格線與跨日橫條；顏色由 CalendarMonth 以 CSS 變數帶入 antd token，深淺色都適用 */
+.team-calendar-grid {
+  min-width: 680px;
+  border: 1px solid var(--cal-border);
+  border-radius: var(--cal-radius);
+  overflow: hidden;
+  color: var(--cal-text);
+}
+
+.team-calendar-weekdays,
+.team-calendar-days,
+.team-calendar-lanes {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.team-calendar-weekday {
+  padding: 8px;
+  font-size: 12px;
+  color: var(--cal-text-secondary);
+}
+
+.team-calendar-weekday.is-weekend {
+  color: var(--cal-text-muted);
+}
+
+/* 一週一列：底下是可點選的日期格，上面疊日期數字與橫條 */
+.team-calendar-week {
+  position: relative;
+  min-height: 116px;
+  border-top: 1px solid var(--cal-border);
+}
+
+.team-calendar-days {
+  position: absolute;
+  inset: 0;
+}
+
+.team-calendar-day {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  border-left: 1px solid var(--cal-border);
+}
+
+.team-calendar-day:first-child {
+  border-left: none;
+}
+
+.team-calendar-day.is-weekend {
+  background: var(--cal-weekend);
+}
+
+.team-calendar-day:hover {
+  background: var(--cal-hover);
+}
+
+.team-calendar-day.is-selected {
+  background: var(--cal-selected);
+}
+
+.team-calendar-day:focus-visible {
+  outline: 2px solid var(--cal-primary);
+  outline-offset: -2px;
+}
+
+.team-calendar-lanes {
+  position: relative;
+  grid-template-rows: 28px;
+  grid-auto-rows: 22px;
+  padding-bottom: 6px;
+  pointer-events: none;
+}
+
+.team-calendar-date {
+  grid-row: 1;
+  padding: 4px 8px 0;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--cal-text-secondary);
+}
+
+.team-calendar-date.is-other-month {
+  color: var(--cal-text-muted);
+}
+
+.team-calendar-date.is-today span {
+  display: inline-block;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  text-align: center;
+  background: var(--cal-primary);
+  color: var(--cal-on-primary);
+}
+
+/* 跨日橫條：延續到前一週或下一週的那一端貼齊邊緣、不留圓角，看起來是同一條 */
+.team-calendar-bar {
+  all: unset;
+  box-sizing: border-box;
+  display: block;
+  align-self: center;
+  height: 20px;
+  margin: 0 4px;
+  padding: 0 6px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+  pointer-events: auto;
+  color: var(--cal-text);
+  background: var(--bar-bg);
+  border: 1px solid var(--bar-border);
+  border-left: 3px solid var(--bar-accent);
+  border-radius: var(--cal-radius);
+}
+
+.team-calendar-bar:hover {
+  filter: brightness(0.96);
+}
+
+.team-calendar-bar:focus-visible {
+  outline: 2px solid var(--cal-primary);
+  outline-offset: 1px;
+}
+
+.team-calendar .is-leave {
+  --bar-bg: var(--cal-leave-bg);
+  --bar-border: var(--cal-leave-border);
+  --bar-accent: var(--cal-leave-accent);
+}
+
+.team-calendar .is-task {
+  --bar-bg: var(--cal-task-bg);
+  --bar-border: var(--cal-task-border);
+  --bar-accent: var(--cal-task-accent);
+}
+
+.team-calendar .is-overdue {
+  --bar-bg: var(--cal-overdue-bg);
+  --bar-border: var(--cal-overdue-border);
+  --bar-accent: var(--cal-overdue-accent);
+}
+
+/* 只有開始日或到期日：虛線框，表示期間不完整 */
+.team-calendar-bar.is-partial {
+  border-style: dashed;
+  border-left-style: solid;
+}
+
+.team-calendar-bar.is-continued-before {
+  margin-left: 0;
+  border-left: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.team-calendar-bar.is-continued-after {
+  margin-right: 0;
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.team-calendar-more {
+  all: unset;
+  align-self: center;
+  margin: 0 8px;
+  font-size: 12px;
+  line-height: 20px;
+  cursor: pointer;
+  pointer-events: auto;
+  color: var(--cal-text-secondary);
+}
+
+.team-calendar-more:hover,
+.team-calendar-more:focus-visible {
+  color: var(--cal-primary);
+}
