@@ -2,6 +2,11 @@
 
 開始新任務前先閱讀本檔，避免重複踩坑。只記錄已遇到的限制、原因與處理方式；未完成事項放在 [TODO.md](TODO.md)，完成紀錄不留在本檔。以下經驗於 2026-10-26 整理，環境或設定改變後應重新確認。
 
+## EC2 公網 IP 與 Cloudflare DNS
+
+- 2026-10-26 使用者回報重啟 EC2 後 IP 改變，需反覆修改 Cloudflare；尚未核對實際操作是 Reboot 或 Stop/Start。AWS 的 Reboot 保留公網 IPv4，未綁 Elastic IP 的 Stop/Start 通常會重新分配公網 IPv4。可配置同 Region 的 Elastic IP 並關聯實例，再將 Cloudflare A 記錄改到該固定 IP；尚未執行。
+- 綁定 Elastic IP 會取代原本自動分配的公網 IPv4，SSH／WinSCP 使用的 IP 亦須更新。網站仍使用原網域時，APP_PUBLIC_URL、APP_FRONTEND_URL 與 Google 回呼 URI 不需隨公網 IP 更動；單純重啟 spring@web-server 不會重啟 EC2 或改變 IP。
+
 ## 正式後端使用 /backend 前綴
 
 - API 共用 Axios 的 baseURL 不會自動套用到圖片與附件連結。`attachmentApi.contentUrl` 與 `uploadFileApi.contentUrl` 須使用 `http.getUri`；登入按鈕也須加前綴。2026-10-26 已用 Vite 載入實際模組，確認正式與開發模式的五種網址。
