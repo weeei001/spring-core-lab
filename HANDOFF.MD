@@ -46,6 +46,9 @@
 
 ## 正式啟動的 SMTP 與目錄限制
 
+- 2026-10-26 正式寄信出現 `Domain contains illegal character`，使用者提供的 SMTP_FROM 是 `no-reply@` 再接一個完整 Gmail 信箱，形成兩個 @。寄件者必須使用 SMTP 允許的合法信箱；no-reply 不能當前綴加到完整地址。EmailDispatcher 先 setFrom 再 setTo，資料列的 recipient 正常也可能在寄件地址解析時失敗。修改外部設定後須重啟 notification-service；預設每分鐘重試、最多 3 次，已達上限不會因重啟自動重設次數。
+- 郵件顯示名稱為 No Reply 不代表寄件地址已切換。此次曾收到 `No Reply <原 Gmail 地址>`，使用者確認 SMTP 仍是 Gmail；切換 SES 時須一起修改 SMTP_HOST、SMTP_USERNAME、SMTP_PASSWORD 與 SMTP_FROM，再重啟 notification-service，並查看新郵件的完整寄件地址。設定範例見 `deploy/ses-mail.md`。
+- SES 網域驗證、SMTP endpoint／憑證及 sandbox 狀態須核對同一區域。sandbox 寄信成功只證明已驗證收件者可收信，不能據此判定已獲 production access；程式的 SENT 也不代表後續沒有退信或申訴。
 - 2026-10-26 部署盤點確認：`DeployConfigurationValidator` 在 `notification-service` 無條件要求 SMTP 欄位非空，即使 `APP_MAIL_ENABLED=false` 也一樣。關閉寄信不能省略 SMTP 設定；健康檢查亦已停用 mail，`UP` 不代表寄信成功。
 - 同一驗證器要求上傳目錄已存在、可讀寫且位於程式工作目錄之外；systemd 須明確設定 WorkingDirectory，附件使用獨立資料目錄，不能隨版本目錄一起切換。
 

@@ -36,10 +36,13 @@ APP_LEGACY_ATTACHMENT_DIR=/srv/spring-data/legacy-attachments
 # 搬過上傳目錄才填原 data/uploads 的絕對路徑；沒有舊檔或沿用原目錄則留空。
 APP_LEGACY_UPLOAD_DIR=
 
-SMTP_HOST=smtp.example.invalid
+# SES 範例使用東京區；endpoint、網域驗證與 SMTP 憑證須屬於同一區域，見 deploy/ses-mail.md。
+SMTP_HOST=email-smtp.ap-northeast-1.amazonaws.com
 SMTP_PORT=587
+# 填 SES 產生的 SMTP username／password，不使用 Gmail 帳密或 IAM 使用者顯示名稱。
 SMTP_USERNAME=
 SMTP_PASSWORD=
-SMTP_FROM=no-reply@example.invalid
-# 驗收時保持 false：不寄信，站內通知照常。
+SMTP_FROM=No Reply <no-reply@jianwii.dev>
+spring.mail.properties.mail.smtp.starttls.required=true
+# 新部署尚未配置 SMTP 時先保持 false；正式寄信需改為 true，站內通知不受影響。
 APP_MAIL_ENABLED=false

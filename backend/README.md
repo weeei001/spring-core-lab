@@ -165,7 +165,7 @@ Maven 的 `-Pdeploy` 會替各服務設定 Spring `deploy` profile，並以儲�
 - `web-server` 需要範本中的 `WEB_SESSION_DB_URL`、`WEB_SESSION_DB_USERNAME`、`WEB_SESSION_DB_PASSWORD`；範例沿用 `basic_data` 資料庫並使用專用帳號 `web_session_app`，部署前須授權帳號並填入密碼。
 - 資料庫使用專用帳號；上傳及舊附件目錄依範本設定為已存在的絕對路徑。
 - 對外提供前端與 `web-server`，Eureka、業務服務及資料庫留在內部網路。正式登入回呼由 `APP_PUBLIC_URL` 決定。本次同網域部署使用 `APP_PUBLIC_URL=https://project-manage.jianwii.dev/backend`，前端使用 `APP_FRONTEND_URL=https://project-manage.jianwii.dev`；Nginx 移除 `/backend/` 前綴後轉送，後端不設定 context-path。
-- 驗收期間依範本保持 `APP_MAIL_ENABLED=false`。部署模式仍會檢查 SMTP 必填設定。
+- 新部署尚未配置 SMTP 時，依範本保持 `APP_MAIL_ENABLED=false`；正式寄信設為 `true`。部署模式仍會檢查 SMTP 必填設定。正式環境已由使用者確認完成 SES／`No Reply <no-reply@jianwii.dev>` 寄信切換，設定、重啟及驗收方式見 [SES 郵件部署](../deploy/ses-mail.md)。
 
 ## 常見問題
 
@@ -176,5 +176,7 @@ Maven 的 `-Pdeploy` 會替各服務設定 Spring `deploy` profile，並以儲�
 | 登入回呼不符或登入失敗 | 檢查 Google／OIDC 回呼網址、issuer、Client 資訊，以及 `basic-data` 是否已註冊 |
 | 找不到 `SPRING_SESSION` 資料表 | 本機檢查初始化設定、啟動日誌與建表權限；正式環境先手動執行套件內建的 Session 建表 SQL |
 | API 回傳 401／403 | 檢查登入狀態、Cookie 名稱、CSRF 與角色權限 |
+| 寄信出現 `Domain contains illegal character` | 檢查 `SMTP_FROM` 與收件地址；不可將 `no-reply@` 接在完整信箱前形成兩個 `@` |
+| 顯示 No Reply，但實際寄件地址仍是 Gmail | 核對 `SMTP_HOST`、`SMTP_USERNAME`、`SMTP_PASSWORD` 是否一起切換成 SES，並重啟 `notification-service` |
 
 提交前請閱讀[協作規範](../AGENTS.md)，並在 PR 說明實際完成的驗證。
