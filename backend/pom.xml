@@ -54,6 +54,28 @@
         </dependencies>
     </dependencyManagement>
 
+    <profiles>
+        <profile>
+            <id>deploy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <profiles>
+                                <profile>deploy</profile>
+                            </profiles>
+                            <arguments>
+                                <argument>--spring.config.import=file:${maven.multiModuleProjectDirectory}/../deploy/application.properties</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <!-- JAR 不含本機密碼；IDE 與 spring-boot:run 仍可從 classes 載入 local 設定。 -->
     <build>
         <plugins>

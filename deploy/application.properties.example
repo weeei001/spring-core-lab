@@ -1,0 +1,46 @@
+# 複製成 deploy/application.properties 後填寫，不要提交到 Git。啟動方式見 backend/README.md。
+# 每行 KEY=VALUE，不加 export 或外層引號；註解另起一行。Windows 路徑用 /，反斜線寫成 \\。
+
+# 服務監聽位址、註冊到 Eureka 的 IP、Eureka 網址。
+INTERNAL_BIND_ADDRESS=127.0.0.1
+SERVICE_IP_ADDRESS=127.0.0.1
+EUREKA_URL=http://127.0.0.1:8761/eureka/
+
+# 先建好資料庫與專用帳號（不用 root），再填連線網址和帳密；db.internal 換成資料庫主機。
+BASIC_DATA_DB_URL=jdbc:mysql://db.internal:3306/basic_data?serverTimezone=Asia/Taipei&characterEncoding=utf-8
+BASIC_DATA_DB_USERNAME=basic_data_app
+BASIC_DATA_DB_PASSWORD=
+PROJECT_DB_URL=jdbc:mysql://db.internal:3306/project?serverTimezone=Asia/Taipei&characterEncoding=utf-8
+PROJECT_DB_USERNAME=project_app
+PROJECT_DB_PASSWORD=
+NOTIFICATION_DB_URL=jdbc:mysql://db.internal:3306/notification?serverTimezone=Asia/Taipei&characterEncoding=utf-8
+NOTIFICATION_DB_USERNAME=notification_app
+NOTIFICATION_DB_PASSWORD=
+# 儲存登入狀態的資料庫，先建立 SPRING_SESSION 與 SPRING_SESSION_ATTRIBUTES 兩張表。
+WEB_SESSION_DB_URL=jdbc:mysql://db.internal:3306/basic_data?serverTimezone=Asia/Taipei&characterEncoding=utf-8
+WEB_SESSION_DB_USERNAME=web_session_app
+WEB_SESSION_DB_PASSWORD=
+
+AUTHENTIK_ISSUER_URI=https://identity.example.invalid/application/o/spring-core-lab/
+AUTHENTIK_CLIENT_ID=
+AUTHENTIK_CLIENT_SECRET=
+APP_FRONTEND_URL=https://projects.example.invalid
+# 對外網址，結尾不加 /；在 authentik 登記此網址加上 /auth/callback 作為回呼網址。
+APP_PUBLIC_URL=https://projects.example.invalid
+# 超級管理員的 authentik 使用者識別碼（subject），多個用逗號分隔；留空表示不設定。
+APP_SUPER_ADMIN_SUBJECTS=
+
+# 上傳目錄：先建立並開放服務帳號讀寫，放在程式目錄外；Windows 例如 D:/spring-core-lab-data/uploads。
+APP_UPLOAD_DIR=/srv/spring-core-lab-data/uploads
+# 舊任務附件目錄，服務須能讀取；沒有舊檔也要填一個獨立空目錄。
+APP_LEGACY_ATTACHMENT_DIR=/srv/spring-core-lab-data/legacy-attachments
+# 搬過上傳目錄才填原 data/uploads 的絕對路徑；沒有舊檔或沿用原目錄則留空。
+APP_LEGACY_UPLOAD_DIR=
+
+SMTP_HOST=smtp.example.invalid
+SMTP_PORT=587
+SMTP_USERNAME=
+SMTP_PASSWORD=
+SMTP_FROM=no-reply@example.invalid
+# 驗收時保持 false：不寄信，站內通知照常。
+APP_MAIL_ENABLED=false

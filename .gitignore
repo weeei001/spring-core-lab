@@ -48,3 +48,4 @@ http/http-client.private.env.json
 **/data/attachments/
 deploy/.env
 deploy/*.local.env
+deploy/application.properties

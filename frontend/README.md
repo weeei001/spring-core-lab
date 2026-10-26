@@ -16,9 +16,13 @@ yarn install
 yarn dev
 ```
 
+若已安裝 Node 但沒有 `corepack` 指令，可使用 `npm exec --yes --package=corepack -- corepack yarn install`；啟動與建置時，將最後的 `install` 換成 `dev` 或 `build`。此方式仍使用 `package.json` 固定的 Yarn 版本。
+
 開啟 [http://localhost:3000](http://localhost:3000)，使用 authentik 帳號登入。開發伺服器會把 `/api/` 與 `/auth/` 轉送至 `http://localhost:8080`；瀏覽器仍使用同一個來源，登入 Cookie 與 CSRF 才能正常配合。
 
-`vite.config.ts` 固定使用連接埠 3000；若已被占用，啟動會失敗，不會自動切換。authentik 的開發環境回呼網址須包含 `http://localhost:3000/auth/callback`。
+`vite.config.ts` 固定使用連接埠 3000；若已被占用，啟動會失敗，不會自動切換。使用預設登入設定時，authentik 的開發環境回呼網址須包含 `http://localhost:3000/auth/callback`。
+
+若 authentik 回呼固定為 `http://localhost:8080/auth/callback`，可依後端 README 明確設定 `registration.authentik.redirect-uri`；前端仍使用 3000，登入完成後返回前端。
 
 登入後可開啟[目前登入者](http://localhost:3000/api/auth/me)確認帳號與權限，再操作帳號可見的頁面。前端依賴後端服務，沒有獨立的模擬資料模式。
 

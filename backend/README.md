@@ -54,6 +54,8 @@ spring:
 
 透過前端開發伺服器登入時，在 authentik 登記回呼網址 `http://localhost:3000/auth/callback`。若也會直接從後端登入，再登記 `http://localhost:8080/auth/callback`。
 
+若 authentik 固定只使用 `http://localhost:8080/auth/callback`，請在上述 `registration.authentik` 下加入 `redirect-uri: "http://localhost:8080/auth/callback"`；`app.frontend-url` 維持 `http://localhost:3000/`，登入完成後會返回前端。Issuer URL 應使用 authentik 該應用的 `/application/o/<應用 slug>/`，不要填成授權端點 `/application/o/authorize/`。
+
 本機啟動時，業務服務以 `ddl-auto: update` 自動建立／更新資料表；`web-server` 預設把登入工作階段存入 `basic_data`，以 `initialize-schema: always` 使用 Spring Session 套件內建的 MySQL schema，自動建立預設的 `SPRING_SESSION` 與 `SPRING_SESSION_ATTRIBUTES`，不需維護自訂 SQL。此初始化不負責升級既有資料表結構；啟動 `web-server` 前須確保 `basic_data` 資料庫已存在。
 
 若本機不需要寄信，在 `notification-service` 的 `application-local.yml` 加入：
@@ -136,7 +138,32 @@ curl http://127.0.0.1:9080/actuator/health
 
 ## 部署設定
 
-以 [`../deploy/.env.example`](../deploy/.env.example) 為起點，檢查各服務的 `application-deploy.yml`。Spring Boot **不會自動讀取 `.env`**，須由終端或服務管理器注入環境變數，並設定 `SPRING_PROFILES_ACTIVE=deploy`。
+將 [`../deploy/application.properties.example`](../deploy/application.properties.example) 複製成 `deploy/application.properties`，填妥帳密與部署設定；該檔案已被 Git 忽略。各服務透過 `spring.config.import` 直接讀取，不需額外載入腳本或套件。
+
+檔案使用 `KEY=VALUE`，不加 `export` 或值的外層引號，註解獨立成行。Windows 路徑使用 `/`；其他值若含字面反斜線，須寫成 `\\`。`deploy` profile 由啟動參數指定，不在 properties 檔中設定 `SPRING_PROFILES_ACTIVE`。
+
+完成建置與下方部署準備後，在 `backend/` 目錄的不同 PowerShell 終端依序執行：
+
+```powershell
+.\mvnw.cmd -Pdeploy -pl eureka-server spring-boot:run
+.\mvnw.cmd -Pdeploy -pl basic-data spring-boot:run
+.\mvnw.cmd -Pdeploy -pl project-service spring-boot:run
+.\mvnw.cmd -Pdeploy -pl notification-service spring-boot:run
+.\mvnw.cmd -Pdeploy -pl web-server spring-boot:run
+```
+
+Maven 的 `-Pdeploy` 會替各服務設定 Spring `deploy` profile，並以儲存庫的絕對路徑匯入 `deploy/application.properties`；缺少檔案時啟動會失敗。一般本機啟動指令維持原有的 `local` profile。
+
+若直接使用 IntelliJ 啟動，在各服務的 **Run Configuration → Program arguments** 填入以下兩個參數，將路徑換成實際位置：
+
+```text
+--spring.profiles.active=deploy
+"--spring.config.import=file:C:/Users/Wei/Desktop/spring-core-lab/deploy/application.properties"
+```
+
+啟動已打包的 JAR 時，也在 `java -jar <服務.jar>` 後加上這兩個參數。分機部署可改成各服務專用的設定檔路徑；外部 properties 檔不會打包進 JAR。環境變數仍可覆寫檔案中的同名設定。
+
+載入方式依據 Spring Boot 的 [外部設定](https://docs.spring.io/spring-boot/4.0/reference/features/external-config.html) 與 [Maven 啟動參數](https://docs.spring.io/spring-boot/4.0/maven-plugin/run.html)。
 
 - 部署前須建立資料庫與資料表；業務服務以 `ddl-auto: validate` 驗證結構，不會更新資料表。
 - `deploy` 的 Spring Session 設定為 `initialize-schema: never`，不會自動建表；首次部署前，須在工作階段資料庫手動執行專案相依版本 `spring-session-jdbc` 套件內的 `org/springframework/session/jdbc/schema-mysql.sql`。升級 Spring Session 時，須核對相依版本的 schema 並手動套用結構變更。

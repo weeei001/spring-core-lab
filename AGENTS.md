@@ -13,7 +13,7 @@
 
 - `backend/`：Spring Boot 多模組專案。`common` 放實體與共用基礎設施，`common-api` 放服務契約；執行模組為 `eureka-server`、`basic-data`、`project-service`、`notification-service` 與前端入口 `web-server`。各模組的程式與設定位於 `src/main/java/`、`src/main/resources/`。
 - `frontend/src/`：React／TypeScript 分為 `app`、`pages`、`components`、`api`、`core`、`shared`。頁面專用元件與 CSS 放在該頁目錄，細節見 `frontend/README.md`。
-- `http/` 放手動 API 請求；`deploy/.env.example` 列出部署變數。前後端啟動方式見各自的 `README.md`。
+- `http/` 放手動 API 請求；`deploy/application.properties.example` 列出部署設定。前後端啟動方式見各自的 `README.md`。
 
 ## 建置、測試與開發指令
 
