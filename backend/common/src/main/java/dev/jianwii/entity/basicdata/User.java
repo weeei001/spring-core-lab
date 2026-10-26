@@ -18,7 +18,7 @@ import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
 /**
- * 使用者。authentik 只負責驗證身分，使用者資料以這張表為準； 各表的 createId、transId 存的是這裡的 id，前端再以 id 查名字。 登入時由 web-server 呼叫
+ * 使用者。OIDC 提供者只負責驗證身分，使用者資料以這張表為準； 各表的 createId、transId 存的是這裡的 id，前端再以 id 查名字。 登入時由 web-server 呼叫
  * UserApi.login 建立或同步，不提供手動新增、修改；權限透過角色指派。
  */
 @Entity
@@ -28,18 +28,18 @@ import org.hibernate.annotations.BatchSize;
 @Setter
 public class User extends BaseEntity {
 
-    /** authentik 的使用者識別（登入 token 的 sub），登入時用來對應這筆資料；不可修改。 */
+    /** OIDC issuer + sub 的 SHA-256 識別（oidc: 前綴），登入時用來對應這筆資料；不可修改。 */
     @NotBlank
     @Size(max = 255)
     @Column(name = "subject", nullable = false, unique = true, updatable = false)
     private String subject;
 
-    /** 登入帳號（authentik 的 preferred_username）。 */
+    /** 登入帳號（OIDC 提供者的 preferred_username）。 */
     @Size(max = 150)
     @Column(name = "username", length = 150)
     private String username;
 
-    /** 顯示名稱；authentik 沒給時以帳號代替。 */
+    /** 顯示名稱；OIDC 提供者沒給時以帳號代替。 */
     @Size(max = 100)
     @Column(name = "name", nullable = false, length = 100)
     private String name;

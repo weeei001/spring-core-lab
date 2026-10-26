@@ -30,7 +30,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
-        <!-- 登入：web-server 以 OAuth2 Client 身分向 authentik 登入，瀏覽器只拿到 session cookie -->
+        <!-- 登入：web-server 以 OAuth2 Client 身分向 OIDC 提供者 登入，瀏覽器只拿到 session cookie -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-client</artifactId>

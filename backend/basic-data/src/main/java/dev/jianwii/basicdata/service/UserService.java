@@ -39,7 +39,7 @@ public class UserService extends BaseService<User, UserQueryParameter> {
     }
 
     /**
-     * 登入同步：依 subject 找使用者，沒有就建立（只有預設角色）；有就以 authentik 的資料更新。 資料沒變時 JPA 不會送出 UPDATE，transTime 也不會變。
+     * 登入同步：依 subject 找使用者，沒有就建立（只有預設角色）；有就以 OIDC 提供者的資料更新。 資料沒變時 JPA 不會送出 UPDATE，transTime 也不會變。
      */
     @Transactional
     public User login(User login) {

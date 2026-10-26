@@ -1,6 +1,6 @@
 ### 登入（web-server 的 API 都要登入；session 有效期間只需做一次）
-### 1. 瀏覽器開 http://localhost:8080/auth/login/authentik 登入；完成後會導向前端 localhost:3000，前端沒開也沒關係
-###    網址若帶 ?loginError=... 代表同步 user 失敗（例如 basic-data 沒開），停在 /login?error 則看 web-server 的 log
+### 1. 瀏覽器開 http://localhost:8080/auth/login/google 登入；完成後會導向前端 localhost:3000，預設經 3000 回呼，須啟動前端
+###    網址若帶 ?loginError=... 代表登入或同步 user 失敗（例如 basic-data 沒開），請看 web-server 的 log
 ### 2. 同一個瀏覽器開 http://localhost:8080/api/auth/me，看到自己的 user 資料才代表登入成功；
 ###    在這個分頁的開發者工具 → Application → Cookies 複製 SPRING_CORE_SESSION（登入後會換新的，要登入完成後再複製）
 ### 3. 填進 http/http-client.private.env.json 的 session（不進 git），執行 .http 時環境選 dev
@@ -38,3 +38,12 @@ Cookie: SPRING_CORE_SESSION={{session}}
 Content-Type: application/json
 
 {}
+
+### 可用的 OIDC 登入方式（可匿名讀取）
+GET http://localhost:8080/api/auth/providers
+
+### 登出本站；提供者支援 OIDC 登出時回傳該提供者的登出網址，Google 返回首頁
+# @no-cookie-jar
+POST http://localhost:8080/auth/logout
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
+X-XSRF-TOKEN: {{xsrf}}

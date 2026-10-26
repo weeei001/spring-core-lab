@@ -21,13 +21,12 @@ WEB_SESSION_DB_URL=jdbc:mysql://db.internal:3306/basic_data?serverTimezone=Asia/
 WEB_SESSION_DB_USERNAME=web_session_app
 WEB_SESSION_DB_PASSWORD=
 
-AUTHENTIK_ISSUER_URI=https://identity.example.invalid/application/o/spring-core-lab/
-AUTHENTIK_CLIENT_ID=
-AUTHENTIK_CLIENT_SECRET=
+# 各 OIDC 的 issuer、Client ID／Secret 存 MySQL 的 oidc_client_registration。
+# 先建表並匯入 Google 設定，參考 deploy/google-oidc.md 與 oidc-clients.sql.example。
 APP_FRONTEND_URL=https://project-manage.jianwii.dev
-# 對外網址，結尾不加 /；在 authentik 登記此網址加上 /auth/callback 作為回呼網址。
+# 對外網址，結尾不加 /；在 Google Auth Platform 登記此網址加上 /auth/callback/google 作為回呼網址。
 APP_PUBLIC_URL=https://project-manage.jianwii.dev/backend
-# 超級管理員的 authentik 使用者識別碼（subject），多個用逗號分隔；留空表示不設定。
+# 超級管理員登入後 /api/auth/me 回傳的 subject（oidc: 開頭，非 Google 原始 sub），多個用逗號分隔；留空表示不設定。
 APP_SUPER_ADMIN_SUBJECTS=
 
 # 上傳目錄：先建立並開放服務帳號讀寫，放在程式目錄外；Windows 例如 D:/spring-data/uploads。

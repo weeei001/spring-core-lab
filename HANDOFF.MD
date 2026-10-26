@@ -50,3 +50,21 @@
 - 正式沿用 `basic_data`、`project`、`notification`，獨立 Session 庫的兩張表合併至 `basic_data`。Windows 匯出時須將 Session 表與外鍵引用轉成 `SPRING_SESSION`／`SPRING_SESSION_ATTRIBUTES`，不能只改 schema 名稱。
 - mysqldump 匯入後，SHOW CREATE TABLE 可能多出明示的 CHARACTER SET，而 COLLATE 未變；比對時應辨識等價語法。用不同連線匯入後驗證新建表，驗證連線使用 autocommit，避免舊交易快照造成 MySQL 1412。
 
+
+## 多 OIDC 的帳號與登出
+
+- `sub` 只在單一 issuer 下唯一，Google 也未提供 `preferred_username`。現在用已驗證 ID token 的 `issuer + NUL + sub` 做 SHA-256，加 `oidc:` 前綴，沿用既有 255 字元 subject 欄位；登入同步與超級管理員檢查必須使用同一算法。`APP_SUPER_ADMIN_SUBJECTS` 填 `/api/auth/me` 回傳值，不能再填提供者原始 sub。
+- Google Discovery 沒有 `end_session_endpoint`。Spring 的 `setPostLogoutRedirectUri` 只用於提供者登出；還須設定 `setDefaultTargetUrl(frontendUrl)`，Google 或匿名登出才會回前端而非後端 `/`。不要用撤銷授權 API 代替登出。
+- 使用 properties 註冊 OIDC 時，Spring 會合併 base、local 與外部 registration map；僅修改公開設定不會移除 local 的 authentik。目前已改成 MySQL 專用 repository bean，不再從這些 properties 註冊；舊設定應移除以免誤用。
+- OIDC 回呼已改為 `/auth/callback/{registrationId}`；正式 Google URI 為 `https://project-manage.jianwii.dev/backend/auth/callback/google`。本機改用明確 `app.public-url`，預設 3000，不再隨登入入口 Host 變動。
+- authentik 的 Cloudflare 診斷段落是切換前的歷史經驗；直接 Google OIDC 不再經過該服務。
+
+## MySQL OIDC 設定
+
+- `oidc_client_registration` 與 Spring Session 使用 web-server 同一個 datasource；目前本機是 `spring_core_lab_verify_session`，正式是 `basic_data`。DDL 在 `backend/web-server/src/main/resources/db/oidc-client-registration.sql`，只需執行此增量腳本，不要重匯全部 schema。
+- 設定於啟動時載入 InMemoryClientRegistrationRepository，新增、修改、停用均須重啟；不會即時重讀 SQL。停用提供者不等於撤銷既有 Session。沒有啟用的設定或 discovery 不通會使啟動失敗，不會退回舊 properties。
+
+## 本機 basic-data 資料庫不存在時
+
+- 2026-10-26 本機 `basic-data` 的 application-local.yml 實際指向 `spring_core_lab_verify_basic_data`，覆寫了公開設定中含 `createDatabaseIfNotExist=true` 的 URL。即使 local 的 Hibernate 設為 `ddl-auto=update`，也必須先有資料庫才能建表；不能只看公開 application.yml 就認為會自動建庫。
+- 此次補建上述空資料庫後，以 local profile 啟動，Hibernate 建立 7 張資料表。這是新建結構，不是恢復舊資料。JAR 不含 application-local.yml，以 JAR 啟動時須保留 `--spring.config.additional-location=file:./src/main/resources/application-local.yml`，並以各模組目錄為工作目錄。

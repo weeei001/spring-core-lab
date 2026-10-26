@@ -12,8 +12,15 @@ export interface CurrentUser {
   permissions: string[];
 }
 
+export interface LoginProvider {
+  id: string;
+  name: string;
+}
+
 export const authApi = {
+  providers: () => send(http.get<Result<LoginProvider[]>>('/api/auth/providers')),
+  loginUrl: (id: string) => http.getUri({ url: `/auth/login/${encodeURIComponent(id)}` }),
   me: () => send(http.get<Result<CurrentUser>>('/api/auth/me')),
-  /** 清掉 web-server 的 session，回傳 authentik 的登出網址 */
+  /** 清掉 web-server 的 session，回傳提供者登出網址或本站首頁 */
   logout: () => send(http.post<Result<string>>('/auth/logout')),
 };

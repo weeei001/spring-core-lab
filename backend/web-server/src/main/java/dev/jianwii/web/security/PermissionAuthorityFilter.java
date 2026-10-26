@@ -22,6 +22,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -61,7 +62,8 @@ public class PermissionAuthorityFilter extends OncePerRequestFilter {
                     unauthorized(session, response);
                     return;
                 }
-                String subject = token.getPrincipal().getAttribute("sub");
+                String subject =
+                        token.getPrincipal() instanceof OidcUser oidcUser ? OidcIdentity.subject(oidcUser) : null;
                 permissions = subject != null && superAdminSubjects.contains(subject)
                         ? Permission.codes()
                         : Set.copyOf(authorization.permissions());

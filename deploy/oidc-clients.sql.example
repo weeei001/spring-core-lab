@@ -1,0 +1,20 @@
+-- 選取 web-server 的 datasource 資料庫。
+-- 先執行 backend/web-server/src/main/resources/db/oidc-client-registration.sql 建表。
+-- 將範例值換成 Google Auth Platform 的實際憑證，勿提交含真實值的 SQL。
+INSERT INTO oidc_client_registration
+    (registration_id, client_name, issuer_uri, client_id, client_secret, enabled)
+VALUES
+    ('google', 'Google', 'https://accounts.google.com',
+     '你的 Google Client ID', '你的 Google Client Secret', TRUE);
+
+-- 修改 Client Secret 後重啟 web-server。
+-- UPDATE oidc_client_registration SET client_secret = '新的 Client Secret' WHERE registration_id = 'google';
+
+-- 新增其他 OIDC，同樣提供 issuer 與憑證；預設不啟用。
+-- INSERT INTO oidc_client_registration
+--     (registration_id, client_name, issuer_uri, client_id, client_secret)
+-- VALUES ('company', 'Company SSO', 'https://你的提供者/issuer', 'Client ID', 'Client Secret');
+
+-- 啟用／停用後重啟 web-server。至少保留一個可用的提供者。
+-- UPDATE oidc_client_registration SET enabled = TRUE WHERE registration_id = 'company';
+-- UPDATE oidc_client_registration SET enabled = FALSE WHERE registration_id = 'company';

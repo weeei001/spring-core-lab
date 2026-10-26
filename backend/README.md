@@ -1,6 +1,6 @@
 # spring-core-lab 後端
 
-提供專案、任務、工時、請假與通知功能的後端，並集中處理使用者登入、角色權限及檔案上傳。採用 Java 21、Spring Boot 4、Spring Cloud、MySQL 與 authentik；前端透過 `web-server` 存取業務服務。
+提供專案、任務、工時、請假與通知功能的後端，並集中處理使用者登入、角色權限及檔案上傳。採用 Java 21、Spring Boot 4、Spring Cloud、MySQL 與 Google OIDC；前端透過 `web-server` 存取業務服務。
 
 [前端啟動說明](../frontend/README.md) · [協作規範](../AGENTS.md) · [已知問題](../HANDOFF.MD)
 
@@ -11,7 +11,7 @@
 | Java | JDK 21，確認 `JAVA_HOME` 指向 JDK |
 | Maven | 使用隨附的 Maven Wrapper，首次執行需要下載套件 |
 | MySQL | 本機預設為 `localhost:3306`；業務資料庫為 `basic_data`、`project`、`notification` |
-| authentik | 可連線的 OpenID Connect 提供者，以及本專案的 Client ID／Client Secret |
+| Google OIDC | Google Auth Platform 的 Web Client ID／Client Secret |
 | 郵件 | 需要寄信時提供 SMTP 設定；本機驗證可關閉寄信 |
 
 下列指令以 `backend/` 為工作目錄。若目前位於儲存庫根目錄，先執行 `cd backend`。Windows PowerShell 將 `./mvnw` 改為 `.\mvnw.cmd`。
@@ -40,21 +40,16 @@ spring:
   datasource:
     username: "你的本機資料庫帳號"
     password: "你的本機資料庫密碼"
-  security:
-    oauth2:
-      client:
-        registration:
-          authentik:
-            client-id: "你的 Client ID"
-            client-secret: "你的 Client Secret"
-        provider:
-          authentik:
-            issuer-uri: "https://你的-authentik/application/o/你的應用程式/"
 ```
 
-透過前端開發伺服器登入時，在 authentik 登記回呼網址 `http://localhost:3000/auth/callback`。若也會直接從後端登入，再登記 `http://localhost:8080/auth/callback`。
+在 web-server 的 datasource 資料庫執行 [OIDC 建表 SQL](web-server/src/main/resources/db/oidc-client-registration.sql)，再依 [Google SQL 範本](../deploy/oidc-clients.sql.example) 寫入憑證並啟用。OIDC 設定只從 MySQL 讀取，修改後重啟生效；沒有啟用的提供者時啟動會報錯。
 
-若 authentik 固定只使用 `http://localhost:8080/auth/callback`，請在上述 `registration.authentik` 下加入 `redirect-uri: "http://localhost:8080/auth/callback"`；`app.frontend-url` 維持 `http://localhost:3000/`，登入完成後會返回前端。Issuer URL 應使用 authentik 該應用的 `/application/o/<應用 slug>/`，不要填成授權端點 `/application/o/authorize/`。
+Google Auth Platform 的回呼網址填 `http://localhost:3000/auth/callback/google`。
+後端預設 `app.public-url=http://localhost:3000`，從 8080 開始登入也會回到 3000，因此須啟動前端代理。
+若要直接經後端回呼，在本機設定加入 `app.public-url: http://localhost:8080`，並在 Google 登記 `http://localhost:8080/auth/callback/google`。
+
+完整 Google Auth Platform 欄位、正式部署與新增 OIDC 的設定見 [Google OIDC 配置](../deploy/google-oidc.md)。
+舊本機設定須刪除 `GOOGLE_CLIENT_*`、`AUTHENTIK_*` 與 `spring.security.oauth2.client.*`。網站 public-url／frontend-url 繼續保留在環境設定。
 
 本機啟動時，業務服務以 `ddl-auto: update` 自動建立／更新資料表；`web-server` 預設把登入工作階段存入 `basic_data`，以 `initialize-schema: always` 使用 Spring Session 套件內建的 MySQL schema，自動建立預設的 `SPRING_SESSION` 與 `SPRING_SESSION_ATTRIBUTES`，不需維護自訂 SQL。此初始化不負責升級既有資料表結構；啟動 `web-server` 前須確保 `basic_data` 資料庫已存在。
 
@@ -78,7 +73,7 @@ app:
 
 ### 3. 依序啟動服務
 
-先準備 MySQL 與 authentik，再啟動 Eureka、三個業務服務，最後啟動 `web-server`。以下每條指令在獨立終端執行，工作目錄皆為 `backend/`：
+先準備 MySQL 與 Google OIDC 憑證，再啟動 Eureka、三個業務服務，最後啟動 `web-server`。以下每條指令在獨立終端執行，工作目錄皆為 `backend/`：
 
 ```bash
 ./mvnw -pl eureka-server spring-boot:run
@@ -113,7 +108,7 @@ curl http://127.0.0.1:9080/actuator/health
 ```text
 瀏覽器 → 前端 → web-server → 業務服務 → MySQL
                     ↕           ↕
-                 authentik    Eureka（服務探索）
+                 Google OIDC  Eureka（服務探索）
 ```
 
 - `common/`：共用實體、DAO／Service 基底、查詢、驗證、例外與回應格式。
@@ -132,7 +127,7 @@ curl http://127.0.0.1:9080/actuator/health
 | `./mvnw spotless:check` | 只檢查 Java 排版 |
 | `./mvnw spotless:apply` | 修正 Java 排版 |
 
-目前沒有已提交的自動化測試或覆蓋率門檻，`test` 成功不代表功能已驗證。修改後應實際操作相關登入、權限及業務流程；新增測試時放入所屬模組的 `src/test/java/`，並配置測試依賴。
+目前不保留自動化測試檔或測試依賴。修改後依範圍執行編譯與排版檢查，並實際驗證登入、權限及業務流程；Google 真實登入須配置憑證後驗收。
 
 [`../http/`](../http/) 提供手動 API 範例，使用目前設定的 Cookie 名稱 `SPRING_CORE_SESSION`。依照 `auth.http` 的說明登入，將 Cookie 值填入被忽略的 `http-client.private.env.json` 的 `session`，不要提交 Cookie。
 
@@ -178,7 +173,7 @@ Maven 的 `-Pdeploy` 會替各服務設定 Spring `deploy` profile，並以儲�
 |---|---|
 | 找不到 `common`／`common-api` | 先在 `backend/` 執行完整的 `./mvnw clean install` |
 | 資料庫連線失敗 | 檢查 MySQL、服務所屬資料庫、本機設定與帳號權限 |
-| 登入回呼不符或登入失敗 | 檢查 authentik 回呼網址、issuer、Client 資訊，以及 `basic-data` 是否已註冊 |
+| 登入回呼不符或登入失敗 | 檢查 Google／OIDC 回呼網址、issuer、Client 資訊，以及 `basic-data` 是否已註冊 |
 | 找不到 `SPRING_SESSION` 資料表 | 本機檢查初始化設定、啟動日誌與建表權限；正式環境先手動執行套件內建的 Session 建表 SQL |
 | API 回傳 401／403 | 檢查登入狀態、Cookie 名稱、CSRF 與角色權限 |
 

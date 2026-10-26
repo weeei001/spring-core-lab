@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Flex, Result, Spin, message } from 'antd';
-import { ApiError, LOGIN_URL } from '@/core/http/client';
+import { ApiError } from '@/core/http/client';
 import { authApi } from './auth-api';
 import { AuthContext, type AuthContextValue } from './auth-context';
 
@@ -14,24 +14,50 @@ function FullPageSpin({ text }: { text: string }) {
   );
 }
 
-/** 未登入時的首頁；按登入才整頁跳轉到 authentik。error 是 web-server 帶回來的登入失敗原因 */
+/** 未登入時的首頁；按登入才整頁跳轉到 OIDC 提供者。error 是 web-server 帶回來的登入失敗原因 */
 function LoginPage({ error }: { error: string | null }) {
+  const providers = useQuery({ queryKey: ['auth-providers'], queryFn: authApi.providers });
+  if (providers.isPending) {
+    return <FullPageSpin text="載入登入方式…" />;
+  }
+  if (providers.isError) {
+    return (
+      <Result
+        status="error"
+        title="無法取得登入方式"
+        subTitle={providers.error.message}
+        extra={
+          <Button
+            onClick={() => {
+              void providers.refetch();
+            }}
+          >
+            重試
+          </Button>
+        }
+      />
+    );
+  }
   return (
     <Result
       status={error === null ? 'info' : 'warning'}
       title={error === null ? '請先登入' : '登入失敗'}
-      subTitle={error}
+      subTitle={error ?? (providers.data.length === 0 ? '尚未設定登入方式，請聯絡管理員' : null)}
       extra={
-        <Button type="primary" href={LOGIN_URL}>
-          {error === null ? '登入' : '重新登入'}
-        </Button>
+        <Flex wrap justify="center" gap={12}>
+          {providers.data.map((provider) => (
+            <Button key={provider.id} size="large" href={authApi.loginUrl(provider.id)}>
+              使用 {provider.name} 登入
+            </Button>
+          ))}
+        </Flex>
       }
     />
   );
 }
 
 /**
- * 啟動時取得目前登入者；未登入（含登出後 authentik 導回來）時顯示登入頁，由使用者自己按登入。
+ * 啟動時取得目前登入者；未登入（含登出後導回來）時顯示登入頁，由使用者自己按登入。
  * 登入失敗時 web-server 會帶 ?loginError= 導回來，這時顯示錯誤原因。
  */
 export function AuthProvider({ children }: { children: ReactNode }) {

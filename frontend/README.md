@@ -8,7 +8,7 @@
 
 需要 Node.js `^20.19.0 || >=22.12.0`，以及 Corepack。`package.json` 固定使用 Yarn 4.18.1。下列指令以 `frontend/` 為工作目錄；若位於儲存庫根目錄，先執行 `cd frontend`。
 
-先依[後端 README](../backend/README.md)完成 MySQL、authentik 與服務啟動，再執行：
+先依[後端 README](../backend/README.md)完成 MySQL、Google 與服務啟動，再執行：
 
 ```bash
 corepack enable
@@ -18,11 +18,11 @@ yarn dev
 
 若已安裝 Node 但沒有 `corepack` 指令，可使用 `npm exec --yes --package=corepack -- corepack yarn install`；啟動與建置時，將最後的 `install` 換成 `dev` 或 `build`。此方式仍使用 `package.json` 固定的 Yarn 版本。
 
-開啟 [http://localhost:3000](http://localhost:3000)，使用 authentik 帳號登入。開發伺服器會把 `/api/` 與 `/auth/` 轉送至 `http://localhost:8080`；瀏覽器仍使用同一個來源，登入 Cookie 與 CSRF 才能正常配合。
+開啟 [http://localhost:3000](http://localhost:3000)，使用 Google 帳號登入。開發伺服器會把 `/api/` 與 `/auth/` 轉送至 `http://localhost:8080`；瀏覽器仍使用同一個來源，登入 Cookie 與 CSRF 才能正常配合。
 
-`vite.config.ts` 固定使用連接埠 3000；若已被占用，啟動會失敗，不會自動切換。使用預設登入設定時，authentik 的開發環境回呼網址須包含 `http://localhost:3000/auth/callback`。
+`vite.config.ts` 固定使用連接埠 3000；若已被占用，啟動會失敗，不會自動切換。使用預設登入設定時，Google 的開發環境回呼網址須包含 `http://localhost:3000/auth/callback/google`。
 
-若 authentik 回呼固定為 `http://localhost:8080/auth/callback`，可依後端 README 明確設定 `registration.authentik.redirect-uri`；前端仍使用 3000，登入完成後返回前端。
+若 Google 回呼固定為 `http://localhost:8080/auth/callback/google`，可依後端 README 明確設定 `app.public-url: http://localhost:8080`；前端仍使用 3000，登入完成後返回前端。
 
 登入後可開啟[目前登入者](http://localhost:3000/api/auth/me)確認帳號與權限，再操作帳號可見的頁面。前端依賴後端服務，沒有獨立的模擬資料模式。
 
@@ -109,7 +109,7 @@ yarn build
 - 前端路由回退至 `index.html`，讓直接開啟或重新整理子頁面可正常載入。
 - 正式建置的 API、登入與附件網址使用 `/backend` 前綴；開發模式維持 `/api/` 與 `/auth/`。
 - 同一個對外來源下，將 `/backend/` 移除前綴後反向代理至 `web-server`，範本見 [Nginx 設定](../deploy/nginx-spring.conf)。後端保留根 context，Cookie Path 使用 `/`，不傳入 `X-Forwarded-Prefix`。
-- 本次正式入口為 `https://project-manage.jianwii.dev`；`APP_FRONTEND_URL` 使用此網址，`APP_PUBLIC_URL` 加上 `/backend`，authentik 回呼為 `https://project-manage.jianwii.dev/backend/auth/callback`。詳見[後端部署說明](../backend/README.md#部署設定)。
+- 本次正式入口為 `https://project-manage.jianwii.dev`；`APP_FRONTEND_URL` 使用此網址，`APP_PUBLIC_URL` 加上 `/backend`，Google 回呼為 `https://project-manage.jianwii.dev/backend/auth/callback/google`。詳見[後端部署說明](../backend/README.md#部署設定)。
 
 `yarn preview` 用於本機檢查建置產物，正式部署仍需上述代理與路由設定。
 
@@ -120,7 +120,7 @@ yarn build
 | 找不到 `corepack` | 確認 Node 版本與 Corepack 已安裝，再執行 `corepack enable` |
 | 3000 已被占用 | 停止占用程式，再啟動開發伺服器 |
 | API 連線失敗 | 確認 `web-server` 使用 8080，且業務服務已在 Eureka 註冊 |
-| 登入回呼錯誤 | 核對 authentik 的回呼網址與目前使用的來源 |
+| 登入回呼錯誤 | 核對 Google 的回呼網址與目前使用的來源 |
 | API 回傳 401／403 | 檢查登入狀態、角色權限，以及請求是否使用共用 Client |
 | 型別或引用規則報錯 | 先修正 `yarn typecheck`／`yarn lint` 指出的型別或分層問題 |
 

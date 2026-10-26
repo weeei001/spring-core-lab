@@ -65,14 +65,7 @@ public class DeployConfigurationValidator implements ApplicationContextInitializ
             if (!"never".equals(env.getProperty("spring.session.jdbc.initialize-schema"))) {
                 errors.add("deploy 的 spring.session.jdbc.initialize-schema 必須為 never");
             }
-            require(
-                    env,
-                    errors,
-                    "AUTHENTIK_CLIENT_ID",
-                    "AUTHENTIK_CLIENT_SECRET",
-                    "AUTHENTIK_ISSUER_URI",
-                    "APP_FRONTEND_URL",
-                    "APP_PUBLIC_URL");
+            require(env, errors, "APP_FRONTEND_URL", "APP_PUBLIC_URL");
         }
         if ("notification-service".equals(service)) {
             require(

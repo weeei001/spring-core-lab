@@ -2,7 +2,7 @@ import type { BaseEntity } from '@/core/http/types';
 
 /** 使用者（後端 User）；第一次登入時自動建立 */
 export interface User extends BaseEntity {
-  /** authentik 的使用者識別 */
+  /** OIDC issuer + sub 的帳號識別 */
   subject: string;
   username: string | null;
   name: string;

@@ -28,7 +28,7 @@ public interface UserApi {
     PageResponse<User> queryPage(@Valid @RequestBody UserQueryParameter parameter);
 
     /**
-     * 登入同步，只給 web-server 在登入成功時呼叫：依 subject 找使用者，沒有就建立， 有就以 authentik 的資料更新
+     * 登入同步，只給 web-server 在登入成功時呼叫：依 subject 找使用者，沒有就建立， 有就以 OIDC 提供者的資料更新
      * username、name、email。已停用（軟刪除）的使用者回 403。
      */
     @PostExchange("/login")

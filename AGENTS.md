@@ -48,4 +48,4 @@ Java 使用 Palantir 排版、四個空白縮排，以及 `*Controller`／`*Serv
 
 ## 安全與設定
 
-在本機設定 MySQL、authentik 與郵件服務。憑證放在 Git 忽略的 `application-local.yml` 或部署環境檔案，不得提交機密。
+在本機設定 MySQL、Google OIDC 憑證與郵件服務。憑證放在 Git 忽略的 `application-local.yml` 或部署環境檔案，不得提交機密。

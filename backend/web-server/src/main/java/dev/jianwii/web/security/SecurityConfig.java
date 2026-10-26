@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -22,16 +23,16 @@ import org.springframework.security.oauth2.client.web.HttpSessionOAuth2Authorize
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * 登入設定：web-server 以 OAuth2 Client 身分向 authentik 登入，token 留在後端，瀏覽器只拿到 session cookie。
+ * 登入設定：web-server 以 OAuth2 Client 身分向 OIDC 提供者登入，token 留在後端，瀏覽器只拿到 session cookie。
  *
  * <ul>
- * <li>登入：前端整頁跳轉到 {@value #LOGIN_URI}/authentik，登入完成導回 {@code app.frontend-url}。</li>
- * <li>登出：前端 POST {@value #LOGOUT_URI}（要帶 CSRF header），回傳 authentik 的登出網址， 前端再整頁跳轉過去，一併登出 authentik
- * 後導回前端。</li>
- * <li>API：一律要登入，未登入回 401 Result，前端收到後導向登入網址。</li>
+ * <li>登入：前端整頁跳轉到 {@value #LOGIN_URI}/{registrationId}，登入完成導回 {@code app.frontend-url}。</li>
+ * <li>登出：前端 POST {@value #LOGOUT_URI}（要帶 CSRF header），回傳提供者的登出網址；不支援 OIDC 登出時直接返回前端。</li>
+ * <li>API：提供者清單可匿名讀取；其他 API 要登入，未登入回 401 Result。</li>
  * <li>權限：Controller 以 {@code @PreAuthorize("hasAuthority('task:write')")} 檢查功能權限， 沒有權限回 403
  * Result；權限由 PermissionAuthorityFilter 每個請求載入。</li>
  * <li>CSRF：登入靠 cookie，所以要防 CSRF。後端把 token 放在 XSRF-TOKEN cookie， 前端送出 POST／PATCH／DELETE 時放進
@@ -44,8 +45,8 @@ import tools.jackson.databind.json.JsonMapper;
 public class SecurityConfig {
 
     private static final String LOGIN_URI = "/auth/login";
-    /** authentik 登入完成後導回的網址，要和 authentik 設定的 redirect URI 一致。 */
-    private static final String CALLBACK_URI = "/auth/callback";
+    /** 各提供者使用獨立回呼網址。 */
+    private static final String CALLBACK_URI = "/auth/callback/*";
 
     private static final String LOGOUT_URI = "/auth/logout";
 
@@ -79,8 +80,8 @@ public class SecurityConfig {
             @Value("${app.super-admin-subjects:}") Set<String> superAdminSubjects,
             @Value("${app.frontend-url}") String frontendUrl)
             throws Exception {
-        // 登出時也結束 authentik 的登入狀態，否則下次登入會直接通過。
-        // 前端用 axios 呼叫，302 導向 authentik（跨網域）跟不過去，所以改成回 JSON，由前端自己跳轉
+        // 依登入使用的 registration 查詢 end_session_endpoint；Google 沒有該端點。
+        // axios 無法跨站跟隨登出，回傳 JSON 讓前端整頁跳轉。
         OidcClientInitiatedLogoutSuccessHandler logoutSuccessHandler =
                 new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository) {
                     @Override
@@ -95,15 +96,24 @@ public class SecurityConfig {
                     }
                 };
         logoutSuccessHandler.setPostLogoutRedirectUri(frontendUrl);
+        logoutSuccessHandler.setDefaultTargetUrl(frontendUrl);
 
         http.authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator", "/actuator/**")
                         .denyAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/providers")
+                        .permitAll()
                         .anyRequest()
                         .authenticated())
                 .oauth2Login(login -> login.authorizationEndpoint(endpoint -> endpoint.baseUri(LOGIN_URI))
                         .redirectionEndpoint(endpoint -> endpoint.baseUri(CALLBACK_URI))
-                        .successHandler(loginSuccessHandler))
+                        .successHandler(loginSuccessHandler)
+                        .failureHandler((request, response, exception) ->
+                                response.sendRedirect(UriComponentsBuilder.fromUriString(frontendUrl)
+                                        .queryParam("loginError", "登入失敗，請重新嘗試")
+                                        .build()
+                                        .encode()
+                                        .toUriString())))
                 .logout(logout -> logout.logoutUrl(LOGOUT_URI).logoutSuccessHandler(logoutSuccessHandler))
                 .csrf(csrf -> csrf.spa())
                 // 先確認帳號有效，再做 CSRF 與功能授權；停用帳號一致回 401。

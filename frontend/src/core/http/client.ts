@@ -1,9 +1,8 @@
 import axios, { type AxiosResponse } from 'axios';
 import type { Result } from './types';
 
-/** 開始登入的網址；使用者按登入按鈕時整頁跳轉，由 web-server 導向 authentik */
+/** 正式環境由同網域 /backend 代理至 web-server。 */
 const BACKEND_BASE = import.meta.env.PROD ? '/backend' : '';
-export const LOGIN_URL = `${BACKEND_BASE}/auth/login/authentik`;
 
 /** 後端回傳的錯誤；message 可以直接給使用者看 */
 export class ApiError extends Error {

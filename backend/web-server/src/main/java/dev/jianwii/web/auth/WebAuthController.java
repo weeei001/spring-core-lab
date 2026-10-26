@@ -6,12 +6,15 @@ import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.basicdata.User;
 import dev.jianwii.web.security.OperatorHeaderFilter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +28,19 @@ import org.springframework.web.bind.annotation.SessionAttribute;
 @RequestMapping(path = "/api/auth")
 public class WebAuthController {
     private final UserApi userApi;
+    private final InMemoryClientRegistrationRepository clientRegistrations;
+
+    public record LoginProvider(String id, String name) {}
+
+    /** 僅公開已設定的 OIDC 名稱與識別碼，不包含憑證。 */
+    @GetMapping("/providers")
+    public Result<List<LoginProvider>> providers() {
+        return Result.success(StreamSupport.stream(clientRegistrations.spliterator(), false)
+                .filter(client -> client.getScopes().contains("openid"))
+                .map(client -> new LoginProvider(client.getRegistrationId(), client.getClientName()))
+                .sorted(Comparator.comparing(LoginProvider::id))
+                .toList());
+    }
 
     /**
      * 目前登入者與他的功能權限（permissions）；前端啟動時呼叫，收到 401 代表要導向登入。 前端依 permissions
