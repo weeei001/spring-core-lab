@@ -49,3 +49,4 @@ http/http-client.private.env.json
 deploy/.env
 deploy/*.local.env
 deploy/application.properties
+/deploy/artifacts/

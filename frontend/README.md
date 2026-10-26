@@ -107,8 +107,9 @@ yarn build
 將產出的 `dist/` 交由靜態檔案服務提供，並設定：
 
 - 前端路由回退至 `index.html`，讓直接開啟或重新整理子頁面可正常載入。
-- 同一個對外來源下，將 `/api/` 與 `/auth/` 反向代理至 `web-server`。
-- 後端 `APP_FRONTEND_URL`、`APP_PUBLIC_URL` 與 authentik 回呼網址對應實際網址；詳見[後端部署說明](../backend/README.md#部署設定)。
+- 正式建置的 API、登入與附件網址使用 `/backend` 前綴；開發模式維持 `/api/` 與 `/auth/`。
+- 同一個對外來源下，將 `/backend/` 移除前綴後反向代理至 `web-server`，範本見 [Nginx 設定](../deploy/nginx-spring.conf)。後端保留根 context，Cookie Path 使用 `/`，不傳入 `X-Forwarded-Prefix`。
+- 本次正式入口為 `https://project-manage.jianwii.dev`；`APP_FRONTEND_URL` 使用此網址，`APP_PUBLIC_URL` 加上 `/backend`，authentik 回呼為 `https://project-manage.jianwii.dev/backend/auth/callback`。詳見[後端部署說明](../backend/README.md#部署設定)。
 
 `yarn preview` 用於本機檢查建置產物，正式部署仍需上述代理與路由設定。
 

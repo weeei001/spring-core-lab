@@ -15,5 +15,5 @@ export const attachmentApi = {
     await send(http.delete<Result<null>>(`${BASE}/${String(id)}`));
   },
   /** 檔案網址，給 img src 與下載連結；圖片在瀏覽器顯示，其他檔案直接下載 */
-  contentUrl: (id: number) => `${BASE}/${String(id)}/content`,
+  contentUrl: (id: number) => http.getUri({ url: `${BASE}/${String(id)}/content` }),
 };

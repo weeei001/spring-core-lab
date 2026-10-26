@@ -24,16 +24,16 @@ WEB_SESSION_DB_PASSWORD=
 AUTHENTIK_ISSUER_URI=https://identity.example.invalid/application/o/spring-core-lab/
 AUTHENTIK_CLIENT_ID=
 AUTHENTIK_CLIENT_SECRET=
-APP_FRONTEND_URL=https://projects.example.invalid
+APP_FRONTEND_URL=https://project-manage.jianwii.dev
 # 對外網址，結尾不加 /；在 authentik 登記此網址加上 /auth/callback 作為回呼網址。
-APP_PUBLIC_URL=https://projects.example.invalid
+APP_PUBLIC_URL=https://project-manage.jianwii.dev/backend
 # 超級管理員的 authentik 使用者識別碼（subject），多個用逗號分隔；留空表示不設定。
 APP_SUPER_ADMIN_SUBJECTS=
 
-# 上傳目錄：先建立並開放服務帳號讀寫，放在程式目錄外；Windows 例如 D:/spring-core-lab-data/uploads。
-APP_UPLOAD_DIR=/srv/spring-core-lab-data/uploads
+# 上傳目錄：先建立並開放服務帳號讀寫，放在程式目錄外；Windows 例如 D:/spring-data/uploads。
+APP_UPLOAD_DIR=/srv/spring-data/uploads
 # 舊任務附件目錄，服務須能讀取；沒有舊檔也要填一個獨立空目錄。
-APP_LEGACY_ATTACHMENT_DIR=/srv/spring-core-lab-data/legacy-attachments
+APP_LEGACY_ATTACHMENT_DIR=/srv/spring-data/legacy-attachments
 # 搬過上傳目錄才填原 data/uploads 的絕對路徑；沒有舊檔或沿用原目錄則留空。
 APP_LEGACY_UPLOAD_DIR=
 

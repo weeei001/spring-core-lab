@@ -14,5 +14,5 @@ export const uploadFileApi = {
     await send(http.delete<Result<null>>(`${BASE}/${String(id)}`));
   },
   /** 需要登入，且只供上傳者存取；業務共用時使用該模組的授權取檔網址。 */
-  contentUrl: (id: number) => `${BASE}/${String(id)}/content`,
+  contentUrl: (id: number) => http.getUri({ url: `${BASE}/${String(id)}/content` }),
 };

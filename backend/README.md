@@ -169,7 +169,7 @@ Maven 的 `-Pdeploy` 會替各服務設定 Spring `deploy` profile，並以儲�
 - `deploy` 的 Spring Session 設定為 `initialize-schema: never`，不會自動建表；首次部署前，須在工作階段資料庫手動執行專案相依版本 `spring-session-jdbc` 套件內的 `org/springframework/session/jdbc/schema-mysql.sql`。升級 Spring Session 時，須核對相依版本的 schema 並手動套用結構變更。
 - `web-server` 需要範本中的 `WEB_SESSION_DB_URL`、`WEB_SESSION_DB_USERNAME`、`WEB_SESSION_DB_PASSWORD`；範例沿用 `basic_data` 資料庫並使用專用帳號 `web_session_app`，部署前須授權帳號並填入密碼。
 - 資料庫使用專用帳號；上傳及舊附件目錄依範本設定為已存在的絕對路徑。
-- 對外提供前端與 `web-server`，Eureka、業務服務及資料庫留在內部網路。正式登入回呼由 `APP_PUBLIC_URL` 決定。
+- 對外提供前端與 `web-server`，Eureka、業務服務及資料庫留在內部網路。正式登入回呼由 `APP_PUBLIC_URL` 決定。本次同網域部署使用 `APP_PUBLIC_URL=https://project-manage.jianwii.dev/backend`，前端使用 `APP_FRONTEND_URL=https://project-manage.jianwii.dev`；Nginx 移除 `/backend/` 前綴後轉送，後端不設定 context-path。
 - 驗收期間依範本保持 `APP_MAIL_ENABLED=false`。部署模式仍會檢查 SMTP 必填設定。
 
 ## 常見問題

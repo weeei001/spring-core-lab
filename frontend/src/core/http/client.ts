@@ -2,7 +2,8 @@ import axios, { type AxiosResponse } from 'axios';
 import type { Result } from './types';
 
 /** 開始登入的網址；使用者按登入按鈕時整頁跳轉，由 web-server 導向 authentik */
-export const LOGIN_URL = '/auth/login/authentik';
+const BACKEND_BASE = import.meta.env.PROD ? '/backend' : '';
+export const LOGIN_URL = `${BACKEND_BASE}/auth/login/authentik`;
 
 /** 後端回傳的錯誤；message 可以直接給使用者看 */
 export class ApiError extends Error {
@@ -19,7 +20,10 @@ export class ApiError extends Error {
  * 所有 API 共用的 axios。同網域請求時 axios 會自動把 XSRF-TOKEN cookie 放進 X-XSRF-TOKEN header，
  * 後端的 CSRF 檢查才會通過。
  */
-export const http = axios.create({ headers: { 'Content-Type': 'application/json' } });
+export const http = axios.create({
+  baseURL: BACKEND_BASE,
+  headers: { 'Content-Type': 'application/json' },
+});
 
 function isResult(value: unknown): value is Result<unknown> {
   return typeof value === 'object' && value !== null && 'result' in value && 'message' in value;
