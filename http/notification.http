@@ -5,7 +5,7 @@
 ### 1. 發公告給自己並寄信（需要 notification:send，或列在 super-admin-subjects）
 # @no-cookie-jar
 POST http://localhost:8080/api/notification/announce
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 ### 2. 收件人不存在 → 400
 # @no-cookie-jar
 POST http://localhost:8080/api/notification/announce
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -35,12 +35,12 @@ Content-Type: application/json
 ### 3. 我的未讀數
 # @no-cookie-jar
 GET http://localhost:8080/api/notification/unread-count
-Cookie: JSESSIONID={{session}}
+Cookie: SPRING_CORE_SESSION={{session}}
 
 ### 4. 我的未讀通知，新的在前（recipientId 由 web-server 設為登入者，給了也會被覆蓋）
 # @no-cookie-jar
 POST http://localhost:8080/api/notification/queryPage
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -54,13 +54,13 @@ Content-Type: application/json
 ### 5. 標記一則已讀（別人的通知 → 403）
 # @no-cookie-jar
 POST http://localhost:8080/api/notification/{{notificationId}}/read
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 
 ### 6. 全部標記已讀，回傳這次標記的筆數
 # @no-cookie-jar
 POST http://localhost:8080/api/notification/read-all
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 
 ### 任務相關的通知由 project-service 自動發出（不通知操作者自己），用另一個帳號操作 project.http 即可看到：

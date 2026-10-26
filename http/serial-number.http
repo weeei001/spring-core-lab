@@ -3,7 +3,7 @@
 ### 編號規則分頁列表（PRODUCT 由 basic-data 啟動時建立）
 # @no-cookie-jar
 POST http://localhost:8080/api/basic-data/serial-number/queryPage
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -12,7 +12,7 @@ Content-Type: application/json
 ### 新增規則：每日歸零，例如 ORD-20261014-001（serialKey 不可重複，用時間戳記產生）
 # @no-cookie-jar
 POST http://localhost:8080/api/basic-data/serial-number
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -31,7 +31,7 @@ Content-Type: application/json
 ### 驗證失敗：rule 沒有流水號 → 400
 # @no-cookie-jar
 POST http://localhost:8080/api/basic-data/serial-number
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -45,7 +45,7 @@ Content-Type: application/json
 ### 依關鍵字查詢
 # @no-cookie-jar
 POST http://localhost:8080/api/basic-data/serial-number/query
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -59,7 +59,7 @@ POST http://localhost:8081/api/basic-data/serial-number/{{serialKey}}/next
 ### 修改規則名稱
 # @no-cookie-jar
 PATCH http://localhost:8080/api/basic-data/serial-number/{{serialId}}
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -70,7 +70,7 @@ Content-Type: application/json
 ### 刪除後無法再取號 → 404
 # @no-cookie-jar
 DELETE http://localhost:8080/api/basic-data/serial-number/{{serialId}}
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 
 ###

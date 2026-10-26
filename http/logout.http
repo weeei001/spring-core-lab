@@ -2,5 +2,5 @@
 ### 執行後 {{session}} 就失效，要重新登入
 # @no-cookie-jar
 POST http://localhost:8080/auth/logout
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}

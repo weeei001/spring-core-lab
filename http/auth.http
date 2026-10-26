@@ -2,14 +2,14 @@
 ### 1. 瀏覽器開 http://localhost:8080/auth/login/authentik 登入；完成後會導向前端 localhost:3000，前端沒開也沒關係
 ###    網址若帶 ?loginError=... 代表同步 user 失敗（例如 basic-data 沒開），停在 /login?error 則看 web-server 的 log
 ### 2. 同一個瀏覽器開 http://localhost:8080/api/auth/me，看到自己的 user 資料才代表登入成功；
-###    在這個分頁的開發者工具 → Application → Cookies 複製 JSESSIONID（登入後會換新的，要登入完成後再複製）
+###    在這個分頁的開發者工具 → Application → Cookies 複製 SPRING_CORE_SESSION（登入後會換新的，要登入完成後再複製）
 ### 3. 填進 http/http-client.private.env.json 的 session（不進 git），執行 .http 時環境選 dev
 ### 4. 執行下面的「目前登入者」，會自動取得 CSRF token 存成 {{xsrf}}，其他 .http 就能使用
 
 ### 目前登入者與他的功能權限（permissions）；未登入或 session 過期 → 401
 # @no-cookie-jar
 GET http://localhost:8080/api/auth/me
-Cookie: JSESSIONID={{session}}
+Cookie: SPRING_CORE_SESSION={{session}}
 
 > {%
     // 回應的 XSRF-TOKEN cookie 就是 CSRF token，POST／PATCH／DELETE 要放進 X-XSRF-TOKEN header
@@ -23,7 +23,7 @@ Cookie: JSESSIONID={{session}}
 ### 把 createId、transId 換成名字（system 不是使用者，不要放進 ids）
 # @no-cookie-jar
 POST http://localhost:8080/api/basic-data/user/query
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -34,7 +34,7 @@ Content-Type: application/json
 ### 沒帶 CSRF token → 403
 # @no-cookie-jar
 POST http://localhost:8080/api/basic-data/user/query
-Cookie: JSESSIONID={{session}}
+Cookie: SPRING_CORE_SESSION={{session}}
 Content-Type: application/json
 
 {}

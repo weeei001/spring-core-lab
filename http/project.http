@@ -5,7 +5,7 @@
 ### 1. 新增專案（code 由 basic-data 產生，例如 PRJ2610001）；建立者自動成為經理
 # @no-cookie-jar
 POST http://localhost:8080/api/project
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -25,7 +25,7 @@ Content-Type: application/json
 ### 2. 查詢我參與的專案（沒有 project:admin 時只會查到自己是成員的），帶任務數、完成數、逾期數
 # @no-cookie-jar
 POST http://localhost:8080/api/project/queryPage
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -39,7 +39,7 @@ Content-Type: application/json
 ### 3. 專案成員（剛建立時只有自己，角色 MANAGER）
 # @no-cookie-jar
 POST http://localhost:8080/api/project-member/query
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -55,7 +55,7 @@ Content-Type: application/json
 ### 4. 唯一的經理不能降為成員 → 400
 # @no-cookie-jar
 PATCH http://localhost:8080/api/project-member/{{memberId}}
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -66,7 +66,7 @@ Content-Type: application/json
 ### 5. 新增任務 A（指派給自己）
 # @no-cookie-jar
 POST http://localhost:8080/api/task
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -87,7 +87,7 @@ Content-Type: application/json
 ### 6. 新增任務 B，前置任務為 A（A 完成後才開始）
 # @no-cookie-jar
 POST http://localhost:8080/api/task
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -106,7 +106,7 @@ Content-Type: application/json
 ### 7. 讓 A 以 B 為前置 → 形成循環，400
 # @no-cookie-jar
 PATCH http://localhost:8080/api/task/{{taskA}}
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -117,7 +117,7 @@ Content-Type: application/json
 ### 8. 新增 A 的子任務
 # @no-cookie-jar
 POST http://localhost:8080/api/task
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -134,19 +134,19 @@ Content-Type: application/json
 ### 9. 看板拖曳：A 改為進行中，排在該欄第一個
 # @no-cookie-jar
 POST http://localhost:8080/api/task/{{taskA}}/move?status=IN_PROGRESS
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 
 ### 10. 看板拖曳：B 也改為進行中，排在 A 之後
 # @no-cookie-jar
 POST http://localhost:8080/api/task/{{taskB}}/move?status=IN_PROGRESS&previousId={{taskA}}
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 
 ### 11. 修改 A：延後到期日、清空預估工時
 # @no-cookie-jar
 PATCH http://localhost:8080/api/task/{{taskA}}
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -158,7 +158,7 @@ Content-Type: application/json
 ### 12. 專案的主任務（看板用），依排序；帶子任務數與已登記工時
 # @no-cookie-jar
 POST http://localhost:8080/api/task/query
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -172,7 +172,7 @@ Content-Type: application/json
 ### 13. 我的任務：不給 projectId 時只查得到指派給自己的
 # @no-cookie-jar
 POST http://localhost:8080/api/task/queryPage
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -184,7 +184,7 @@ Content-Type: application/json
 ### 14. 留言
 # @no-cookie-jar
 POST http://localhost:8080/api/task-comment
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -196,7 +196,7 @@ Content-Type: application/json
 ### 15. 活動紀錄：建立、狀態、到期日變更與留言
 # @no-cookie-jar
 POST http://localhost:8080/api/task-activity/query
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -208,7 +208,7 @@ Content-Type: application/json
 ### 16. 登記工時（userId 由系統填入登入者）
 # @no-cookie-jar
 POST http://localhost:8080/api/work-log
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -222,7 +222,7 @@ Content-Type: application/json
 ### 17. 不是 0.5 的倍數 → 400
 # @no-cookie-jar
 POST http://localhost:8080/api/work-log
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -235,7 +235,7 @@ Content-Type: application/json
 ### 18. 專案工時統計：依人、日合計
 # @no-cookie-jar
 POST http://localhost:8080/api/work-log/summary
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -248,13 +248,13 @@ Content-Type: application/json
 ### 19. A 還有子任務，不能刪 → 409
 # @no-cookie-jar
 DELETE http://localhost:8080/api/task/{{taskA}}
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 
 ### 20. 專案結案後唯讀：先結案，再改任務 → 400
 # @no-cookie-jar
 PATCH http://localhost:8080/api/project/{{projectId}}
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -265,7 +265,7 @@ Content-Type: application/json
 ###
 # @no-cookie-jar
 PATCH http://localhost:8080/api/task/{{taskB}}
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 
@@ -276,7 +276,7 @@ Content-Type: application/json
 ### 21. 重新開啟
 # @no-cookie-jar
 PATCH http://localhost:8080/api/project/{{projectId}}
-Cookie: JSESSIONID={{session}}; XSRF-TOKEN={{xsrf}}
+Cookie: SPRING_CORE_SESSION={{session}}; XSRF-TOKEN={{xsrf}}
 X-XSRF-TOKEN: {{xsrf}}
 Content-Type: application/json
 

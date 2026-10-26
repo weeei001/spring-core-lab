@@ -9,6 +9,9 @@ server:
         http-only: true
         same-site: lax
 spring:
+  session:
+    jdbc:
+      initialize-schema: never
   datasource:
     url: ${WEB_SESSION_DB_URL}
     username: ${WEB_SESSION_DB_USERNAME}
