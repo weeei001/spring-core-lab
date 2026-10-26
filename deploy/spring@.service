@@ -1,0 +1,18 @@
+[Unit]
+Description=Spring %i
+Wants=network-online.target
+After=network-online.target mysql.service
+
+[Service]
+Type=exec
+User=spring
+Group=spring
+WorkingDirectory=/opt/spring/current
+ExecStart=/usr/bin/java -Xms128m -Xmx512m -jar /opt/spring/current/%i.jar --spring.profiles.active=deploy --spring.config.import=file:/etc/spring/application.properties
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=45
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
