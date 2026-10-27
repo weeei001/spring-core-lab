@@ -1,5 +1,6 @@
-package dev.jianwii.api.basicdata;
+package dev.jianwii.api.basicdata.api;
 
+import dev.jianwii.api.basicdata.dto.SerialNumberQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.entity.basicdata.SerialNumber;

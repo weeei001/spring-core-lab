@@ -1,6 +1,6 @@
 package dev.jianwii.web.basicdata;
 
-import dev.jianwii.api.basicdata.UploadFileApi;
+import dev.jianwii.api.basicdata.api.UploadFileApi;
 import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.web.Operator;
 import dev.jianwii.common.web.Result;

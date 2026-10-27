@@ -1,4 +1,4 @@
-package dev.jianwii.api.basicdata;
+package dev.jianwii.api.basicdata.dto;
 
 import dev.jianwii.common.query.QueryConditions;
 import dev.jianwii.common.query.QueryField;

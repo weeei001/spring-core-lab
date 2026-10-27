@@ -1,5 +1,7 @@
-package dev.jianwii.api.notification;
+package dev.jianwii.api.notification.api;
 
+import dev.jianwii.api.notification.dto.NotificationQueryParameter;
+import dev.jianwii.api.notification.dto.NotificationSendRequest;
 import dev.jianwii.api.project.api.ProjectApi;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.notification.Notification;

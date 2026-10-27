@@ -1,5 +1,7 @@
-package dev.jianwii.api.basicdata;
+package dev.jianwii.api.basicdata.api;
 
+import dev.jianwii.api.basicdata.dto.UserAuthorization;
+import dev.jianwii.api.basicdata.dto.UserQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.basicdata.User;
 import jakarta.validation.Valid;

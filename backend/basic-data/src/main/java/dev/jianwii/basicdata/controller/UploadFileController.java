@@ -1,6 +1,6 @@
 package dev.jianwii.basicdata.controller;
 
-import dev.jianwii.api.basicdata.UploadFileApi;
+import dev.jianwii.api.basicdata.api.UploadFileApi;
 import dev.jianwii.basicdata.service.UploadFileService;
 import dev.jianwii.entity.basicdata.UploadFile;
 import lombok.AllArgsConstructor;

@@ -1,7 +1,7 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.api.notification.NotificationApi;
-import dev.jianwii.api.notification.NotificationSendRequest;
+import dev.jianwii.api.notification.api.NotificationApi;
+import dev.jianwii.api.notification.dto.NotificationSendRequest;
 import dev.jianwii.entity.notification.NotificationType;
 import dev.jianwii.entity.project.ProjectStatus;
 import dev.jianwii.entity.project.TaskStatus;

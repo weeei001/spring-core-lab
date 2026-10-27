@@ -1,4 +1,4 @@
-package dev.jianwii.api.basicdata.leave;
+package dev.jianwii.api.basicdata.dto;
 
 import java.time.LocalDate;
 

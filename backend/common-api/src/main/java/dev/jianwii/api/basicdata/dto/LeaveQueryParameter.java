@@ -1,4 +1,4 @@
-package dev.jianwii.api.basicdata.leave;
+package dev.jianwii.api.basicdata.dto;
 
 import dev.jianwii.common.query.QueryParameter;
 import dev.jianwii.entity.basicdata.leave.LeaveRequest;

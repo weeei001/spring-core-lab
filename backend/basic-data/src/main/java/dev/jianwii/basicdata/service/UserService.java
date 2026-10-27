@@ -1,7 +1,7 @@
 package dev.jianwii.basicdata.service;
 
-import dev.jianwii.api.basicdata.UserAuthorization;
-import dev.jianwii.api.basicdata.UserQueryParameter;
+import dev.jianwii.api.basicdata.dto.UserAuthorization;
+import dev.jianwii.api.basicdata.dto.UserQueryParameter;
 import dev.jianwii.basicdata.dao.RoleDAO;
 import dev.jianwii.basicdata.dao.UserDAO;
 import dev.jianwii.common.exception.BusinessException;

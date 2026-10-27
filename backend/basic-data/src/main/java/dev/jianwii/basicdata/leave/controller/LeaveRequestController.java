@@ -1,6 +1,7 @@
 package dev.jianwii.basicdata.leave.controller;
 
-import dev.jianwii.api.basicdata.leave.*;
+import dev.jianwii.api.basicdata.api.LeaveApi;
+import dev.jianwii.api.basicdata.dto.*;
 import dev.jianwii.basicdata.leave.service.LeaveRequestService;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.basicdata.leave.LeaveRequest;

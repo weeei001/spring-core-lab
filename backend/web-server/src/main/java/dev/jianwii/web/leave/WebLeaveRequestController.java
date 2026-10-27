@@ -1,6 +1,10 @@
 package dev.jianwii.web.leave;
 
-import dev.jianwii.api.basicdata.leave.*;
+import dev.jianwii.api.basicdata.api.LeaveApi;
+import dev.jianwii.api.basicdata.dto.LeaveCancellation;
+import dev.jianwii.api.basicdata.dto.LeaveQueryParameter;
+import dev.jianwii.api.basicdata.dto.LeaveReview;
+import dev.jianwii.api.basicdata.dto.LeaveSubmission;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.basicdata.leave.LeaveRequest;
@@ -54,7 +58,8 @@ public class WebLeaveRequestController {
 
     @PreAuthorize("hasAuthority('leave:apply')")
     @PostMapping("/{id}/withdraw")
-    public Result<LeaveRequest> withdraw(@PathVariable Long id, @Valid @RequestBody LeaveCancellation cancellation) {
+    public Result<LeaveRequest> withdraw(@PathVariable Long id, @Valid @RequestBody
+    LeaveCancellation cancellation) {
         return Result.success(leaveApi.withdraw(id, cancellation));
     }
 

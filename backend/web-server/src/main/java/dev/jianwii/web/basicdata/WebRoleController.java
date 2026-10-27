@@ -1,7 +1,7 @@
 package dev.jianwii.web.basicdata;
 
-import dev.jianwii.api.basicdata.RoleApi;
-import dev.jianwii.api.basicdata.RoleQueryParameter;
+import dev.jianwii.api.basicdata.api.RoleApi;
+import dev.jianwii.api.basicdata.dto.RoleQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.common.web.Result;

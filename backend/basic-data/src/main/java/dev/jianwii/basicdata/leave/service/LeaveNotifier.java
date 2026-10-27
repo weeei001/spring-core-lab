@@ -1,7 +1,7 @@
 package dev.jianwii.basicdata.leave.service;
 
-import dev.jianwii.api.notification.NotificationApi;
-import dev.jianwii.api.notification.NotificationSendRequest;
+import dev.jianwii.api.notification.api.NotificationApi;
+import dev.jianwii.api.notification.dto.NotificationSendRequest;
 import dev.jianwii.entity.basicdata.leave.LeaveRequest;
 import dev.jianwii.entity.basicdata.leave.LeaveStatus;
 import dev.jianwii.entity.notification.NotificationType;

@@ -1,9 +1,9 @@
 package dev.jianwii.project;
 
-import dev.jianwii.api.basicdata.SerialNumberApi;
-import dev.jianwii.api.basicdata.UploadFileApi;
-import dev.jianwii.api.basicdata.UserApi;
-import dev.jianwii.api.notification.NotificationApi;
+import dev.jianwii.api.basicdata.api.SerialNumberApi;
+import dev.jianwii.api.basicdata.api.UploadFileApi;
+import dev.jianwii.api.basicdata.api.UserApi;
+import dev.jianwii.api.notification.api.NotificationApi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;

@@ -1,6 +1,6 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.api.basicdata.SerialNumberApi;
+import dev.jianwii.api.basicdata.api.SerialNumberApi;
 import dev.jianwii.api.project.dto.TaskQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.exception.BusinessException;

@@ -1,8 +1,8 @@
 package dev.jianwii.basicdata.controller;
 
-import dev.jianwii.api.basicdata.UserApi;
-import dev.jianwii.api.basicdata.UserAuthorization;
-import dev.jianwii.api.basicdata.UserQueryParameter;
+import dev.jianwii.api.basicdata.api.UserApi;
+import dev.jianwii.api.basicdata.dto.UserAuthorization;
+import dev.jianwii.api.basicdata.dto.UserQueryParameter;
 import dev.jianwii.basicdata.service.UserService;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.basicdata.User;

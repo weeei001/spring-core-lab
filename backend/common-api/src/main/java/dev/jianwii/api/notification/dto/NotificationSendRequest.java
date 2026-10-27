@@ -1,4 +1,4 @@
-package dev.jianwii.api.notification;
+package dev.jianwii.api.notification.dto;
 
 import dev.jianwii.entity.notification.NotificationType;
 import jakarta.validation.constraints.NotBlank;

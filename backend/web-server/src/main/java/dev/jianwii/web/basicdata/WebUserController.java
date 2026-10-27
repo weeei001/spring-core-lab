@@ -1,7 +1,7 @@
 package dev.jianwii.web.basicdata;
 
-import dev.jianwii.api.basicdata.UserApi;
-import dev.jianwii.api.basicdata.UserQueryParameter;
+import dev.jianwii.api.basicdata.api.UserApi;
+import dev.jianwii.api.basicdata.dto.UserQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.basicdata.User;
