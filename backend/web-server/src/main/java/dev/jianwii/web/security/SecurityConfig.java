@@ -1,6 +1,6 @@
 package dev.jianwii.web.security;
 
-import dev.jianwii.api.basicdata.UserApi;
+import dev.jianwii.api.basicdata.api.UserApi;
 import dev.jianwii.common.web.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -1,8 +1,8 @@
 package dev.jianwii.notification.service;
 
-import dev.jianwii.api.basicdata.UserApi;
-import dev.jianwii.api.basicdata.UserQueryParameter;
-import dev.jianwii.api.notification.NotificationSendRequest;
+import dev.jianwii.api.basicdata.api.UserApi;
+import dev.jianwii.api.basicdata.dto.UserQueryParameter;
+import dev.jianwii.api.notification.dto.NotificationSendRequest;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.entity.basicdata.User;
 import dev.jianwii.entity.notification.Notification;

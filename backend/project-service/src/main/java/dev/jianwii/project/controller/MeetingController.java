@@ -1,9 +1,9 @@
 package dev.jianwii.project.controller;
 
-import dev.jianwii.api.project.MeetingApi;
-import dev.jianwii.api.project.MeetingQueryParameter;
-import dev.jianwii.api.project.MeetingTaskCreateRequest;
-import dev.jianwii.api.project.MeetingTaskView;
+import dev.jianwii.api.project.api.MeetingApi;
+import dev.jianwii.api.project.dto.MeetingQueryParameter;
+import dev.jianwii.api.project.dto.MeetingTaskCreateRequest;
+import dev.jianwii.api.project.dto.MeetingTaskView;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.project.Meeting;
 import dev.jianwii.project.service.MeetingService;

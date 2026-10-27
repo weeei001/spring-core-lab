@@ -1,6 +1,6 @@
 package dev.jianwii.basicdata.service;
 
-import dev.jianwii.api.basicdata.SerialNumberQueryParameter;
+import dev.jianwii.api.basicdata.dto.SerialNumberQueryParameter;
 import dev.jianwii.basicdata.dao.SerialNumberDAO;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ConflictException;

@@ -1,7 +1,7 @@
 package dev.jianwii.web.security;
 
-import dev.jianwii.api.basicdata.UserApi;
-import dev.jianwii.api.basicdata.UserAuthorization;
+import dev.jianwii.api.basicdata.api.UserApi;
+import dev.jianwii.api.basicdata.dto.UserAuthorization;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.basicdata.Permission;
 import jakarta.servlet.FilterChain;

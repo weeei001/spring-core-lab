@@ -1,7 +1,7 @@
 package dev.jianwii.web.project;
 
-import dev.jianwii.api.project.ManualQaItemApi;
-import dev.jianwii.api.project.ManualQaItemQueryParameter;
+import dev.jianwii.api.project.api.ManualQaItemApi;
+import dev.jianwii.api.project.dto.ManualQaItemQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.common.web.Result;

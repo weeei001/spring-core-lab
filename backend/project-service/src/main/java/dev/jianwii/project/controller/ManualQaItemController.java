@@ -1,7 +1,7 @@
 package dev.jianwii.project.controller;
 
-import dev.jianwii.api.project.ManualQaItemApi;
-import dev.jianwii.api.project.ManualQaItemQueryParameter;
+import dev.jianwii.api.project.api.ManualQaItemApi;
+import dev.jianwii.api.project.dto.ManualQaItemQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.project.ManualQaItem;
 import dev.jianwii.project.service.ManualQaItemService;

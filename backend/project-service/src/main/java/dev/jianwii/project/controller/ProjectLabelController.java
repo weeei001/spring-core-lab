@@ -1,7 +1,7 @@
 package dev.jianwii.project.controller;
 
-import dev.jianwii.api.project.ProjectLabelApi;
-import dev.jianwii.api.project.ProjectLabelQueryParameter;
+import dev.jianwii.api.project.api.ProjectLabelApi;
+import dev.jianwii.api.project.dto.ProjectLabelQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.project.ProjectLabel;
 import dev.jianwii.project.service.ProjectLabelService;

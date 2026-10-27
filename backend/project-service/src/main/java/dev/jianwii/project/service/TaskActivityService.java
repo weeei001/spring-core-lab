@@ -1,6 +1,6 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.api.project.TaskActivityQueryParameter;
+import dev.jianwii.api.project.dto.TaskActivityQueryParameter;
 import dev.jianwii.common.service.BaseService;
 import dev.jianwii.entity.project.TaskActivity;
 import dev.jianwii.project.dao.TaskActivityDAO;

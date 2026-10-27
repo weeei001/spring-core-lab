@@ -1,7 +1,7 @@
 package dev.jianwii.project.controller;
 
-import dev.jianwii.api.project.TaskActivityApi;
-import dev.jianwii.api.project.TaskActivityQueryParameter;
+import dev.jianwii.api.project.api.TaskActivityApi;
+import dev.jianwii.api.project.dto.TaskActivityQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.project.TaskActivity;
 import dev.jianwii.project.service.TaskActivityService;

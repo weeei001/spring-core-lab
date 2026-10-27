@@ -1,7 +1,7 @@
 package dev.jianwii.project.controller;
 
-import dev.jianwii.api.project.ManualQaBatchApi;
-import dev.jianwii.api.project.ManualQaBatchQueryParameter;
+import dev.jianwii.api.project.api.ManualQaBatchApi;
+import dev.jianwii.api.project.dto.ManualQaBatchQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.project.ManualQaBatch;
 import dev.jianwii.project.service.ManualQaBatchService;

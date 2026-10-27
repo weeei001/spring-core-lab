@@ -1,7 +1,7 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.api.project.ManualQaBugSource;
-import dev.jianwii.api.project.ManualQaExecutionQueryParameter;
+import dev.jianwii.api.project.dto.ManualQaBugSource;
+import dev.jianwii.api.project.dto.ManualQaExecutionQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.NotFoundException;

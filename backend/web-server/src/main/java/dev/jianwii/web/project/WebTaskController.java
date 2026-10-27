@@ -1,7 +1,7 @@
 package dev.jianwii.web.project;
 
-import dev.jianwii.api.project.TaskApi;
-import dev.jianwii.api.project.TaskQueryParameter;
+import dev.jianwii.api.project.api.TaskApi;
+import dev.jianwii.api.project.dto.TaskQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.common.web.Result;

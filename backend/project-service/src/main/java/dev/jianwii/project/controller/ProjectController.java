@@ -1,7 +1,7 @@
 package dev.jianwii.project.controller;
 
-import dev.jianwii.api.project.ProjectApi;
-import dev.jianwii.api.project.ProjectQueryParameter;
+import dev.jianwii.api.project.api.ProjectApi;
+import dev.jianwii.api.project.dto.ProjectQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.project.Project;
 import dev.jianwii.project.service.ProjectService;

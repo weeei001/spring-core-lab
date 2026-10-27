@@ -1,8 +1,8 @@
 package dev.jianwii.web.project;
 
-import dev.jianwii.api.project.ManualQaBugSource;
-import dev.jianwii.api.project.ManualQaExecutionApi;
-import dev.jianwii.api.project.ManualQaExecutionQueryParameter;
+import dev.jianwii.api.project.dto.ManualQaBugSource;
+import dev.jianwii.api.project.api.ManualQaExecutionApi;
+import dev.jianwii.api.project.dto.ManualQaExecutionQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.common.web.Result;

@@ -1,8 +1,8 @@
 package dev.jianwii.web.project;
 
-import dev.jianwii.api.project.WorkLogApi;
-import dev.jianwii.api.project.WorkLogQueryParameter;
-import dev.jianwii.api.project.WorkLogSummary;
+import dev.jianwii.api.project.api.WorkLogApi;
+import dev.jianwii.api.project.dto.WorkLogQueryParameter;
+import dev.jianwii.api.project.dto.WorkLogSummary;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.common.web.Result;

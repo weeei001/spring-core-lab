@@ -1,6 +1,6 @@
 package dev.jianwii.basicdata;
 
-import dev.jianwii.api.notification.NotificationApi;
+import dev.jianwii.api.notification.api.NotificationApi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;

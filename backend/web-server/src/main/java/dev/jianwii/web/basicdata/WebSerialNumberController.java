@@ -1,7 +1,7 @@
 package dev.jianwii.web.basicdata;
 
-import dev.jianwii.api.basicdata.SerialNumberApi;
-import dev.jianwii.api.basicdata.SerialNumberQueryParameter;
+import dev.jianwii.api.basicdata.api.SerialNumberApi;
+import dev.jianwii.api.basicdata.dto.SerialNumberQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.common.web.Result;

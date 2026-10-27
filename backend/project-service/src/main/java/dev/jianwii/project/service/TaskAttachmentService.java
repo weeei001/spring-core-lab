@@ -1,7 +1,7 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.api.basicdata.UploadFileApi;
-import dev.jianwii.api.project.TaskAttachmentQueryParameter;
+import dev.jianwii.api.basicdata.api.UploadFileApi;
+import dev.jianwii.api.project.dto.TaskAttachmentQueryParameter;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.exception.NotFoundException;

@@ -1,6 +1,6 @@
 package dev.jianwii.web.security;
 
-import dev.jianwii.api.basicdata.UserApi;
+import dev.jianwii.api.basicdata.api.UserApi;
 import dev.jianwii.common.exception.RemoteServiceException;
 import dev.jianwii.entity.basicdata.User;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,7 +1,7 @@
 package dev.jianwii.basicdata.controller;
 
-import dev.jianwii.api.basicdata.RoleApi;
-import dev.jianwii.api.basicdata.RoleQueryParameter;
+import dev.jianwii.api.basicdata.api.RoleApi;
+import dev.jianwii.api.basicdata.dto.RoleQueryParameter;
 import dev.jianwii.basicdata.service.RoleService;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.basicdata.Role;

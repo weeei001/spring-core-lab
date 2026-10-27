@@ -1,7 +1,7 @@
 package dev.jianwii.web.auth;
 
-import dev.jianwii.api.basicdata.UserApi;
-import dev.jianwii.api.basicdata.UserQueryParameter;
+import dev.jianwii.api.basicdata.api.UserApi;
+import dev.jianwii.api.basicdata.dto.UserQueryParameter;
 import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.basicdata.User;

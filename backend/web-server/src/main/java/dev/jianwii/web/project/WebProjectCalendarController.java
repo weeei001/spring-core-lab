@@ -1,10 +1,10 @@
 package dev.jianwii.web.project;
 
-import dev.jianwii.api.basicdata.leave.LeaveAbsence;
-import dev.jianwii.api.basicdata.leave.LeaveApi;
-import dev.jianwii.api.basicdata.leave.LeaveCalendarQuery;
-import dev.jianwii.api.project.ProjectMemberApi;
-import dev.jianwii.api.project.ProjectMemberQueryParameter;
+import dev.jianwii.api.basicdata.dto.LeaveAbsence;
+import dev.jianwii.api.basicdata.api.LeaveApi;
+import dev.jianwii.api.basicdata.dto.LeaveCalendarQuery;
+import dev.jianwii.api.project.api.ProjectMemberApi;
+import dev.jianwii.api.project.dto.ProjectMemberQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.web.Result;

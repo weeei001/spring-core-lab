@@ -1,7 +1,7 @@
 package dev.jianwii.notification.service;
 
-import dev.jianwii.api.notification.NotificationQueryParameter;
-import dev.jianwii.api.notification.NotificationSendRequest;
+import dev.jianwii.api.notification.dto.NotificationQueryParameter;
+import dev.jianwii.api.notification.dto.NotificationSendRequest;
 import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.service.BaseService;
 import dev.jianwii.entity.notification.Notification;

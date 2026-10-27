@@ -1,8 +1,8 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.api.project.MeetingQueryParameter;
-import dev.jianwii.api.project.MeetingTaskCreateRequest;
-import dev.jianwii.api.project.MeetingTaskView;
+import dev.jianwii.api.project.dto.MeetingQueryParameter;
+import dev.jianwii.api.project.dto.MeetingTaskCreateRequest;
+import dev.jianwii.api.project.dto.MeetingTaskView;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.NotFoundException;

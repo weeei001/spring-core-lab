@@ -1,7 +1,7 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.api.project.WorkLogQueryParameter;
-import dev.jianwii.api.project.WorkLogSummary;
+import dev.jianwii.api.project.dto.WorkLogQueryParameter;
+import dev.jianwii.api.project.dto.WorkLogSummary;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.service.BaseService;

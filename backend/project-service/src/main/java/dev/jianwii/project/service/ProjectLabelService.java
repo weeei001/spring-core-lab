@@ -1,6 +1,6 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.api.project.ProjectLabelQueryParameter;
+import dev.jianwii.api.project.dto.ProjectLabelQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.service.BaseService;

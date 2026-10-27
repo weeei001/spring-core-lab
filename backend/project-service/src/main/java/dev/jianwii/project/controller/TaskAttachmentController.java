@@ -1,7 +1,7 @@
 package dev.jianwii.project.controller;
 
-import dev.jianwii.api.project.TaskAttachmentApi;
-import dev.jianwii.api.project.TaskAttachmentQueryParameter;
+import dev.jianwii.api.project.api.TaskAttachmentApi;
+import dev.jianwii.api.project.dto.TaskAttachmentQueryParameter;
 import dev.jianwii.entity.project.TaskAttachment;
 import dev.jianwii.project.service.TaskAttachmentService;
 import java.util.List;

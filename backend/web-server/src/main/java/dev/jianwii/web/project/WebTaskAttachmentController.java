@@ -1,7 +1,7 @@
 package dev.jianwii.web.project;
 
-import dev.jianwii.api.project.TaskAttachmentApi;
-import dev.jianwii.api.project.TaskAttachmentQueryParameter;
+import dev.jianwii.api.project.api.TaskAttachmentApi;
+import dev.jianwii.api.project.dto.TaskAttachmentQueryParameter;
 import dev.jianwii.common.web.Result;
 import dev.jianwii.entity.project.TaskAttachment;
 import jakarta.validation.Valid;

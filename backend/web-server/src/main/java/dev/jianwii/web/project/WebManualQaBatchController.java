@@ -1,7 +1,7 @@
 package dev.jianwii.web.project;
 
-import dev.jianwii.api.project.ManualQaBatchApi;
-import dev.jianwii.api.project.ManualQaBatchQueryParameter;
+import dev.jianwii.api.project.api.ManualQaBatchApi;
+import dev.jianwii.api.project.dto.ManualQaBatchQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.validation.ValidGroup;
 import dev.jianwii.common.web.Result;

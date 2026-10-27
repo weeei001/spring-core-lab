@@ -2,7 +2,7 @@ package dev.jianwii.project.service;
 
 import dev.jianwii.api.basicdata.UserApi;
 import dev.jianwii.api.basicdata.UserQueryParameter;
-import dev.jianwii.api.project.ProjectMemberQueryParameter;
+import dev.jianwii.api.project.dto.ProjectMemberQueryParameter;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.service.BaseService;

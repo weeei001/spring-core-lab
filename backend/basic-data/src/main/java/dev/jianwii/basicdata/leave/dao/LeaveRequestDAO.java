@@ -1,6 +1,6 @@
 package dev.jianwii.basicdata.leave.dao;
 
-import dev.jianwii.api.basicdata.leave.LeaveAbsence;
+import dev.jianwii.api.basicdata.dto.LeaveAbsence;
 import dev.jianwii.common.dao.BaseDAO;
 import dev.jianwii.entity.basicdata.leave.LeaveRequest;
 import dev.jianwii.entity.basicdata.leave.LeaveStatus;

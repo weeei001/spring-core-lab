@@ -1,7 +1,7 @@
 package dev.jianwii.project.controller;
 
-import dev.jianwii.api.project.TaskCommentApi;
-import dev.jianwii.api.project.TaskCommentQueryParameter;
+import dev.jianwii.api.project.api.TaskCommentApi;
+import dev.jianwii.api.project.dto.TaskCommentQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.project.TaskComment;
 import dev.jianwii.project.service.TaskCommentService;

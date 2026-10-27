@@ -1,6 +1,6 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.api.project.TaskCommentQueryParameter;
+import dev.jianwii.api.project.dto.TaskCommentQueryParameter;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.service.BaseService;

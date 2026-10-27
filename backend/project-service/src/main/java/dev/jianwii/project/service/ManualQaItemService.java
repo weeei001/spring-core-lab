@@ -1,6 +1,6 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.api.project.ManualQaItemQueryParameter;
+import dev.jianwii.api.project.dto.ManualQaItemQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ConflictException;

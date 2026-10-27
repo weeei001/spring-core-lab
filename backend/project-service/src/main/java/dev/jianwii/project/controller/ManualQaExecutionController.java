@@ -1,8 +1,8 @@
 package dev.jianwii.project.controller;
 
-import dev.jianwii.api.project.ManualQaBugSource;
-import dev.jianwii.api.project.ManualQaExecutionApi;
-import dev.jianwii.api.project.ManualQaExecutionQueryParameter;
+import dev.jianwii.api.project.dto.ManualQaBugSource;
+import dev.jianwii.api.project.api.ManualQaExecutionApi;
+import dev.jianwii.api.project.dto.ManualQaExecutionQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.project.ManualQaExecution;
 import dev.jianwii.project.service.ManualQaExecutionService;
