@@ -2,6 +2,8 @@
 
 只保留尚未完成的具體事項，寫明完成條件與已知阻礙；完成後移除，值得保留的踩坑經驗整理到 [HANDOFF.MD](HANDOFF.MD)。開始與結束任務時同步確認本檔，避免遺漏。
 
+- 驗收基準與回歸：依 [手動驗收基準](docs/manual-acceptance.md) 的 MA-00–MA-12 執行並保存逐次結果。2026-10-27 匿名本機入口 GET 提權後仍逾時，尚未確認可用入口、已核准的獨立測試資料庫、四種測試身分與測資；登入及業務案例未執行。完成條件：同專案經理／成員、非成員、管理者及結案／取消唯讀案例均留下版本、環境、帳號與實際證據，失敗保留 BUG 關聯與修補版複測。自動化測試依賴仍須另提最小方案取得同意；建置成功不代替驗收通過。
+
 ## AWS Ubuntu 正式部署
 
 - 已改為直接 Google OIDC；建立 Google Auth Platform Web Client，依 `deploy/google-oidc.md` 在 web-server 資料庫建立 oidc_client_registration、寫入並啟用 Google 設定，部署新版並重啟。本機 Google 設定已填入、服務已啟動；正式資料庫尚未確認增量建表與 OIDC 資料。移除舊 GOOGLE_CLIENT_*、AUTHENTIK_* 與 spring.security.oauth2.client.*，清除該應用舊 Session，還原 OAuth 日誌 INFO。完成條件：正式 Google 登入後 `/backend/api/auth/me` 回 200、登出後回 401，並驗證角色與業務操作。原 authentik Cloudflare 例外已非新方案必要條件。
