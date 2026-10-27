@@ -6,7 +6,9 @@ import dev.jianwii.api.basicdata.UploadFileApi;
 import dev.jianwii.api.basicdata.UserApi;
 import dev.jianwii.api.basicdata.leave.LeaveApi;
 import dev.jianwii.api.notification.NotificationApi;
-import dev.jianwii.api.project.ManualQaApi;
+import dev.jianwii.api.project.ManualQaBatchApi;
+import dev.jianwii.api.project.ManualQaExecutionApi;
+import dev.jianwii.api.project.ManualQaItemApi;
 import dev.jianwii.api.project.MeetingApi;
 import dev.jianwii.api.project.ProjectApi;
 import dev.jianwii.api.project.ProjectLabelApi;
@@ -33,7 +35,9 @@ import org.springframework.web.service.registry.ImportHttpServices;
         group = "project-service",
         types = {
             ProjectApi.class,
-            ManualQaApi.class,
+            ManualQaBatchApi.class,
+            ManualQaItemApi.class,
+            ManualQaExecutionApi.class,
             MeetingApi.class,
             ProjectMemberApi.class,
             ProjectLabelApi.class,

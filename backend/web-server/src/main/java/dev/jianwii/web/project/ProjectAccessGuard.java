@@ -1,5 +1,8 @@
 package dev.jianwii.web.project;
 
+import dev.jianwii.api.project.ManualQaBatchApi;
+import dev.jianwii.api.project.ManualQaExecutionApi;
+import dev.jianwii.api.project.ManualQaItemApi;
 import dev.jianwii.api.project.ProjectLabelApi;
 import dev.jianwii.api.project.ProjectLabelQueryParameter;
 import dev.jianwii.api.project.ProjectMemberApi;
@@ -54,6 +57,9 @@ public class ProjectAccessGuard {
     private final TaskCommentApi taskCommentApi;
     private final TaskAttachmentApi taskAttachmentApi;
     private final WorkLogApi workLogApi;
+    private final ManualQaBatchApi manualQaBatchApi;
+    private final ManualQaItemApi manualQaItemApi;
+    private final ManualQaExecutionApi manualQaExecutionApi;
 
     // ---- 查詢 ----
 
@@ -203,6 +209,18 @@ public class ProjectAccessGuard {
         parameter.setIds(List.of(workLogId));
         WorkLog workLog = first(workLogApi.query(parameter), workLogId);
         return workLog.getProjectId();
+    }
+
+    public Long projectOfQaBatch(Long batchId) {
+        return manualQaBatchApi.get(batchId).getProjectId();
+    }
+
+    public Long projectOfQaItem(Long itemId) {
+        return projectOfQaBatch(manualQaItemApi.get(itemId).getBatchId());
+    }
+
+    public Long projectOfQaExecution(Long executionId) {
+        return projectOfQaItem(manualQaExecutionApi.get(executionId).getItemId());
     }
 
     /** 查詢必須指定 projectId 或 projectIds，且都是登入者參與的專案。 */

@@ -11,19 +11,29 @@ export const manualQaApi = {
   updateBatch: (id: number, body: QaBatchInput) =>
     send(http.patch<Result<QaBatch>>(`/api/manual-qa-batch/${String(id)}`, body)),
   copy: (id: number, body: QaBatchInput) => send(http.post<Result<QaBatch>>(`/api/manual-qa-batch/${String(id)}/copy`, body)),
-  items: (id: number, page: number) =>
-    send(http.get<Result<PageResponse<QaItem>>>(`/api/manual-qa-batch/${String(id)}/items`, { params: { page, size: 100 } })),
-  createItem: (id: number, body: QaItemInput) =>
-    send(http.post<Result<QaItem>>(`/api/manual-qa-batch/${String(id)}/items`, body)),
-  updateItem: (id: number, body: Partial<QaItemInput>) =>
-    send(http.patch<Result<QaItem>>(`/api/manual-qa-item/${String(id)}`, body)),
+  items: (batchId: number, page: number) =>
+    send(http.post<Result<PageResponse<QaItem>>>('/api/manual-qa-item/queryPage', { batchId, page, size: 100 })),
+  createItem: (batchId: number, body: QaItemInput) =>
+    send(http.post<Result<QaItem>>('/api/manual-qa-item', { batchId, ...body })),
+  /** null 代表清空：改送 clearFields，其他欄位照原值送出。 */
+  updateItem: (id: number, body: Partial<QaItemInput>) => {
+    const clearFields = (['taskId', 'assigneeId'] as const).filter((field) => body[field] === null);
+    const values = Object.fromEntries(Object.entries(body).filter(([, value]) => value !== null));
+    return send(http.patch<Result<QaItem>>(
+      `/api/manual-qa-item/${String(id)}`,
+      clearFields.length === 0 ? values : { ...values, clearFields },
+    ));
+  },
   deleteItem: (id: number) => send(http.delete<Result<void>>(`/api/manual-qa-item/${String(id)}`)),
-  executions: (id: number, page: number) =>
-    send(http.get<Result<PageResponse<QaExecution>>>(`/api/manual-qa-item/${String(id)}/executions`, { params: { page, size: 20 } })),
-  execute: (id: number, body: QaExecutionInput) =>
-    send(http.post<Result<QaExecution>>(`/api/manual-qa-item/${String(id)}/executions`, body)),
+  executions: (itemId: number, page: number) =>
+    send(http.post<Result<PageResponse<QaExecution>>>('/api/manual-qa-execution/queryPage', { itemId, page, size: 20 })),
+  execute: (itemId: number, body: QaExecutionInput) =>
+    send(http.post<Result<QaExecution>>('/api/manual-qa-execution', { itemId, ...body })),
   updateBug: (id: number, bugTaskId: number | null) =>
-    send(http.patch<Result<QaExecution>>(`/api/manual-qa-execution/${String(id)}/bug`, { bugTaskId })),
-  bugExecutions: (id: number, page: number) =>
-    send(http.get<Result<PageResponse<QaBugExecution>>>(`/api/manual-qa-bug/${String(id)}/executions`, { params: { page, size: 20 } })),
+    send(http.patch<Result<QaExecution>>(
+      `/api/manual-qa-execution/${String(id)}`,
+      bugTaskId === null ? { clearFields: ['bugTaskId'] } : { bugTaskId },
+    )),
+  bugExecutions: (taskId: number, page: number) =>
+    send(http.get<Result<PageResponse<QaBugExecution>>>(`/api/manual-qa-execution/bug/${String(taskId)}`, { params: { page, size: 20 } })),
 };
