@@ -21,8 +21,7 @@ public interface ManualQaExecutionApi {
 
     /** 分頁查詢，未指定排序時新紀錄在前。 */
     @PostExchange("/queryPage")
-    PageResponse<ManualQaExecution> queryPage(@Valid @RequestBody
-    ManualQaExecutionQueryParameter parameter);
+    PageResponse<ManualQaExecution> queryPage(@Valid @RequestBody ManualQaExecutionQueryParameter parameter);
 
     @GetExchange("/{id}")
     ManualQaExecution get(@PathVariable("id") Long id);

@@ -58,8 +58,7 @@ public class WebLeaveRequestController {
 
     @PreAuthorize("hasAuthority('leave:apply')")
     @PostMapping("/{id}/withdraw")
-    public Result<LeaveRequest> withdraw(@PathVariable Long id, @Valid @RequestBody
-    LeaveCancellation cancellation) {
+    public Result<LeaveRequest> withdraw(@PathVariable Long id, @Valid @RequestBody LeaveCancellation cancellation) {
         return Result.success(leaveApi.withdraw(id, cancellation));
     }
 

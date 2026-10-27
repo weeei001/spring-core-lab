@@ -32,8 +32,7 @@ public interface LeaveApi {
     LeaveRequest review(@PathVariable("id") Long id, @Valid @RequestBody LeaveReview review);
 
     @PostExchange("/{id}/withdraw")
-    LeaveRequest withdraw(@PathVariable("id") Long id, @Valid @RequestBody
-    LeaveCancellation cancellation);
+    LeaveRequest withdraw(@PathVariable("id") Long id, @Valid @RequestBody LeaveCancellation cancellation);
 
     @PostExchange("/{id}/cancel")
     LeaveRequest cancel(@PathVariable("id") Long id, @Valid @RequestBody LeaveCancellation cancellation);

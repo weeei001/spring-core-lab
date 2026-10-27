@@ -78,6 +78,20 @@
 
     <!-- JAR 不含本機密碼；IDE 與 spring-boot:run 仍可從 classes 載入 local 設定。 -->
     <build>
+        <!-- 檔名不帶版本，與 deploy/spring@.service 的 /opt/spring/current/<服務>.jar 一致。 -->
+        <finalName>${project.artifactId}</finalName>
+        <pluginManagement>
+            <plugins>
+                <!-- 可執行 JAR 統一輸出到 backend/build；target/ 只留未 repackage 的一般 JAR。 -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <outputDirectory>${maven.multiModuleProjectDirectory}/build</outputDirectory>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <!-- 使用 Palantir Java Format；可執行 spotless:apply 排版、spotless:check 檢查。 -->
             <plugin>

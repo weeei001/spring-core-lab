@@ -1,10 +1,10 @@
 package dev.jianwii.web;
 
+import dev.jianwii.api.basicdata.api.LeaveApi;
 import dev.jianwii.api.basicdata.api.RoleApi;
 import dev.jianwii.api.basicdata.api.SerialNumberApi;
 import dev.jianwii.api.basicdata.api.UploadFileApi;
 import dev.jianwii.api.basicdata.api.UserApi;
-import dev.jianwii.api.basicdata.api.LeaveApi;
 import dev.jianwii.api.notification.api.NotificationApi;
 import dev.jianwii.api.project.api.ManualQaBatchApi;
 import dev.jianwii.api.project.api.ManualQaExecutionApi;

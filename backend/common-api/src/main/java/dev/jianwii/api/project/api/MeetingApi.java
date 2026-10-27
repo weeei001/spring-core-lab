@@ -44,6 +44,5 @@ public interface MeetingApi {
     Meeting unlinkTask(@PathVariable("id") Long id, @PathVariable("taskId") Long taskId);
 
     @PostExchange("/{id}/tasks")
-    MeetingTaskView createTask(@PathVariable("id") Long id, @Valid @RequestBody
-    MeetingTaskCreateRequest request);
+    MeetingTaskView createTask(@PathVariable("id") Long id, @Valid @RequestBody MeetingTaskCreateRequest request);
 }

@@ -123,6 +123,7 @@ curl http://127.0.0.1:9080/actuator/health
 | 指令 | 用途 |
 |---|---|
 | `./mvnw clean install` | 建置所有模組並安裝本機依賴 |
+| `./mvnw package -DskipTests` | 打包可執行 JAR 至 `backend/build/<服務>.jar`；`clean` 不會清除此目錄 |
 | `./mvnw test` | 執行 Maven 測試生命週期 |
 | `./mvnw spotless:check` | 只檢查 Java 排版 |
 | `./mvnw spotless:apply` | 修正 Java 排版 |
