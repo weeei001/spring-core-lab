@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+本專案依使用者明確指示，以全局 `AGENTS.md` 為準。本檔僅補充專案特有規範；若與全局規範衝突，保留全局規範，不採用全局檔中「專案層級優先」的預設。此約定仍受更高優先的指令與實際權限限制。
+
 ## 協作流程與簡化原則
 
 - 不使用 Docker；開發與驗證使用本機安裝的服務，資料庫驗證使用本機 MySQL 的獨立測試資料庫。
@@ -22,7 +24,7 @@
 在 `backend/` 執行（Windows PowerShell 改用 `.\mvnw.cmd`）：
 
 - `./mvnw clean install`：建置並安裝所有模組；`./mvnw test`：執行測試生命週期。
-- `./mvnw spotless:check`／`./mvnw spotless:apply`：檢查／修正排版。一般建置也會在 `process-sources` 自動排版，完成後須檢查差異。
+- `./mvnw spotless:check`／`./mvnw spotless:apply`：檢查／修正排版。一般建置也會在 `process-sources` 自動排版；執行前確認影響範圍，若會格式化非本次任務的既有修改，須先取得同意。完成後須檢查差異，避免夾帶無關修改。
 - `./mvnw -pl eureka-server spring-boot:run`：啟動服務探索。完成安裝後，替換模組名稱，在不同終端啟動其他服務。
 
 在 `frontend/` 執行：
@@ -40,7 +42,7 @@ Java 使用 Palantir 排版、四個空白縮排，以及 `*Controller`／`*Serv
 
 ## 測試規範
 
-目前沒有自動化測試、測試框架或覆蓋率門檻。依修改範圍執行上述檢查，並驗證受影響的 HTTP／畫面流程。測試應檢查可觀察的行為，避免複製實作邏輯，並減少不必要的模擬物件。新增 Java 測試時，放在 `src/test/java/`、以 `*Test.java` 命名，並補上測試依賴。回報已執行的驗證與阻礙。
+目前沒有自動化測試、測試框架或覆蓋率門檻；這不免除全局的驗證與 bug 回歸測試要求。依修改範圍執行上述檢查，並驗證受影響的 HTTP／畫面流程。修好的 bug 補一個能重現它的回歸測試；做不到時說明原因。測試應檢查真正實作的可觀察行為，避免複製實作邏輯，只 mock 跑不起來的外部服務、時間或亂數。新增 Java 測試時，放在 `src/test/java/`、以 `*Test.java` 命名；若需新增測試依賴，先說明理由並取得同意，再補上依賴。回報已執行的驗證與阻礙。
 
 ## Commit 與 Pull Request
 
