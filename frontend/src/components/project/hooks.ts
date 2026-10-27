@@ -65,7 +65,8 @@ export function useProjectContext(projectId: number): ProjectContext {
   const isAdmin = can(PERMISSIONS.PROJECT_ADMIN);
   const myRole = members.data?.find((member) => member.userId === String(user.id))?.role;
   const closed = project.data == null ? false : isProjectClosed(project.data.status);
-  const isMember = project.data != null && !project.isError && !members.isError && (isAdmin || myRole !== undefined);
+  // 背景重新查詢失敗時 React Query 保留舊資料；只看資料，避免畫面與未儲存內容被換成錯誤頁
+  const isMember = project.data != null && (isAdmin || myRole !== undefined);
   const isManager = isMember && (isAdmin || myRole === 'MANAGER');
   return {
     project: project.data ?? undefined,
@@ -80,7 +81,7 @@ export function useProjectContext(projectId: number): ProjectContext {
       canLogWork: !closed && can(PERMISSIONS.WORK_LOG_WRITE) && isMember,
     },
     loading: project.isPending || (project.data != null && members.isPending),
-    notFound: project.isError || project.data === null,
+    notFound: project.data === null || (project.isError && project.data === undefined),
     error: project.error ?? members.error,
     retry: () => {
       void project.refetch();

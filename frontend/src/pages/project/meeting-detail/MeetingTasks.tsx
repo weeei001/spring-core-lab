@@ -8,6 +8,7 @@ import type { MeetingTaskInput } from '@/api/project/meeting.types';
 import { taskApi } from '@/api/project/task-api';
 import type { ProjectMember } from '@/api/project/member.types';
 import { TASK_STATUS_LABELS } from '@/components/project/labels';
+import { taskDetailPath } from '@/components/project/task-drawer/navigation';
 import { useMemberDirectory } from '@/components/project/useMemberDirectory';
 import { ApiError } from '@/core/http/client';
 import { useDebounced } from '@/shared/hooks/useDebounced';
@@ -105,7 +106,7 @@ export function MeetingTasks({ meetingId, projectId, members, canEdit, canCreate
               <Typography.Text type="secondary">任務已刪除（{task.taskId}）</Typography.Text>
             ) : (
               <>
-                <Link to={`/tasks/${String(task.taskId)}`}>{task.code} {task.title}</Link>
+                <Link to={taskDetailPath(task.taskId, `/projects/${String(projectId)}/meetings/${String(meetingId)}`)}>{task.code} {task.title}</Link>
                 {task.status === null ? null : <Tag>{TASK_STATUS_LABELS[task.status]}</Tag>}
                 <Typography.Text type="secondary">
                   {task.assigneeId === null ? '未指派' : directory.name(task.assigneeId)} · {task.dueDate ?? '無期限'}

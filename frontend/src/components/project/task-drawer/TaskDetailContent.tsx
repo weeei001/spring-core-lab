@@ -44,7 +44,10 @@ export function TaskDetailContent({ taskId, onOpen, onDeleted, navigation }: Tas
   return (
     <Flex vertical gap={16} style={{ minWidth: 0 }}>
       {navigation?.(task.data?.projectId)}
-      {task.isPending ? <Skeleton active paragraph={{ rows: 8 }} /> : task.isError ? (
+      {task.isError && task.data !== undefined ? (
+        <Alert type="warning" title={`重新載入失敗，畫面可能不是最新資料：${task.error.message}`} />
+      ) : null}
+      {task.isPending ? <Skeleton active paragraph={{ rows: 8 }} /> : task.data === undefined ? (
         <TaskRequestError error={task.error} onRetry={() => { void task.refetch(); }} />
       ) : task.data === null ? (
         <Result status="404" title="找不到任務" subTitle="任務可能已刪除。" />
@@ -114,7 +117,8 @@ function TaskDetailBody({ task, onDeleted, onOpen }: { task: Task; onDeleted: (p
   if (loading) {
     return <Skeleton active paragraph={{ rows: 8 }} />;
   }
-  if (error !== null) {
+  // 有舊資料時保留內容與草稿，只有還沒取得專案或成員資料才換成錯誤畫面
+  if (error !== null && (project === undefined || !access.isMember)) {
     return <TaskRequestError error={error} onRetry={retry} />;
   }
   if (project === undefined) {

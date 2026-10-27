@@ -9,6 +9,7 @@ import { taskApi } from '@/api/project/task-api';
 import { useProjectContext, useProjectTasks } from '@/components/project/hooks';
 import { useTaskActions } from '@/components/project/useTaskActions';
 import { TASK_TYPE_LABELS } from '@/components/project/labels';
+import { taskDetailPath } from '@/components/project/task-drawer/navigation';
 import { useMemberDirectory } from '@/components/project/useMemberDirectory';
 import { useUserDirectory } from '@/components/user/useUserDirectory';
 import './manual-qa.css';
@@ -37,6 +38,9 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
   const sourceExecutionId = Number(searchParams.get('execution'));
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<number>();
+  // 連續測試：沿用上一筆的實測版本，按「下一項」後把焦點移到表單
+  const [lastVersion, setLastVersion] = useState('');
+  const [movedByNext, setMovedByNext] = useState(false);
   const source = useQuery({
     queryKey: ['manual-qa', 'source', batchId, sourceItemId],
     enabled: Number.isSafeInteger(sourceItemId) && sourceItemId > 0,
@@ -239,6 +243,7 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
                   style={{ height: 'auto', whiteSpace: 'normal', textAlign: 'left' }}
                   onClick={() => {
                     setSelectedId(item.id);
+                    setMovedByNext(false);
                   }}
                 >
                   <Tag color={COLORS[item.status]}>{STATUS[item.status]}</Tag>
@@ -306,7 +311,7 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
                 items={[
                   { key: 'steps', label: '步驟', children: <span className="qa-text">{selected.steps}</span> },
                   { key: 'expected', label: '預期結果', children: <span className="qa-text">{selected.expectedResult}</span> },
-                  { key: 'task', label: '關聯任務', children: selected.taskId === null ? '無' : <TaskReference id={selected.taskId} /> },
+                  { key: 'task', label: '關聯任務', children: selected.taskId === null ? '無' : <TaskReference id={selected.taskId} from={`/projects/${String(projectId)}/qa/${String(batchId)}?item=${String(selected.id)}`} /> },
                   {
                     key: 'assignee',
                     label: '負責人',
@@ -324,8 +329,14 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
                 canEdit={canEdit}
                 dirty={dirty}
                 setDirty={setDirty}
-                onSaved={(next) => {
+                initialVersion={lastVersion}
+                autoFocus={movedByNext}
+                onSaved={(next, testedVersion) => {
                   void refresh();
+                  if (testedVersion !== undefined) {
+                    setLastVersion(testedVersion);
+                  }
+                  setMovedByNext(next);
                   if (next) {
                     const index = list.items.findIndex((item) => item.id === selected.id);
                     const following = list.items[index + 1];
@@ -447,7 +458,7 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
   );
 }
 
-function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEdit, dirty, setDirty, onSaved }: {
+function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEdit, dirty, setDirty, initialVersion, autoFocus, onSaved }: {
   item: QaItem;
   projectId: number;
   environment: string;
@@ -455,7 +466,9 @@ function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEd
   canEdit: boolean;
   dirty: boolean;
   setDirty: (dirty: boolean) => void;
-  onSaved: (next: boolean) => void;
+  initialVersion: string;
+  autoFocus: boolean;
+  onSaved: (next: boolean, testedVersion?: string) => void;
 }) {
   const { message } = App.useApp();
   const client = useQueryClient();
@@ -510,7 +523,7 @@ function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEd
       setDirty(false);
       setPage(1);
       void client.invalidateQueries({ queryKey: ['manual-qa', 'executions', item.id] });
-      onSaved(variables.next);
+      onSaved(variables.next, variables.values.testedVersion.trim());
       void message.success('已儲存結果');
     },
   });
@@ -571,6 +584,7 @@ function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEd
             form={form}
             layout="vertical"
             disabled={save.isPending}
+            initialValues={{ testedVersion: initialVersion }}
             onValuesChange={() => {
               setDirty(true);
             }}
@@ -579,7 +593,7 @@ function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEd
             }}
           >
             <Form.Item name="testedVersion" label="實測版本" rules={[{ required: true, whitespace: true }, { max: 200 }]}>
-              <Input maxLength={200} />
+              <Input maxLength={200} autoFocus={autoFocus} />
             </Form.Item>
             <Form.Item name="result" label="結果" rules={[{ required: true }]}>
               <Select options={[{ value: 'PASS', label: '通過' }, { value: 'FAIL', label: '失敗' }, { value: 'BLOCKED', label: '受阻' }]} />
@@ -655,7 +669,7 @@ function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEd
                 {execution.result === 'FAIL' ? (
                   <Space wrap>
                     <Typography.Text>
-                      BUG：{execution.bugTaskId === null ? '未連結' : <TaskReference id={execution.bugTaskId} />}
+                      BUG：{execution.bugTaskId === null ? '未連結' : <TaskReference id={execution.bugTaskId} from={`/projects/${String(projectId)}/qa/${String(item.batchId)}?item=${String(item.id)}`} />}
                     </Typography.Text>
                     {canEdit ? (
                       <Button
@@ -689,7 +703,7 @@ function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEd
                       </Button>
                     ) : null}
                     {execution.bugTaskId !== null ? (
-                      <BugStatusActions
+                      < BugStatusActions
                         id={execution.bugTaskId}
                         projectId={projectId}
                         result={item.status}
@@ -820,7 +834,8 @@ function BugStatusActions({ id, projectId, result, canEdit, disabled }: {
   );
 }
 
-function TaskReference({ id }: { id: number }) {
+/** from 帶回目前批次與項目，任務頁的「返回來源」才會回到驗收頁。 */
+function TaskReference({ id, from }: { id: number; from: string }) {
   const task = useQuery({ queryKey: ['manual-qa', 'task', id], queryFn: () => taskApi.query({ ids: [id] }) });
   if (task.isPending) {
     return <>#{id} 載入中</>;
@@ -830,7 +845,7 @@ function TaskReference({ id }: { id: number }) {
   }
   const found = task.data[0];
   return found ? (
-    <Link to={`/tasks/${String(id)}`}>#{id} {found.title}（{TASK_TYPE_LABELS[found.type]}）</Link>
+    <Link to={taskDetailPath(id, from)}>#{id} {found.title}（{TASK_TYPE_LABELS[found.type]}）</Link>
   ) : (
     <>#{id} 已刪除或無法取得</>
   );

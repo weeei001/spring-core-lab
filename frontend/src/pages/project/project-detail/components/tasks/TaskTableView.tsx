@@ -79,30 +79,37 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, edita
       title: '標題',
       key: 'title',
       width: 280,
-      render: (_value, task) => (
-        <Flex align="center" gap={6} wrap>
-          <Typography.Link
-            onClick={() => {
-              onOpen(task.id);
-            }}
-          >
-            <span style={{ overflowWrap: 'anywhere' }}>{task.title}</span>
-          </Typography.Link>
-          {task.subtaskCount !== undefined && task.subtaskCount > 0 ? (
-            <Tooltip title="子任務完成數">
-              <Tag icon={<BranchesOutlined />}>
-                {String(task.doneSubtaskCount ?? 0)}/{String(task.subtaskCount)}
-              </Tag>
-            </Tooltip>
-          ) : null}
-          {task.predecessorIds.length > 0 ? (
-            <Tooltip title={`前置任務 ${String(task.predecessorIds.length)} 個`}>
-              <LinkOutlined style={{ color: '#8c8c8c' }} />
-            </Tooltip>
-          ) : null}
-          <TaskLabelTags projectId={task.projectId} labelIds={task.labelIds} />
-        </Flex>
-      ),
+      render: (_value, task) => {
+        // 有 href 才能用 Tab 聚焦並以 Enter 開啟；網址與抽屜的 ?task= 相同。
+        const search = new URLSearchParams(params);
+        search.set('task', String(task.id));
+        return (
+          <Flex align="center" gap={6} wrap>
+            <Typography.Link
+              href={`?${search.toString()}`}
+              onClick={(event) => {
+                event.preventDefault();
+                onOpen(task.id);
+              }}
+            >
+              <span style={{ overflowWrap: 'anywhere' }}>{task.title}</span>
+            </Typography.Link>
+            {task.subtaskCount !== undefined && task.subtaskCount > 0 ? (
+              <Tooltip title="子任務完成數">
+                <Tag icon={<BranchesOutlined />}>
+                  {String(task.doneSubtaskCount ?? 0)}/{String(task.subtaskCount)}
+                </Tag>
+              </Tooltip>
+            ) : null}
+            {task.predecessorIds.length > 0 ? (
+              <Tooltip title={`前置任務 ${String(task.predecessorIds.length)} 個`}>
+                <LinkOutlined style={{ color: '#8c8c8c' }} />
+              </Tooltip>
+            ) : null}
+            <TaskLabelTags projectId={task.projectId} labelIds={task.labelIds} />
+          </Flex>
+        );
+      },
     },
     {
       title: '狀態',
