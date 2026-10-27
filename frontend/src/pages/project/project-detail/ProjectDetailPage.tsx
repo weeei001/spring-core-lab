@@ -90,7 +90,7 @@ function ProjectDetail({ projectId }: { projectId: number }) {
   };
 
   return (
-    <Flex vertical gap={16}>
+    <Flex vertical gap={16} style={{ minWidth: 0 }}>
       <Breadcrumb items={[{ title: <Link to="/projects">專案</Link> }, { title: project.name }]} />
       <Card data-tour="project-header">
         <Flex justify="space-between" align="center" wrap gap={16}>
@@ -164,7 +164,7 @@ function ProjectDetail({ projectId }: { projectId: number }) {
               const next = new URLSearchParams(current);
               next.set('tab', key);
               return next;
-            });
+            }, { preventScrollReset: true });
           }}
           items={[
             {

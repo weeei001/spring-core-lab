@@ -120,7 +120,7 @@ export function useTaskDrawer() {
         next.set('task', String(id));
         return next;
       },
-      { replace: taskId !== undefined },
+      { replace: taskId !== undefined, preventScrollReset: true },
     );
   };
   const close = (): void => {
@@ -128,7 +128,7 @@ export function useTaskDrawer() {
       const next = new URLSearchParams(current);
       next.delete('task');
       return next;
-    });
+    }, { preventScrollReset: true });
   };
   return { taskId, open, close };
 }

@@ -51,12 +51,13 @@ function columnOf(id: UniqueIdentifier, columns: Columns): TaskStatus | undefine
 
 interface SortableTaskProps {
   task: Task;
+  parent: Task | undefined;
   directory: UserDirectory;
   disabled: boolean;
   onOpen: (taskId: number) => void;
 }
 
-function SortableTask({ task, directory, disabled, onOpen }: SortableTaskProps) {
+function SortableTask({ task, parent, directory, disabled, onOpen }: SortableTaskProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id, disabled });
   return (
     <div
@@ -65,7 +66,7 @@ function SortableTask({ task, directory, disabled, onOpen }: SortableTaskProps) 
       {...attributes}
       {...listeners}
     >
-      <TaskCard task={task} directory={directory} onOpen={onOpen} />
+      <TaskCard task={task} parent={parent} directory={directory} onOpen={onOpen} />
     </div>
   );
 }
@@ -73,6 +74,7 @@ function SortableTask({ task, directory, disabled, onOpen }: SortableTaskProps) 
 interface BoardColumnProps {
   status: TaskStatus;
   tasks: Task[];
+  tasksById: ReadonlyMap<number, Task>;
   /** 這一欄實際的主任務數（不受篩選影響），和 WIP 上限比較 */
   total: number;
   wipLimit: number | undefined;
@@ -82,7 +84,7 @@ interface BoardColumnProps {
   onQuickAdd: (status: TaskStatus, title: string) => void;
 }
 
-function BoardColumn({ status, tasks, total, wipLimit, directory, editable, onOpen, onQuickAdd }: BoardColumnProps) {
+function BoardColumn({ status, tasks, tasksById, total, wipLimit, directory, editable, onOpen, onQuickAdd }: BoardColumnProps) {
   const { token } = theme.useToken();
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const [title, setTitle] = useState('');
@@ -111,7 +113,7 @@ function BoardColumn({ status, tasks, total, wipLimit, directory, editable, onOp
             title={
               over
                 ? `超過 WIP 上限 ${String(total - wipLimit)} 張，先把手上的做完再拉新的`
-                : `WIP 上限 ${String(wipLimit)} 張${full ? '，已滿' : ''}`
+                : `主任務 WIP 上限 ${String(wipLimit)} 張${full ? '，已滿' : ''}`
             }
           >
             <Typography.Text type={over ? 'danger' : full ? 'warning' : 'secondary'} strong={over}>
@@ -123,7 +125,14 @@ function BoardColumn({ status, tasks, total, wipLimit, directory, editable, onOp
       <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
         <div ref={setNodeRef} style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 80 }}>
           {tasks.map((task) => (
-            <SortableTask key={task.id} task={task} directory={directory} disabled={!editable} onOpen={onOpen} />
+            <SortableTask
+              key={task.id}
+              task={task}
+              parent={task.parentId === null ? undefined : tasksById.get(task.parentId)}
+              directory={directory}
+              disabled={!editable}
+              onOpen={onOpen}
+            />
           ))}
         </div>
       </SortableContext>
@@ -150,7 +159,7 @@ function BoardColumn({ status, tasks, total, wipLimit, directory, editable, onOp
 }
 
 interface TaskBoardViewProps {
-  /** 篩選後的任務；看板只放主任務，子任務在抽屜裡看 */
+  /** 與表格共用的篩選結果，含子任務。 */
   tasks: readonly Task[];
   allTasks: readonly Task[];
   directory: UserDirectory;
@@ -176,16 +185,15 @@ export function TaskBoardView({ tasks, allTasks, directory, editable, showCancel
   const [activeId, setActiveId] = useState<number | null>(null);
   const [dragColumns, setDragColumns] = useState<Columns | null>(null);
 
-  const boardTasks = useMemo(() => tasks.filter((task) => task.parentId === null), [tasks]);
-  const tasksById = useMemo(() => new Map(boardTasks.map((task) => [task.id, task] as const)), [boardTasks]);
+  const tasksById = useMemo(() => new Map(allTasks.map((task) => [task.id, task] as const)), [allTasks]);
   const serverColumns = useMemo(() => {
     const columns = emptyColumns();
-    const sorted = [...boardTasks].sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+    const sorted = [...tasks].sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
     for (const task of sorted) {
       columns[task.status].push(task.id);
     }
     return columns;
-  }, [boardTasks]);
+  }, [tasks]);
   const columns = dragColumns ?? serverColumns;
   // WIP 看的是整個專案的主任務，不受篩選影響
   const totals = useMemo(() => {
@@ -293,6 +301,7 @@ export function TaskBoardView({ tasks, allTasks, directory, editable, showCancel
             key={status}
             status={status}
             tasks={columns[status].map((id) => tasksById.get(id)).filter((task): task is Task => task !== undefined)}
+            tasksById={tasksById}
             total={totals.get(status) ?? 0}
             wipLimit={wipLimits[status]}
             directory={directory}
@@ -302,7 +311,16 @@ export function TaskBoardView({ tasks, allTasks, directory, editable, showCancel
           />
         ))}
       </Flex>
-      <DragOverlay>{activeTask === undefined ? null : <TaskCard task={activeTask} directory={directory} overlay />}</DragOverlay>
+      <DragOverlay>
+        {activeTask === undefined ? null : (
+          <TaskCard
+            task={activeTask}
+            parent={activeTask.parentId === null ? undefined : tasksById.get(activeTask.parentId)}
+            directory={directory}
+            overlay
+          />
+        )}
+      </DragOverlay>
     </DndContext>
   );
 }

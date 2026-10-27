@@ -1,7 +1,8 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, ScrollRestoration } from 'react-router';
 import { Result } from 'antd';
 import { RequirePermission } from '@/core/auth/RequirePermission';
 import { PERMISSIONS } from '@/core/auth/permissions';
+import { taskListScrollKey } from '@/components/project/task-drawer/navigation';
 import { SerialNumberPage } from '@/pages/basic-data/serial-number/SerialNumberPage';
 import { LeavePage } from '@/pages/leave/LeavePage';
 import { DashboardPage } from '@/pages/project/dashboard/DashboardPage';
@@ -21,7 +22,12 @@ import { AppLayout } from './layout/AppLayout';
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <AppLayout />,
+    element: (
+      <>
+        <AppLayout />
+        <ScrollRestoration getKey={taskListScrollKey} />
+      </>
+    ),
     children: [
       { index: true, element: <HomePage /> },
       {

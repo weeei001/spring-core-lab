@@ -7,6 +7,7 @@ import type { UserDirectory } from '@/components/user/useUserDirectory';
 
 interface TaskCardProps {
   task: Task;
+  parent?: Task | undefined;
   directory: UserDirectory;
   /** 拖曳中浮在游標上的那張 */
   overlay?: boolean;
@@ -14,7 +15,7 @@ interface TaskCardProps {
 }
 
 /** 看板卡片只呈現編號、標題、到期日、子任務進度與負責人。 */
-export function TaskCard({ task, directory, overlay = false, onOpen }: TaskCardProps) {
+export function TaskCard({ task, parent, directory, overlay = false, onOpen }: TaskCardProps) {
   const { token } = theme.useToken();
   const done = task.status === 'DONE';
   return (
@@ -33,6 +34,11 @@ export function TaskCard({ task, directory, overlay = false, onOpen }: TaskCardP
         <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
           {task.code}
         </Typography.Text>
+        {parent === undefined ? null : (
+          <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+            <BranchesOutlined /> {parent.code} 的子任務
+          </Typography.Text>
+        )}
         <Typography.Text delete={task.status === 'CANCELLED'} strong>
           {done ? <CheckCircleFilled style={{ marginInlineEnd: 6, color: token.colorSuccess }} /> : null}
           {task.title}

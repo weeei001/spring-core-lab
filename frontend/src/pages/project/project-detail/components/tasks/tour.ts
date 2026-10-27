@@ -15,9 +15,9 @@ export const TASKS_TOUR: GuideStep[] = [
   },
   {
     target: 'task-content',
-    title: '拖曳更新進度',
+    title: '查看與更新任務',
     description:
-      '把卡片拖到別欄更新狀態，同一欄上下拖可調整順序。點任務可修改負責人、日期與說明，也能留言討論。',
+      '可切換看板或表格，兩者共用篩選。看板可拖曳卡片，表格可排序及展開子任務；點標題開啟詳情。編輯操作依專案權限開放。',
     placement: 'top',
   },
 ];

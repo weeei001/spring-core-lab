@@ -1,5 +1,6 @@
 import { Flex, Select, Table, Tag, Tooltip, Typography, type TableColumnsType } from 'antd';
 import { BranchesOutlined, LinkOutlined } from '@ant-design/icons';
+import { useSearchParams } from 'react-router';
 import type { Task, TaskStatus } from '@/api/project/task.types';
 import { DueDate } from '@/components/project/DueDate';
 import { PriorityTag, TaskLabelTags, TaskStatusTag, TaskTypeTag } from '@/components/project/Tags';
@@ -45,6 +46,12 @@ function toRows(tasks: readonly Task[]): TaskRow[] {
 /** 表格檢視：可排序、展開子任務，狀態與指派人可直接在格子裡改 */
 export function TaskTableView({ tasks, allTasks, directory, memberOptions, editable, onOpen }: TaskTableViewProps) {
   const { update, confirmStatus } = useTaskActions();
+  const [params, setParams] = useSearchParams();
+  const page = Number(params.get('taskPage'));
+  const pageSize = Number(params.get('taskPageSize'));
+  const sort = params.get('taskSort') ?? 'dueDate';
+  const order = params.get('taskOrder') === 'descend' ? 'descend' : 'ascend';
+  const expanded = (params.get('taskExpanded') ?? '').split(',').map(Number).filter((id) => Number.isSafeInteger(id) && id > 0);
 
   const changeStatus = async (task: Task, status: TaskStatus): Promise<void> => {
     if (await confirmStatus(task, status, allTasks)) {
@@ -55,6 +62,7 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, edita
   const columns: TableColumnsType<TaskRow> = [
     {
       title: '編號',
+      key: 'code',
       dataIndex: 'code',
       width: 120,
       sorter: (a, b) => a.code.localeCompare(b.code),
@@ -63,12 +71,14 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, edita
       title: '類型',
       key: 'type',
       width: 110,
+      responsive: ['md'],
       sorter: (a, b) => TASK_TYPES.indexOf(a.type) - TASK_TYPES.indexOf(b.type),
       render: (_value, task) => <TaskTypeTag type={task.type} />,
     },
     {
       title: '標題',
       key: 'title',
+      width: 280,
       render: (_value, task) => (
         <Flex align="center" gap={6} wrap>
           <Typography.Link
@@ -76,7 +86,7 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, edita
               onOpen(task.id);
             }}
           >
-            {task.title}
+            <span style={{ overflowWrap: 'anywhere' }}>{task.title}</span>
           </Typography.Link>
           {task.subtaskCount !== undefined && task.subtaskCount > 0 ? (
             <Tooltip title="子任務完成數">
@@ -102,6 +112,7 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, edita
       render: (_value, task) =>
         editable ? (
           <Select<TaskStatus>
+            aria-label={`${task.code} 狀態`}
             size="small"
             variant="borderless"
             value={task.status}
@@ -119,6 +130,7 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, edita
       title: '優先度',
       key: 'priority',
       width: 100,
+      responsive: ['md'],
       sorter: (a, b) => TASK_PRIORITIES.indexOf(a.priority) - TASK_PRIORITIES.indexOf(b.priority),
       render: (_value, task) => <PriorityTag priority={task.priority} />,
     },
@@ -129,6 +141,7 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, edita
       render: (_value, task) =>
         editable ? (
           <Select<string>
+            aria-label={`${task.code} 指派人`}
             size="small"
             variant="borderless"
             allowClear
@@ -154,15 +167,16 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, edita
     },
     {
       title: '開始',
+      key: 'startDate',
       dataIndex: 'startDate',
       width: 110,
+      responsive: ['lg'],
       sorter: (a, b) => (a.startDate ?? '9999').localeCompare(b.startDate ?? '9999'),
     },
     {
       title: '到期',
       key: 'dueDate',
       width: 100,
-      defaultSortOrder: 'ascend',
       sorter: (a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'),
       render: (_value, task) => <DueDate task={task} />,
     },
@@ -170,6 +184,7 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, edita
       title: '工時',
       key: 'hours',
       width: 110,
+      responsive: ['lg'],
       render: (_value, task) => (
         <Typography.Text type="secondary">
           {hoursText(task.loggedHours ?? 0)}
@@ -183,10 +198,44 @@ export function TaskTableView({ tasks, allTasks, directory, memberOptions, edita
     <Table<TaskRow>
       rowKey="id"
       size="middle"
-      columns={columns}
+      columns={columns.map((column) => ({ ...column, sortOrder: column.key === sort ? order : null }))}
       dataSource={toRows(tasks)}
-      pagination={{ defaultPageSize: 20, showSizeChanger: true, showTotal: (total) => `共 ${String(total)} 筆` }}
-      scroll={{ x: 1110 }}
+      pagination={{
+        current: Number.isSafeInteger(page) && page > 0 ? page : 1,
+        pageSize: [10, 20, 50, 100].includes(pageSize) ? pageSize : 20,
+        showSizeChanger: true,
+        showTotal: (total) => `共 ${String(total)} 筆`,
+      }}
+      expandable={{
+        expandedRowKeys: expanded,
+        onExpandedRowsChange: (keys) => {
+          setParams((current) => {
+            const next = new URLSearchParams(current);
+            if (keys.length === 0) {
+              next.delete('taskExpanded');
+            } else {
+              next.set('taskExpanded', keys.join(','));
+            }
+            return next;
+          }, { replace: true, preventScrollReset: true });
+        },
+      }}
+      onChange={(pagination, _filters, sorter, extra) => {
+        const sorted = Array.isArray(sorter) ? sorter[0] : sorter;
+        setParams((current) => {
+          const next = new URLSearchParams(current);
+          next.set('taskPage', String(pagination.current ?? 1));
+          next.set('taskPageSize', String(pagination.pageSize ?? 20));
+          next.set('taskSort', sorted?.order == null ? 'none' : String(sorted.columnKey));
+          if (sorted?.order == null) {
+            next.delete('taskOrder');
+          } else {
+            next.set('taskOrder', sorted.order);
+          }
+          return next;
+        }, { replace: extra.action !== 'paginate', preventScrollReset: true });
+      }}
+      scroll={{ x: 'max-content' }}
     />
   );
 }
