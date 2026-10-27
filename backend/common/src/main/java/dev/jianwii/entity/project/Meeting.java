@@ -44,7 +44,6 @@ public class Meeting extends BaseEntity {
     @Column(nullable = false, columnDefinition = "text")
     private String minutes;
 
-    // 關聯沿用已核准結構；本輪不提供轉任務或關聯寫入入口。
     @ElementCollection
     @CollectionTable(name = "meeting_task", joinColumns = @JoinColumn(name = "meeting_id"))
     @Column(name = "task_id", nullable = false)

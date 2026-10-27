@@ -1,6 +1,8 @@
 package dev.jianwii.project.service;
 
 import dev.jianwii.api.project.MeetingQueryParameter;
+import dev.jianwii.api.project.MeetingTaskCreateRequest;
+import dev.jianwii.api.project.MeetingTaskView;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
@@ -8,11 +10,15 @@ import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.query.QueryParameter;
 import dev.jianwii.common.service.BaseService;
 import dev.jianwii.entity.project.Meeting;
+import dev.jianwii.entity.project.Task;
 import dev.jianwii.project.dao.MeetingDAO;
 import dev.jianwii.project.dao.ProjectDAO;
 import dev.jianwii.project.dao.TaskDAO;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.hibernate.Hibernate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -23,12 +29,19 @@ public class MeetingService extends BaseService<Meeting, MeetingQueryParameter> 
     private final ProjectDAO projectDAO;
     private final TaskDAO taskDAO;
     private final ProjectRules projectRules;
+    private final TaskService taskService;
 
-    public MeetingService(MeetingDAO meetingDAO, ProjectDAO projectDAO, TaskDAO taskDAO, ProjectRules projectRules) {
+    public MeetingService(
+            MeetingDAO meetingDAO,
+            ProjectDAO projectDAO,
+            TaskDAO taskDAO,
+            ProjectRules projectRules,
+            TaskService taskService) {
         super(meetingDAO);
         this.projectDAO = projectDAO;
         this.taskDAO = taskDAO;
         this.projectRules = projectRules;
+        this.taskService = taskService;
     }
 
     @Transactional(readOnly = true)
@@ -37,6 +50,80 @@ public class MeetingService extends BaseService<Meeting, MeetingQueryParameter> 
         requireProject(meeting.getProjectId());
         initialize(meeting);
         return meeting;
+    }
+
+    @Transactional(readOnly = true)
+    public List<MeetingTaskView> tasks(Long id) {
+        Meeting meeting = get(id);
+        Map<Long, Task> tasks = taskDAO.findAllById(meeting.getTaskIds()).stream()
+                .collect(Collectors.toMap(Task::getId, Function.identity()));
+        return meeting.getTaskIds().stream()
+                .sorted()
+                .map(taskId -> {
+                    Task task = tasks.get(taskId);
+                    return task == null || task.getDbMark() != BaseEntity.VALID
+                            ? new MeetingTaskView(taskId, true, null, null, null, null, null)
+                            : toTaskView(task);
+                })
+                .toList();
+    }
+
+    public Meeting linkTask(Long id, Long taskId) {
+        Meeting meeting = get(id);
+        projectRules.requireOpen(meeting.getProjectId());
+        Task task = taskDAO.findById(taskId)
+                .filter(value -> value.getDbMark() == BaseEntity.VALID)
+                .orElseThrow(() -> new NotFoundException("查無任務"));
+        if (!task.getProjectId().equals(meeting.getProjectId())) {
+            throw new BusinessException("任務不屬於指定專案");
+        }
+        if (!meeting.getTaskIds().contains(taskId) && meeting.getTaskIds().size() >= 100) {
+            throw new BusinessException("會議最多連結 100 個任務");
+        }
+        if (meeting.getTaskIds().add(taskId)) {
+            touch(meeting);
+            dao.saveAndFlush(meeting);
+        }
+        return meeting;
+    }
+
+    public Meeting unlinkTask(Long id, Long taskId) {
+        Meeting meeting = get(id);
+        projectRules.requireOpen(meeting.getProjectId());
+        if (meeting.getTaskIds().remove(taskId)) {
+            touch(meeting);
+            dao.saveAndFlush(meeting);
+        }
+        return meeting;
+    }
+
+    public MeetingTaskView createTask(Long id, MeetingTaskCreateRequest request) {
+        Meeting meeting = get(id);
+        projectRules.requireOpen(meeting.getProjectId());
+        if (meeting.getTaskIds().size() >= 100) {
+            throw new BusinessException("會議最多連結 100 個任務");
+        }
+        Task task = new Task();
+        task.setProjectId(meeting.getProjectId());
+        task.setTitle(request.title());
+        task.setAssigneeId(request.assigneeId());
+        task.setDueDate(request.dueDate());
+        Task saved = taskService.create(task);
+        meeting.getTaskIds().add(saved.getId());
+        touch(meeting);
+        dao.saveAndFlush(meeting);
+        return toTaskView(saved);
+    }
+
+    private MeetingTaskView toTaskView(Task task) {
+        return new MeetingTaskView(
+                task.getId(),
+                false,
+                task.getCode(),
+                task.getTitle(),
+                task.getAssigneeId(),
+                task.getDueDate(),
+                task.getStatus());
     }
 
     @Override

@@ -1,4 +1,5 @@
 import type { BaseEntity } from '@/core/http/types';
+import type { TaskStatus } from './task.types';
 
 export interface Meeting extends BaseEntity {
   projectId: number;
@@ -11,6 +12,22 @@ export interface Meeting extends BaseEntity {
 }
 
 export type MeetingInput = Pick<Meeting, 'title' | 'heldAt' | 'participants' | 'minutes'>;
+
+export interface MeetingTaskView {
+  taskId: number;
+  deleted: boolean;
+  code: string | null;
+  title: string | null;
+  assigneeId: string | null;
+  dueDate: string | null;
+  status: TaskStatus | null;
+}
+
+export interface MeetingTaskInput {
+  title: string;
+  assigneeId?: string;
+  dueDate?: string;
+}
 
 export interface MeetingQuery {
   projectId: number;

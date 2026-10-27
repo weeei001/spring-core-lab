@@ -2,6 +2,8 @@ package dev.jianwii.web.project;
 
 import dev.jianwii.api.project.MeetingApi;
 import dev.jianwii.api.project.MeetingQueryParameter;
+import dev.jianwii.api.project.MeetingTaskCreateRequest;
+import dev.jianwii.api.project.MeetingTaskView;
 import dev.jianwii.api.project.ProjectApi;
 import dev.jianwii.api.project.ProjectQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
@@ -59,6 +61,35 @@ public class WebMeetingController {
             @PathVariable Long id, @Validated(ValidGroup.Update.class) @RequestBody Meeting meeting) {
         projectAccessGuard.requireMeetingWriter(meetingApi.get(id));
         return Result.success(meetingApi.update(id, meeting));
+    }
+
+    @PreAuthorize("hasAuthority('project:read')")
+    @GetMapping("/{id}/tasks")
+    public Result<List<MeetingTaskView>> tasks(@PathVariable Long id) {
+        projectAccessGuard.requireMember(meetingApi.get(id).getProjectId());
+        return Result.success(meetingApi.tasks(id));
+    }
+
+    @PreAuthorize("hasAuthority('meeting:write')")
+    @PostMapping("/{id}/tasks/{taskId}")
+    public Result<Meeting> linkTask(@PathVariable Long id, @PathVariable Long taskId) {
+        projectAccessGuard.requireMeetingWriter(meetingApi.get(id));
+        return Result.success(meetingApi.linkTask(id, taskId));
+    }
+
+    @PreAuthorize("hasAuthority('meeting:write')")
+    @DeleteMapping("/{id}/tasks/{taskId}")
+    public Result<Meeting> unlinkTask(@PathVariable Long id, @PathVariable Long taskId) {
+        projectAccessGuard.requireMeetingWriter(meetingApi.get(id));
+        return Result.success(meetingApi.unlinkTask(id, taskId));
+    }
+
+    @PreAuthorize("hasAuthority('meeting:write') and hasAuthority('task:write')")
+    @PostMapping("/{id}/tasks")
+    public Result<MeetingTaskView> createTask(
+            @PathVariable Long id, @Valid @RequestBody MeetingTaskCreateRequest request) {
+        projectAccessGuard.requireMeetingWriter(meetingApi.get(id));
+        return Result.success(meetingApi.createTask(id, request));
     }
 
     private void requireProjectMember(Long projectId) {

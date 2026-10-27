@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PatchExchange;
@@ -29,4 +30,16 @@ public interface MeetingApi {
 
     @PatchExchange("/{id}")
     Meeting update(@PathVariable("id") Long id, @Validated(ValidGroup.Update.class) @RequestBody Meeting meeting);
+
+    @GetExchange("/{id}/tasks")
+    List<MeetingTaskView> tasks(@PathVariable("id") Long id);
+
+    @PostExchange("/{id}/tasks/{taskId}")
+    Meeting linkTask(@PathVariable("id") Long id, @PathVariable("taskId") Long taskId);
+
+    @DeleteExchange("/{id}/tasks/{taskId}")
+    Meeting unlinkTask(@PathVariable("id") Long id, @PathVariable("taskId") Long taskId);
+
+    @PostExchange("/{id}/tasks")
+    MeetingTaskView createTask(@PathVariable("id") Long id, @Valid @RequestBody MeetingTaskCreateRequest request);
 }

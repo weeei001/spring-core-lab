@@ -1,10 +1,11 @@
 import { useState, type ReactNode } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Alert, Avatar, Button, DatePicker, Flex, Input, InputNumber, Popconfirm, Result, Select, Skeleton, Tabs, Tag, Typography } from 'antd';
+import { Alert, Avatar, Button, DatePicker, Flex, Input, InputNumber, Pagination, Popconfirm, Result, Select, Skeleton, Tabs, Tag, Typography } from 'antd';
 import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, LinkOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Link } from 'react-router';
 import { taskApi } from '@/api/project/task-api';
+import { meetingApi } from '@/api/project/meeting-api';
 import type { ClearableTaskField, Task, TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
 import { toOptions } from '@/shared/lib/format';
 import { UserAvatar } from '@/components/user/UserAvatar';
@@ -398,6 +399,8 @@ function TaskDetailBody({ task, onDeleted, onOpen }: { task: Task; onDeleted: (p
         )}
       </Flex>
 
+      <TaskMeetings projectId={task.projectId} taskId={task.id} />
+
       <div data-tour="drawer-tabs" data-tour-inner=".ant-tabs-nav">
         <Tabs
           defaultActiveKey="activity"
@@ -451,6 +454,26 @@ function TaskDetailBody({ task, onDeleted, onOpen }: { task: Task; onDeleted: (p
       ) : null}
       {/* 抽屜與完整頁面使用相同的操作導覽。 */}
       <PageTour id="task-drawer" steps={TASK_DRAWER_TOUR} />
+    </Flex>
+  );
+}
+
+function TaskMeetings({ projectId, taskId }: { projectId: number; taskId: number }) {
+  const [page, setPage] = useState(1);
+  const meetings = useQuery({
+    queryKey: ['meeting', 'task', projectId, taskId, page],
+    queryFn: () => meetingApi.queryPage({ projectId, taskId, page, size: 20 }),
+    staleTime: 0,
+  });
+  return (
+    <Flex vertical gap={8}>
+      <Typography.Text type="secondary">來源會議</Typography.Text>
+      {meetings.isPending ? <Skeleton active paragraph={{ rows: 1 }} /> : meetings.isError ? (
+        <Alert type="error" title={meetings.error.message} action={<Button onClick={() => { void meetings.refetch(); }}>重試</Button>} />
+      ) : meetings.data.items.length === 0 ? <Typography.Text type="secondary">沒有連結會議</Typography.Text> : <>
+        {meetings.data.items.map((meeting) => <Link key={meeting.id} to={`/projects/${String(projectId)}/meetings/${String(meeting.id)}`}>{meeting.title}</Link>)}
+        {meetings.data.total > 20 ? <Pagination current={page} pageSize={20} total={meetings.data.total} showSizeChanger={false} onChange={setPage} /> : null}
+      </>}
     </Flex>
   );
 }

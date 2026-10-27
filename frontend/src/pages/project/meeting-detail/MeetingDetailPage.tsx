@@ -10,6 +10,7 @@ import { useUserDirectory } from '@/components/user/useUserDirectory';
 import { PERMISSIONS } from '@/core/auth/permissions';
 import { useAuth } from '@/core/auth/useAuth';
 import { ApiError } from '@/core/http/client';
+import { MeetingTasks } from './MeetingTasks';
 
 interface MeetingForm {
   title: string;
@@ -53,7 +54,7 @@ function MeetingEditor({ projectId, initial }: { projectId: number; initial: Mee
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, can } = useAuth();
-  const { project, access } = useProjectContext(projectId);
+  const { project, members, access } = useProjectContext(projectId);
   const [record, setRecord] = useState(initial);
   const [dirty, setDirty] = useState(false);
   const [form] = Form.useForm<MeetingForm>();
@@ -124,6 +125,7 @@ function MeetingEditor({ projectId, initial }: { projectId: number; initial: Mee
         {record ? <Typography.Paragraph type="secondary" style={{ marginTop: 20 }}>最後修改：{directory.name(record.transId)} · {dayjs(record.transTime).format('YYYY-MM-DD HH:mm:ss')}</Typography.Paragraph> : null}
         {record && !canEdit && !dirty ? <Link to={back}>返回會議清單</Link> : null}
       </Card>
+      {record ? <MeetingTasks meetingId={record.id} projectId={projectId} members={members} canEdit={canEdit} canCreate={access.canEditTasks} /> : null}
       <Modal open={blocker.state === 'blocked'} title="放棄未儲存的會議紀錄？" okText="放棄並離開" cancelText="繼續編輯" onOk={() => { if (blocker.state === 'blocked') { blocker.proceed(); } }} onCancel={() => { if (blocker.state === 'blocked') { blocker.reset(); } }}>
         離開後會失去尚未儲存的內容。
       </Modal>

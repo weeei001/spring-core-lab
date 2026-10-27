@@ -68,3 +68,22 @@ HTTP 九組驗收全數通過；瀏覽器採內建瀏覽器，原生提示另嘗
 ## 參考與取捨
 
 模型沿用 T3 已比較的 OpenProject 與 ERPNext 方案，採單一 minutes 純文字，不加入議程、狀態或獨立 action item。實作跟隨現有 ProjectLabel 的 API／Service／DAO 與 TaskDraftBoundary 的離開確認。站內導頁使用 [React Router useBlocker](https://reactrouter.com/api/hooks/useBlocker)，原生離開另用 [useBeforeUnload](https://reactrouter.com/api/hooks/useBeforeUnload)；兩者的驗收結果分開記錄。Request body 驗證依 [Spring 官方文件](https://docs.spring.io/spring/reference/7.1/web/webmvc/mvc-controller/ann-methods/requestbody.html) 與既有 ValidGroup，不新增依賴。
+
+## 2026-10-27 會議任務關聯 HTTP 驗收
+
+版本為 `c6cf10c` 加本輪未提交修改。沿用上述四個隔離庫，以 JDK 21 封裝獨立服務，使用 `ddl-auto=validate`、合成 Session 與合成專案；沒有使用真實 Google 登入。測試前 project 庫有 13 筆會議、0 筆任務及 0 筆關聯，701／702 均為 ACTIVE。本輪在隔離 basic-data 庫將合成角色 201 加上 `task:write`；使用者 101 與 104 屬於該角色，107 保持只有 `meeting:write`。
+
+| 項目 | 實際 HTTP 結果 |
+| --- | --- |
+| 文字決議 | 101 在專案 701 建立會議 15 回 200；GET 會議及其 tasks 均回 200，`taskIds` 與任務清單為空。 |
+| 建立失敗 | 101 對會議 15 以非成員 `not-a-member` 作負責人建立任務，POST 回 400；測試庫任務筆數不變，GET tasks 回 200 且仍為空。 |
+| 僅有會議寫入權 | 107 建立自己的會議 16 回 200；對其 POST 新任務回 403，任務筆數不變。 |
+| 建立與讀回 | 101 對會議 15 建立標題「會議新任務」、負責人 101、期限 2026-11-01 的任務，POST 回 200、任務 ID 1、狀態 TODO；GET tasks 回 200 並顯示同一任務。再次 GET 會議回 200，任務筆數不變。 |
+| 反查與完成狀態 | 用專案 701 和 taskId 1 查詢會議回 200，結果包含會議 15；PATCH 任務 1 為 DONE 回 200，重新 GET 會議 tasks 回 200 且狀態為 DONE。 |
+| 既有任務與解除 | 101 在專案 701 建立任務 2 回 200；連結兩次各回 200，清單中只有一筆；DELETE 關聯回 200，之後查詢任務 2 回 200 且仍存在。 |
+| 跨專案 | 104 在專案 702 建立任務 4 回 200；101 將它連到專案 701 的會議 15 時回 400，GET tasks 回 200 且不含任務 4。 |
+| 已刪除任務 | 101 軟刪除任務 1 回 200；GET 會議 15 tasks 回 200，保留關聯並顯示 `deleted=true`、`status=null`。 |
+
+首輪 POST 會議因 web-server 尚未從 Eureka 發現 project-service 回 500，等待服務註冊後重試；第二輪因上輪合成角色未具備 `task:write`，新建任務回 403。補足隔離角色權限後，上表全部通過。驗收結束後停止本輪隔離服務，保留測試庫及測資。無效指派發生在 Task 寫入前，尚未人為製造 Task 已寫入但關聯寫入失敗的資料庫故障，因此不能據此宣稱已實測該中途 rollback 情境。
+
+瀏覽器使用同一隔離環境與合成使用者 101：在會議 14 建立任務 3，送出中建立及取消按鈕停用；重新整理後仍為同一筆。從會議進入任務可見來源會議，改為完成後返回會議顯示「完成」。搜尋並連結既有任務 2，再解除連結；先前 HTTP 案例確認解除不刪任務。搜尋以標題「既有任務」找到任務 2。通知發送及真實 Google 登入本輪未實測。

@@ -2,6 +2,8 @@ package dev.jianwii.project.controller;
 
 import dev.jianwii.api.project.MeetingApi;
 import dev.jianwii.api.project.MeetingQueryParameter;
+import dev.jianwii.api.project.MeetingTaskCreateRequest;
+import dev.jianwii.api.project.MeetingTaskView;
 import dev.jianwii.common.dto.PageResponse;
 import dev.jianwii.entity.project.Meeting;
 import dev.jianwii.project.service.MeetingService;
@@ -37,5 +39,25 @@ public class MeetingController implements MeetingApi {
     @Override
     public Meeting update(Long id, Meeting meeting) {
         return meetingService.update(id, meeting);
+    }
+
+    @Override
+    public List<MeetingTaskView> tasks(Long id) {
+        return meetingService.tasks(id);
+    }
+
+    @Override
+    public Meeting linkTask(Long id, Long taskId) {
+        return meetingService.linkTask(id, taskId);
+    }
+
+    @Override
+    public Meeting unlinkTask(Long id, Long taskId) {
+        return meetingService.unlinkTask(id, taskId);
+    }
+
+    @Override
+    public MeetingTaskView createTask(Long id, MeetingTaskCreateRequest request) {
+        return meetingService.createTask(id, request);
     }
 }
