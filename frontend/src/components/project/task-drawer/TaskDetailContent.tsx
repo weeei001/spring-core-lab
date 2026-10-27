@@ -292,13 +292,11 @@ function TaskDetailBody({ task, onDeleted, onOpen }: { task: Task; onDeleted: (p
                   ))}
                 </Avatar.Group>
               )}
-              {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- 保留原本操作入口的成員與結案判斷。 */}
-              {access.isMember && !access.closed ? (
+              {!access.closed ? (
                 <Button
                   size="small"
                   icon={watching ? <EyeInvisibleOutlined /> : <EyeOutlined />}
                   loading={toggleWatch.isPending}
-                  disabled={!access.isMember}
                   onClick={() => {
                     toggleWatch.mutate();
                   }}
@@ -466,13 +464,50 @@ function TaskQaSources({ projectId, taskId }: { projectId: number; taskId: numbe
     queryKey: ['manual-qa', 'bug', taskId, page],
     queryFn: () => manualQaApi.bugExecutions(taskId, page),
   });
-  return <Flex vertical gap={8}>
-    <Typography.Text type="secondary">驗收失敗紀錄</Typography.Text>
-    {sources.isPending ? <Skeleton active paragraph={{ rows: 1 }} /> : sources.isError ? <Alert type="error" title={sources.error.message} action={<Button onClick={() => { void sources.refetch(); }}>重試</Button>} /> : sources.data.items.length === 0 ? <Typography.Text type="secondary">沒有連結失敗紀錄</Typography.Text> : <>
-      {sources.data.items.map((source) => <Link key={source.executionId} to={`/projects/${String(projectId)}/qa/${String(source.batchId)}?item=${String(source.itemId)}&execution=${String(source.executionId)}`}>{source.itemTitle} · {source.testedVersion} · {dayjs(source.executedAt).format('YYYY-MM-DD HH:mm')}</Link>)}
-      {sources.data.total > 20 ? <Pagination current={page} pageSize={20} total={sources.data.total} showSizeChanger={false} onChange={setPage} /> : null}
-    </>}
-  </Flex>;
+  return (
+    <Flex vertical gap={8}>
+      <Typography.Text type="secondary">驗收失敗紀錄</Typography.Text>
+      {sources.isPending ? (
+        <Skeleton active paragraph={{ rows: 1 }} />
+      ) : sources.isError ? (
+        <Alert
+          type="error"
+          title={sources.error.message}
+          action={
+            <Button
+              onClick={() => {
+                void sources.refetch();
+              }}
+            >
+              重試
+            </Button>
+          }
+        />
+      ) : sources.data.items.length === 0 ? (
+        <Typography.Text type="secondary">沒有連結失敗紀錄</Typography.Text>
+      ) : (
+        <>
+          {sources.data.items.map((source) => (
+            <Link
+              key={source.executionId}
+              to={`/projects/${String(projectId)}/qa/${String(source.batchId)}?item=${String(source.itemId)}&execution=${String(source.executionId)}`}
+            >
+              {source.itemTitle} · {source.testedVersion} · {dayjs(source.executedAt).format('YYYY-MM-DD HH:mm')}
+            </Link>
+          ))}
+          {sources.data.total > 20 ? (
+            <Pagination
+              current={page}
+              pageSize={20}
+              total={sources.data.total}
+              showSizeChanger={false}
+              onChange={setPage}
+            />
+          ) : null}
+        </>
+      )}
+    </Flex>
+  );
 }
 
 function TaskMeetings({ projectId, taskId }: { projectId: number; taskId: number }) {
@@ -485,12 +520,42 @@ function TaskMeetings({ projectId, taskId }: { projectId: number; taskId: number
   return (
     <Flex vertical gap={8}>
       <Typography.Text type="secondary">來源會議</Typography.Text>
-      {meetings.isPending ? <Skeleton active paragraph={{ rows: 1 }} /> : meetings.isError ? (
-        <Alert type="error" title={meetings.error.message} action={<Button onClick={() => { void meetings.refetch(); }}>重試</Button>} />
-      ) : meetings.data.items.length === 0 ? <Typography.Text type="secondary">沒有連結會議</Typography.Text> : <>
-        {meetings.data.items.map((meeting) => <Link key={meeting.id} to={`/projects/${String(projectId)}/meetings/${String(meeting.id)}`}>{meeting.title}</Link>)}
-        {meetings.data.total > 20 ? <Pagination current={page} pageSize={20} total={meetings.data.total} showSizeChanger={false} onChange={setPage} /> : null}
-      </>}
+      {meetings.isPending ? (
+        <Skeleton active paragraph={{ rows: 1 }} />
+      ) : meetings.isError ? (
+        <Alert
+          type="error"
+          title={meetings.error.message}
+          action={
+            <Button
+              onClick={() => {
+                void meetings.refetch();
+              }}
+            >
+              重試
+            </Button>
+          }
+        />
+      ) : meetings.data.items.length === 0 ? (
+        <Typography.Text type="secondary">沒有連結會議</Typography.Text>
+      ) : (
+        <>
+          {meetings.data.items.map((meeting) => (
+            <Link key={meeting.id} to={`/projects/${String(projectId)}/meetings/${String(meeting.id)}`}>
+              {meeting.title}
+            </Link>
+          ))}
+          {meetings.data.total > 20 ? (
+            <Pagination
+              current={page}
+              pageSize={20}
+              total={meetings.data.total}
+              showSizeChanger={false}
+              onChange={setPage}
+            />
+          ) : null}
+        </>
+      )}
     </Flex>
   );
 }
