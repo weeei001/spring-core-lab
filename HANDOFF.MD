@@ -24,6 +24,19 @@
 - 症狀：點導頁連結時，尚未確認放棄的欄位已送出更新。原因：Ant Design `Typography.editable` 的 `onBlur` 會呼叫儲存；原本預估工時也綁在 blur 儲存。需要可放棄的草稿時，使用明確的儲存／取消，不靠路由確認撤銷已送出的更新。
 - 症狀：只阻擋 pathname 變化，關閉抽屜或切換任務仍會遺失草稿。原因：這些動作只改 `?task=`。任務的路由阻擋需同時判斷 pathname 與 `task`，內容以任務 ID 作 key，並合併未顯示分頁的草稿狀態。來源網址可保留 URL 參數，無法保存原頁只存在元件 state 的看板篩選。
 
+## React Query 背景錯誤與任務連結
+
+- 症狀：抽屜內有未儲存說明時後端暫停，視窗聚焦觸發的背景重新查詢失敗，整頁變成「找不到專案」，草稿隨抽屜卸載。原因：React Query 重新查詢失敗仍保留舊 `data`，但 `isError` 為 true；把 `isError` 當成沒有資料就會換掉整頁。判斷錯誤頁時看 `data === undefined`，有舊資料只顯示提示。
+- 連到 `/tasks/:id` 的站內連結須用 `taskDetailPath(id, 來源)`，否則完整頁只有「返回專案」。驗收頁的來源帶 `?item=` 才會選回原項目。
+- 只有 `onClick` 的 `Typography.Link` 沒有 `href`，Tab 不會停留；要讓鍵盤可開啟就給真實 href，再在 `onClick` 中 `preventDefault`。
+
+## 內建瀏覽器 UI 驗收
+
+- 內建瀏覽器窗格窄時，1440 模擬畫面會縮小，座標點擊常落空；用 `find` 的 ref 或元素 `click()` 操作，以 `scrollWidth`、`activeElement` 等 DOM 量測當證據。窗格寬度變動會清掉模擬尺寸，需重新設定。
+- Ant Design Select 選完立即送 Tab，偶爾焦點仍留在 Select；連續按鍵間稍等再查 `activeElement`，不要直接判定為焦點 bug。Modal 中日期面板開著按 Escape 會連同 Modal 關閉。
+- 製造請求失敗可在測試中強制停止本機 `project-service`，web-server 會回 500；重啟後約 30 秒才完成 Eureka 註冊。
+- Windows 上以 Python 文字模式寫檔會變成 CRLF；改檔用 `newline=''` 或二進位讀寫，提交前檢查換行。
+
 ## HTML 說明頁的輸出與預覽
 
 - 症狀：`am render` 拒絕嵌入副檔名為 png 的瀏覽器截圖。原因：本輪 screenshot API 實際回傳 JPEG，檔頭為 FFD8，直接存成 png 不會轉換格式。正確做法：保存前檢查檔頭或 MIME type，使用對應副檔名；不要將改檔名稱作影像格式轉換。

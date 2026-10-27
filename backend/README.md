@@ -143,7 +143,7 @@ curl http://127.0.0.1:9080/actuator/health
 
 三者都拒絕 Z、offset、混用格式、非法日期時間、空白字串與數字／陣列／物件輸入。JSON null 由 Jackson 保留，是否必填仍由欄位的 Bean Validation 決定。
 
-Entity 與查詢參數移除 `@JsonDeserialize`，保留各自的 JPA、Validation 與查詢註解即可。不需為這項規則新增 `@JsonFormat`。序列化及 Instant／OffsetDateTime 沿用既有行為；URL query／path 參數由 Spring 型別轉換處理，不屬於 Jackson 配置範圍。實測見 [日期時間 JSON 驗收](../docs/json-time-acceptance.md)。
+Entity 與查詢參數移除 `@JsonDeserialize`，保留各自的 JPA、Validation 與查詢註解即可。不需為這項規則新增 `@JsonFormat`。序列化及 Instant／OffsetDateTime 沿用既有行為；URL query／path 參數由 Spring 型別轉換處理，不屬於 Jackson 配置範圍。
 
 ## 部署設定
 
