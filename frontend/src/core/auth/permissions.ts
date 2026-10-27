@@ -7,6 +7,7 @@ export const PERMISSIONS = {
   PROJECT_WRITE: 'project:write',
   PROJECT_ADMIN: 'project:admin',
   TASK_WRITE: 'task:write',
+  MEETING_WRITE: 'meeting:write',
   WORK_LOG_WRITE: 'work-log:write',
   LEAVE_APPLY: 'leave:apply',
   LEAVE_APPROVE: 'leave:approve',

@@ -18,6 +18,7 @@ import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.web.Operator;
 import dev.jianwii.entity.basicdata.Permission;
+import dev.jianwii.entity.project.Meeting;
 import dev.jianwii.entity.project.ProjectMember;
 import dev.jianwii.entity.project.ProjectRole;
 import dev.jianwii.entity.project.Task;
@@ -149,6 +150,17 @@ public class ProjectAccessGuard {
     public void requireManager(Long projectId) {
         if (!isAdmin() && role(projectId).filter(ProjectRole.MANAGER::equals).isEmpty()) {
             throw new ForbiddenException("只有專案經理可以執行此操作");
+        }
+    }
+
+    /** 必須仍是有效成員；一般成員只能修改自己的會議紀錄。 */
+    public void requireMeetingWriter(Meeting meeting) {
+        if (isAdmin()) {
+            return;
+        }
+        ProjectRole projectRole = role(meeting.getProjectId()).orElseThrow(() -> new ForbiddenException("不是此專案的成員"));
+        if (projectRole != ProjectRole.MANAGER && !currentUserId().equals(meeting.getCreateId())) {
+            throw new ForbiddenException("只有記錄人或專案經理可以修改此會議紀錄");
         }
     }
 

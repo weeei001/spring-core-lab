@@ -14,11 +14,12 @@ import { TaskDrawer } from '@/components/project/task-drawer/TaskDrawer';
 import { useMemberDirectory } from '@/components/project/useMemberDirectory';
 import { PageTour } from '@/shared/ui/PageTour';
 import { MemberTab } from './components/MemberTab';
+import { MeetingsTab } from './components/MeetingsTab';
 import { TasksTab } from './components/tasks/TasksTab';
 import { PROJECT_DETAIL_TOUR } from './tour';
 
 // ponytail: 雛形先完成任務協作；進階管理頁等實際試用有需求再接回。
-const TABS = ['tasks', 'members'] as const;
+const TABS = ['tasks', 'members', 'meetings'] as const;
 type TabKey = (typeof TABS)[number];
 
 function isTab(value: string | null): value is TabKey {
@@ -79,7 +80,7 @@ function ProjectDetail({ projectId }: { projectId: number }) {
     if (status === 'DONE' || status === 'CANCELLED') {
       modal.confirm({
         title: `確定將專案改為「${PROJECT_STATUS_LABELS[status]}」？`,
-        content: '結案或取消後，專案底下的任務、成員、工時都會變成唯讀，直到重新開啟。',
+        content: '結案或取消後，專案底下的任務、會議紀錄、成員、工時都會變成唯讀，直到重新開啟。',
         okText: '確定',
         cancelText: '取消',
         onOk: run,
@@ -141,7 +142,7 @@ function ProjectDetail({ projectId }: { projectId: number }) {
                 </Button>
                 <Popconfirm
                   title="刪除這個專案？"
-                  description="仍有任務時無法刪除，可以改用「取消」。"
+                  description="仍有任務或會議紀錄時無法刪除，可以改用「取消」。"
                   okText="刪除"
                   cancelText="取消"
                   onConfirm={() => {
@@ -180,6 +181,11 @@ function ProjectDetail({ projectId }: { projectId: number }) {
                   onOpen={drawer.open}
                 />
               ),
+            },
+            {
+              key: 'meetings',
+              label: '會議紀錄',
+              children: <MeetingsTab projectId={projectId} access={access} />,
             },
             {
               key: 'members',

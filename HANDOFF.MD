@@ -2,6 +2,16 @@
 
 開始新任務前先閱讀本檔，避免重複踩坑。只記錄已遇到的限制、原因與處理方式；未完成事項放在 [TODO.md](TODO.md)，完成紀錄不留在本檔。以下經驗於 2026-10-26 整理，環境或設定改變後應重新確認。
 
+## MySQL 時間精度與驗收 Session
+
+- 症狀：驗證共用 Jackson 配置時，OffsetDateTime 的原始 +08:00 與回應的 Z 不相等。原因：既有 mapper 會依 context 正規化為 UTC，並非 local 型別的 module 改了 OffsetDateTime。正確做法：同時比對未註冊自訂 module、其餘設定相同的基線 mapper，或在只驗證時間點時比較 Instant，不為符合錯誤斷言改動產品時區設定。
+- 症狀：新增回應與後續 PATCH 的 createTime 比字串不相等。原因：JPA Auditing 的即時物件可能含 7 位以上小數，MySQL datetime(6) 會取整；資料庫中的建立時間沒有被 PATCH 改動。正確做法：以解析後時間值或兩次持久化讀回值驗證，不因小數位差異修改共用 BaseEntity。
+- 症狀：隔離驗收想複製現有 OIDC 設定時遭自動核准審查拒絕。原因：client_secret 移轉不包含在一般建測試庫授權，ALL PRIVILEGES 也超過執行期所需。正確做法：可只驗業務授權時，用合成 OIDC／Spring Session fixture，服務帳號只給核准測試庫的 CRUD，並明確回報沒有驗證真實 Google 登入；不能把秘密複製換成其他隱藏途徑。
+
+## 原生離開提示的瀏覽器工具限制
+
+- 症狀：站內未儲存確認可見，但程式化 reload 沒有可觀察的 beforeunload 對話框，內建分頁曾失效；Edge 的快捷鍵呼叫也未觸發真正重整。原因：這些工具結果不能證明使用者按瀏覽器重新整理時的行為。正確做法：保留路由確認與原生提示兩種獨立結果；Windows 原生控制若因無法可靠判定網址而停止，停止 UI 操作，標記原生重整／關閉尚未驗證，不以其他自動化繞過。
+
 ## 功能檔案存在不代表畫面已開放
 
 - 2026-10-27 架構盤點時，README 的功能描述容易讓人誤認專案頁已提供表格與甘特圖。實際 `ProjectDetailPage` 只有 `tasks`／`members`，`TasksTab` 只掛 `TaskBoardView`；`TaskTableView`、`TaskGanttView` 與 `LabelTab` 雖有檔案，當時沒有被其他元件引用。盤點功能時須核對路由與引用，再區分已有程式、已接 UI、實測可用；要恢復入口應先檢查舊元件是否符合目前契約。
@@ -16,6 +26,7 @@
 
 ## HTML 說明頁的輸出與預覽
 
+- 症狀：`am render` 拒絕嵌入副檔名為 png 的瀏覽器截圖。原因：本輪 screenshot API 實際回傳 JPEG，檔頭為 FFD8，直接存成 png 不會轉換格式。正確做法：保存前檢查檔頭或 MIME type，使用對應副檔名；不要將改檔名稱作影像格式轉換。
 - 2026-10-27 `answer-me-with-html` 預設輸出因家目錄不可寫，改存 sandbox 臨時目錄；下一個指令無法讀到該路徑。交付時使用 `render ... --no-open -o <本次可寫的 visualizations 絕對路徑>`，並在後續指令確認檔案存在。
 - 當次 Codex Browser 拒絕 `file://`，政策只允許 HTTP／HTTPS，且明確禁止繞道達成相同預覽。應保留本機 HTML、完成靜態檢查，回報尚未完成畫面／互動驗證，不將產生成功說成瀏覽器驗證成功。
 

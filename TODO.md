@@ -5,7 +5,7 @@
 ## 產品功能與操作體驗（2026-10-27 盤點）
 
 - 任務雙容器人工驗收：`/tasks/:taskId`、既有 `?task=` 抽屜、共用內容、來源返回及未送出內容確認已實作；依 [任務詳情驗收案例](docs/task-detail-acceptance.md) 的 TD-01–TD-12 驗收分享、重整、上一頁、舊連結、欄位／留言一致、草稿隔離與桌面／390px。前次 T1 未啟動服務驗收；本輪僅補上 [任務清單與返回驗收](frontend/src/pages/project/project-detail/components/tasks/acceptance.md)，尚未完整重跑草稿、留言、附件等 TD 案例。完成條件為所有案例留下實際結果並完成失敗複測。
-- 會議紀錄與後續待辦：[Meeting MVP 方案](docs/meeting-mvp.md) 與 [增量 SQL 草稿](docs/sql/meeting-mvp.draft.sql) 的 R1–R8 已於 2026-10-27 核准作為後續實作基準。待辦為依方案實作，並在取得 SQL 執行授權後驗證；完成條件為 MM-01–MM-18 在全新本機獨立測試庫留下結果，包含會後補寫、Task 單一狀態來源、後端權限、結案唯讀、專案刪除保護及保留資料的回退。尚未修改應用程式或執行 SQL。
+- 會議紀錄後續驗收與任務關聯：依 [會議驗收](docs/meeting-acceptance.md) 補驗原生重整／關閉提示、其他站內連結、日期控制項及 403／網路失敗的畫面保留。Windows 控制因無法可靠判定網址停止；Google OAuth 尚未重跑，前次使用合成 Session。依 [Meeting MVP 方案](docs/meeting-mvp.md) 的 R5 完成連結／解除、反查整合，以及 MM-09–MM-13、MM-16–MM-17 的完整任務與保留資料回退演練。共用日期時間規則與已執行的 JSON 驗收另見 [日期時間 JSON 驗收](docs/json-time-acceptance.md)。
 - 少量同事手動驗收：使用者已確認以同事／少量測試人員為主。先做版本與環境、驗收清單、逐次結果、BUG 任務關聯與複測，不先建完整案例庫。完成條件：失敗與修補版複測紀錄均保留，複製下一輪清單不複製結果，BUG 完成不自動等於驗收通過；資料方案待核准。
 - 驗收基準與回歸：依 [手動驗收基準](docs/manual-acceptance.md) 的 MA-00–MA-12 執行並保存逐次結果。2026-10-27 已啟動本機 3000／8080 與業務服務，Google 登入可用；本次已核准並建立 `spring_core_lab_t2_*` 獨立測試庫與 63 筆任務，表格／篩選／返回及成員、唯讀、結案情境見 [本次任務驗收](frontend/src/pages/project/project-detail/components/tasks/acceptance.md)。完整 MA 案例、非成員與管理者尚未執行。完成條件：各角色與結案／取消唯讀案例均留下版本、環境、帳號與實際證據，失敗保留 BUG 關聯與修補版複測。自動化測試依賴仍須另提最小方案取得同意；建置成功不代替驗收通過。
 

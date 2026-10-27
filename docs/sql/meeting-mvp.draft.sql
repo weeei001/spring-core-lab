@@ -1,5 +1,6 @@
--- 會議 MVP 增量 DDL 草稿，2026-10-27；R2／R6 設計已核准，仍為未執行草稿。
--- 對照 docs/meeting-mvp.md。作為後續實作基準，本次不得執行。
+-- 會議 MVP 增量 DDL，2026-10-27；R2／R6 設計已核准，保留原草稿檔名。
+-- 經另次執行核准，已在本輪全新獨立測試庫驗證；目標與結果見 docs/meeting-acceptance.md。
+-- 對照 docs/meeting-mvp.md；不代表已核准在其他庫或正式環境執行。
 -- 取得 SQL 執行授權後，先在全新本機獨立測試庫驗證，禁止連既有業務資料庫。
 -- 前提：同一庫內已有 project(id)、task(id)，皆為 InnoDB、signed bigint PK。
 -- 執行前另外讀回 DATABASE()／VERSION()／SHOW CREATE TABLE 核對目標與結構。
