@@ -5,7 +5,7 @@ export const TASK_DRAWER_TOUR: GuideStep[] = [
   {
     target: 'drawer-title',
     title: '任務詳情',
-    description: '點標題旁的筆可以直接改標題；上方的專案標籤可以回到專案。網址會帶著任務編號，複製連結給同事就能打開同一個任務。',
+    description: '點標題旁的筆可編輯，按「儲存」送出或「取消」放棄；說明與預估工時也需按儲存。上方的專案標籤可以回到專案，複製網址可分享同一個任務。',
     placement: 'bottom',
   },
   {

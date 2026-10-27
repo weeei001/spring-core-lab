@@ -8,6 +8,7 @@ import { DueDate } from '../DueDate';
 import { TaskStatusTag } from '../Tags';
 import { percent } from '../project-utils';
 import { useTaskActions } from '../useTaskActions';
+import { useTaskDraft } from './TaskDraftBoundary';
 
 interface TaskSubtasksProps {
   parent: Task;
@@ -22,6 +23,7 @@ interface TaskSubtasksProps {
 export function TaskSubtasks({ parent, allTasks, directory, editable, onOpen }: TaskSubtasksProps) {
   const { create, update } = useTaskActions();
   const [title, setTitle] = useState('');
+  useTaskDraft('subtask', title !== '');
   const subtasks = allTasks
     .filter((task) => task.parentId === parent.id && task.status !== 'CANCELLED')
     .sort((a, b) => a.id - b.id);
@@ -35,7 +37,7 @@ export function TaskSubtasks({ parent, allTasks, directory, editable, onOpen }: 
       {subtasks.length === 0 && !editable ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="沒有子任務" /> : null}
       <Flex vertical gap={4}>
           {subtasks.map((task) => (
-            <Flex key={task.id} align="center" gap={8} style={{ padding: '4px 0' }}>
+            <Flex key={task.id} align="center" gap={8} style={{ padding: '4px 0', minWidth: 0 }}>
               <Checkbox
                 checked={task.status === 'DONE'}
                 disabled={!editable}
@@ -45,7 +47,7 @@ export function TaskSubtasks({ parent, allTasks, directory, editable, onOpen }: 
               />
               <Typography.Link
                 delete={task.status === 'DONE'}
-                style={{ flex: 1 }}
+                style={{ flex: 1, minWidth: 0 }}
                 ellipsis
                 onClick={() => {
                   onOpen(task.id);

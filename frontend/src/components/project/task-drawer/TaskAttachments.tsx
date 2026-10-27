@@ -150,12 +150,12 @@ export function TaskAttachments({ taskId, editable }: TaskAttachmentsProps) {
       {files.length === 0 ? null : (
         <Flex vertical>
           {files.map((attachment) => (
-            <Flex key={attachment.id} align="center" gap={8} style={{ padding: '6px 0' }}>
+            <Flex key={attachment.id} align="center" gap={8} wrap style={{ padding: '6px 0' }}>
               <PaperClipOutlined />
               <Typography.Link href={attachmentApi.contentUrl(attachment.id)} download={attachment.fileName} ellipsis style={{ flex: 1, minWidth: 0 }}>
                 {attachment.fileName}
               </Typography.Link>
-              <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+              <Typography.Text className="task-detail-attachment-meta" type="secondary" style={{ fontSize: 12 }}>
                 {sizeText(attachment.size)} · {directory.name(attachment.createId)} · {formatTime(attachment.createTime)}
               </Typography.Text>
               <Typography.Link href={attachmentApi.contentUrl(attachment.id)} download={attachment.fileName} title="下載">

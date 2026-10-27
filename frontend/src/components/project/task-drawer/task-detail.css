@@ -1,0 +1,28 @@
+.task-detail-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.task-detail-attachment-meta {
+  white-space: nowrap;
+}
+
+@media (max-width: 575px) {
+  .task-detail-attachment-meta {
+    flex-basis: 100%;
+    order: 1;
+    white-space: normal;
+  }
+
+  .task-detail-content .ant-tabs-nav-list {
+    gap: 16px;
+  }
+
+  .task-detail-content .ant-tabs-tab + .ant-tabs-tab {
+    margin-left: 0;
+  }
+
+  .task-detail-content .ant-form-inline .ant-form-item {
+    margin-inline-end: 8px;
+  }
+}

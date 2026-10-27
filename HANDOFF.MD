@@ -2,6 +2,21 @@
 
 開始新任務前先閱讀本檔，避免重複踩坑。只記錄已遇到的限制、原因與處理方式；未完成事項放在 [TODO.md](TODO.md)，完成紀錄不留在本檔。以下經驗於 2026-10-26 整理，環境或設定改變後應重新確認。
 
+## 功能檔案存在不代表畫面已開放
+
+- 2026-10-27 架構盤點時，README 的功能描述容易讓人誤認專案頁已提供表格與甘特圖。實際 `ProjectDetailPage` 只有 `tasks`／`members`，`TasksTab` 只掛 `TaskBoardView`；`TaskTableView`、`TaskGanttView` 與 `LabelTab` 雖有檔案，當時沒有被其他元件引用。盤點功能時須核對路由與引用，再區分已有程式、已接 UI、實測可用；要恢復入口應先檢查舊元件是否符合目前契約。
+- 任務抽屜已由 `useTaskDrawer` 的 `?task=` 支援分享與重整；UI 改善不應以「沒有深連結」為前提。新增完整任務頁時保留現有通知／搜尋連結，重點驗證返回清單與未送出草稿。
+
+## 任務離開確認與文字編輯
+
+- 症狀：點導頁連結時，尚未確認放棄的欄位已送出更新。原因：Ant Design `Typography.editable` 的 `onBlur` 會呼叫儲存；原本預估工時也綁在 blur 儲存。需要可放棄的草稿時，使用明確的儲存／取消，不靠路由確認撤銷已送出的更新。
+- 症狀：只阻擋 pathname 變化，關閉抽屜或切換任務仍會遺失草稿。原因：這些動作只改 `?task=`。任務的路由阻擋需同時判斷 pathname 與 `task`，內容以任務 ID 作 key，並合併未顯示分頁的草稿狀態。來源網址可保留 URL 參數，無法保存原頁只存在元件 state 的看板篩選。
+
+## HTML 說明頁的輸出與預覽
+
+- 2026-10-27 `answer-me-with-html` 預設輸出因家目錄不可寫，改存 sandbox 臨時目錄；下一個指令無法讀到該路徑。交付時使用 `render ... --no-open -o <本次可寫的 visualizations 絕對路徑>`，並在後續指令確認檔案存在。
+- 當次 Codex Browser 拒絕 `file://`，政策只允許 HTTP／HTTPS，且明確禁止繞道達成相同預覽。應保留本機 HTML、完成靜態檢查，回報尚未完成畫面／互動驗證，不將產生成功說成瀏覽器驗證成功。
+
 ## EC2 公網 IP 與 Cloudflare DNS
 
 - 2026-10-26 使用者回報重啟 EC2 後 IP 改變，需反覆修改 Cloudflare；尚未核對實際操作是 Reboot 或 Stop/Start。AWS 的 Reboot 保留公網 IPv4，未綁 Elastic IP 的 Stop/Start 通常會重新分配公網 IPv4。可配置同 Region 的 Elastic IP 並關聯實例，再將 Cloudflare A 記錄改到該固定 IP；尚未執行。

@@ -15,6 +15,7 @@ import { formatTime } from '@/shared/lib/format';
 import { useInvalidateProjectData } from '../hooks';
 import { ACTIVITY_FIELD_LABELS, TASK_PRIORITY_LABELS, TASK_STATUS_LABELS, TASK_TYPE_LABELS } from '../labels';
 import { MentionInput, MentionText, mentionIdsOf, type MentionCandidate } from './mentions';
+import { useTaskDraft } from './TaskDraftBoundary';
 
 type Entry = { kind: 'comment'; item: TaskComment } | { kind: 'activity'; item: TaskActivity };
 
@@ -95,6 +96,7 @@ export function TaskTimeline({ taskId, labels, members, editable }: TaskTimeline
   const invalidate = useInvalidateProjectData();
   const [draft, setDraft] = useState('');
   const [editing, setEditing] = useState<{ id: number; content: string } | null>(null);
+  useTaskDraft('comments', draft !== '' || editing !== null);
 
   const comments = useQuery({ queryKey: ['task-comment', taskId], queryFn: () => commentApi.query({ taskId }) });
   const activities = useQuery({ queryKey: ['task-activity', taskId], queryFn: () => activityApi.query(taskId) });

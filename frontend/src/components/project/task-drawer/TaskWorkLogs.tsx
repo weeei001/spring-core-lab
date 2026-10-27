@@ -9,6 +9,7 @@ import { useUserDirectory } from '@/components/user/useUserDirectory';
 import { useAuth } from '@/core/auth/useAuth';
 import { useInvalidateProjectData } from '../hooks';
 import { DATE_FORMAT, hoursText, percent } from '../project-utils';
+import { useTaskDraft } from './TaskDraftBoundary';
 
 interface WorkLogFormValues {
   workDate: Dayjs;
@@ -27,6 +28,10 @@ export function TaskWorkLogs({ task, editable }: TaskWorkLogsProps) {
   const { message } = App.useApp();
   const invalidate = useInvalidateProjectData();
   const [form] = Form.useForm<WorkLogFormValues>();
+  const hours = Form.useWatch<number | undefined>('hours', form);
+  const note = Form.useWatch<string | undefined>('note', form);
+  const workDate = Form.useWatch<Dayjs | undefined>('workDate', form);
+  useTaskDraft('work-log', hours !== undefined || (note !== undefined && note !== '') || (workDate !== undefined && !workDate.isSame(dayjs(), 'day')));
   const logs = useQuery({
     queryKey: ['work-log', 'task', task.id],
     queryFn: () => workLogApi.query({ taskId: task.id }),
@@ -39,7 +44,7 @@ export function TaskWorkLogs({ task, editable }: TaskWorkLogsProps) {
       workLogApi.create({ taskId: task.id, workDate: values.workDate.format(DATE_FORMAT), hours: values.hours, note: values.note }),
     onSuccess: () => {
       void message.success('已登記工時');
-      form.resetFields(['hours', 'note']);
+      form.resetFields();
     },
     onSettled: invalidate,
   });
@@ -105,7 +110,7 @@ export function TaskWorkLogs({ task, editable }: TaskWorkLogsProps) {
               <Typography.Text strong style={{ width: 50 }}>
                 {hoursText(log.hours)}
               </Typography.Text>
-              <Typography.Text type="secondary" ellipsis style={{ flex: 1 }}>
+              <Typography.Text type="secondary" ellipsis style={{ flex: 1, minWidth: 0 }}>
                 {log.note ?? ''}
               </Typography.Text>
               {editable && log.userId === String(user.id) ? (

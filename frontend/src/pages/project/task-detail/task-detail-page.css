@@ -1,0 +1,11 @@
+.task-detail-page {
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+@media (max-width: 575px) {
+  .task-detail-page > .ant-card-body {
+    padding: 16px 12px;
+  }
+}

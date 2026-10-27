@@ -10,6 +10,7 @@ import { MyTasksPage } from '@/pages/project/my-tasks/MyTasksPage';
 import { ProjectDetailPage } from '@/pages/project/project-detail/ProjectDetailPage';
 import { ProjectListPage } from '@/pages/project/project-list/ProjectListPage';
 import { TimesheetPage } from '@/pages/project/timesheet/TimesheetPage';
+import { TaskDetailPage } from '@/pages/project/task-detail/TaskDetailPage';
 import { AnnouncementPage } from '@/pages/system/announcement/AnnouncementPage';
 import { RolePage } from '@/pages/system/role/RolePage';
 import { UserPage } from '@/pages/system/user/UserPage';
@@ -68,6 +69,14 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
             <ProjectDetailPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'tasks/:taskId',
+        element: (
+          <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
+            <TaskDetailPage />
           </RequirePermission>
         ),
       },

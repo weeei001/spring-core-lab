@@ -41,9 +41,11 @@ export interface ProjectContext {
   loading: boolean;
   /** 專案不存在或沒有權限 */
   notFound: boolean;
+  error: Error | null;
+  retry: () => void;
 }
 
-/** 一個專案的資料、成員與登入者的權限；專案詳情頁與任務抽屜共用 */
+/** 一個專案的資料、成員與登入者的權限；專案頁及兩種任務容器共用 */
 export function useProjectContext(projectId: number): ProjectContext {
   const { user, can } = useAuth();
   const project = useQuery({
@@ -79,6 +81,13 @@ export function useProjectContext(projectId: number): ProjectContext {
     },
     loading: project.isPending || (project.data != null && members.isPending),
     notFound: project.isError || project.data === null,
+    error: project.error ?? members.error,
+    retry: () => {
+      void project.refetch();
+      if (project.data != null) {
+        void members.refetch();
+      }
+    },
   };
 }
 
