@@ -2,6 +2,8 @@ package dev.jianwii.basicdata.setup;
 
 import static dev.jianwii.entity.basicdata.Permission.LEAVE_APPLY;
 import static dev.jianwii.entity.basicdata.Permission.LEAVE_APPROVE;
+import static dev.jianwii.entity.basicdata.Permission.MANUAL_QA_WRITE;
+import static dev.jianwii.entity.basicdata.Permission.MEETING_WRITE;
 import static dev.jianwii.entity.basicdata.Permission.PROJECT_READ;
 import static dev.jianwii.entity.basicdata.Permission.PROJECT_WRITE;
 import static dev.jianwii.entity.basicdata.Permission.TASK_WRITE;
@@ -39,7 +41,15 @@ public class RoleSetup implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         // ponytail: 三個日常角色就足夠；細部授權沿用 Permission，不再替每項功能建立角色。
-        if (createIfAbsent(Role.DEFAULT_CODE, "一般成員", PROJECT_READ, TASK_WRITE, WORK_LOG_WRITE, LEAVE_APPLY)) {
+        if (createIfAbsent(
+                Role.DEFAULT_CODE,
+                "一般成員",
+                PROJECT_READ,
+                TASK_WRITE,
+                MEETING_WRITE,
+                MANUAL_QA_WRITE,
+                WORK_LOG_WRITE,
+                LEAVE_APPLY)) {
             // 只在第一次建立時補發給之前登入過、還沒有任何角色的人；之後被拿掉所有角色的人不會再補
             int count = userService.assignDefaultRoleToUsersWithoutRoles();
             log.info("已將預設角色指派給 {} 位沒有角色的使用者", count);
@@ -51,6 +61,8 @@ public class RoleSetup implements ApplicationRunner {
                 PROJECT_READ,
                 PROJECT_WRITE,
                 TASK_WRITE,
+                MEETING_WRITE,
+                MANUAL_QA_WRITE,
                 WORK_LOG_WRITE,
                 LEAVE_APPLY,
                 LEAVE_APPROVE);

@@ -31,6 +31,7 @@ export interface ProjectAccess {
   canChangeStatus: boolean;
   /** 新增、修改任務與留言 */
   canEditTasks: boolean;
+  canEditManualQa: boolean;
   canLogWork: boolean;
 }
 
@@ -78,6 +79,7 @@ export function useProjectContext(projectId: number): ProjectContext {
       canManage: !closed && can(PERMISSIONS.PROJECT_WRITE) && isManager,
       canChangeStatus: can(PERMISSIONS.PROJECT_WRITE) && isManager,
       canEditTasks: !closed && can(PERMISSIONS.TASK_WRITE) && isMember,
+      canEditManualQa: !closed && can(PERMISSIONS.MANUAL_QA_WRITE) && isMember,
       canLogWork: !closed && can(PERMISSIONS.WORK_LOG_WRITE) && isMember,
     },
     loading: project.isPending || (project.data != null && members.isPending),

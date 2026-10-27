@@ -12,7 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-/** 前端用的驗收批次 API；寫入沿用 task:write，結案唯讀由 project-service 檢查。 */
+/** 前端用的驗收批次 API；寫入需要 manual-qa:write，結案唯讀由 project-service 檢查。 */
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/manual-qa-batch")
@@ -35,14 +35,14 @@ public class WebManualQaBatchController {
         return Result.success(batch);
     }
 
-    @PreAuthorize("hasAuthority('task:write')")
+    @PreAuthorize("hasAuthority('manual-qa:write')")
     @PostMapping
     public Result<ManualQaBatch> create(@Validated(ValidGroup.Create.class) @RequestBody ManualQaBatch batch) {
         projectAccessGuard.requireMember(batch.getProjectId());
         return Result.success(manualQaBatchApi.create(batch));
     }
 
-    @PreAuthorize("hasAuthority('task:write')")
+    @PreAuthorize("hasAuthority('manual-qa:write')")
     @PatchMapping("/{id}")
     public Result<ManualQaBatch> update(
             @PathVariable Long id, @Validated(ValidGroup.Update.class) @RequestBody ManualQaBatch batch) {
@@ -50,7 +50,7 @@ public class WebManualQaBatchController {
         return Result.success(manualQaBatchApi.update(id, batch));
     }
 
-    @PreAuthorize("hasAuthority('task:write')")
+    @PreAuthorize("hasAuthority('manual-qa:write')")
     @PostMapping("/{id}/copy")
     public Result<ManualQaBatch> copy(
             @PathVariable Long id, @Validated(ValidGroup.Update.class) @RequestBody ManualQaBatch batch) {

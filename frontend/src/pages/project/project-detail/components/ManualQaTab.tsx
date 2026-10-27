@@ -27,7 +27,7 @@ export function ManualQaTab({ projectId, access }: { projectId: number; access: 
   });
   return (
     <Flex vertical gap={16}>
-      {access.canEditTasks ? (
+      {access.canEditManualQa ? (
         <Button
           type="primary"
           onClick={() => {

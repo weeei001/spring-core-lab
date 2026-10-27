@@ -147,7 +147,7 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
   }
   const record = batch.data;
   const list = items.data;
-  const canEdit = context.access.canEditTasks;
+  const canEdit = context.access.canEditManualQa;
   const openBatch = (action: 'edit' | 'copy') => {
     batchForm.setFieldsValue(action === 'edit'
       ? { versionLabel: record.versionLabel, environment: record.environment }
@@ -327,6 +327,7 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
                 environment={record.environment}
                 sourceExecutionId={selected.id === sourceItemId ? sourceExecutionId : 0}
                 canEdit={canEdit}
+                canEditTasks={context.access.canEditTasks}
                 dirty={dirty}
                 setDirty={setDirty}
                 initialVersion={lastVersion}
@@ -458,12 +459,13 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
   );
 }
 
-function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEdit, dirty, setDirty, initialVersion, autoFocus, onSaved }: {
+function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEdit, canEditTasks, dirty, setDirty, initialVersion, autoFocus, onSaved }: {
   item: QaItem;
   projectId: number;
   environment: string;
   sourceExecutionId: number;
   canEdit: boolean;
+  canEditTasks: boolean;
   dirty: boolean;
   setDirty: (dirty: boolean) => void;
   initialVersion: string;
@@ -683,7 +685,7 @@ function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEd
                         修改連結
                       </Button>
                     ) : null}
-                    {canEdit && execution.bugTaskId === null ? (
+                    {canEdit && canEditTasks && execution.bugTaskId === null ? (
                       <Button
                         size="small"
                         disabled={dirty || tasks.isPending || tasks.isError}
@@ -707,7 +709,7 @@ function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEd
                         id={execution.bugTaskId}
                         projectId={projectId}
                         result={item.status}
-                        canEdit={canEdit}
+                        canEdit={canEditTasks}
                         disabled={dirty}
                       />
                     ) : null}

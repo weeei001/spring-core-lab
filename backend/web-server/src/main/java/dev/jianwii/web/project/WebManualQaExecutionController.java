@@ -32,7 +32,7 @@ public class WebManualQaExecutionController {
         return Result.success(manualQaExecutionApi.queryPage(parameter));
     }
 
-    @PreAuthorize("hasAuthority('task:write')")
+    @PreAuthorize("hasAuthority('manual-qa:write')")
     @PostMapping
     public Result<ManualQaExecution> create(
             @Validated(ValidGroup.Create.class) @RequestBody ManualQaExecution execution) {
@@ -40,7 +40,7 @@ public class WebManualQaExecutionController {
         return Result.success(manualQaExecutionApi.create(execution));
     }
 
-    @PreAuthorize("hasAuthority('task:write')")
+    @PreAuthorize("hasAuthority('manual-qa:write')")
     @PatchMapping("/{id}")
     public Result<ManualQaExecution> update(
             @PathVariable Long id, @Validated(ValidGroup.Update.class) @RequestBody ManualQaExecution execution) {

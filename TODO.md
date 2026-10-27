@@ -8,16 +8,16 @@
 
 - 已觀察、未修改（不阻斷、不遺失資料）：390 頁首使用者名稱逐字換行、側欄開關蓋住麵包屑首字；後端斷線時錯誤訊息重複堆疊遮住抽屜；從任務「返回來源」回會議頁時捲回頁首；新增待辦視窗中日期面板開著按 Escape 會連同視窗關閉；驗收「結果」下拉無搜尋。完成條件：逐項決定修或不修，修正後在 390 重測。
 - 尚未覆蓋的案例：原生重新整理／關閉分頁提示（工具無法驗證）、留言草稿與分享／舊連結、驗收連結既有 BUG、B 版再失敗、多項共用 BUG、結案唯讀與非成員／管理者角色。需要時以同一測試庫補測。
-- 自動化回歸測試：目前無測試設施；最小方案是在受影響模組加入 Spring Boot 管理版本的 `spring-boot-starter-test`，以 JUnit 與隔離測試庫測試實際服務與權限。新增依賴前須取得同意。
 - 驗收項目第一次執行與同時修改項目內容的歷史保護方式仍待確認。
 
 ## 軟刪除改用 @SoftDelete
 
 - 測試庫 `spring_core_lab_softdelete_basic_data`、`spring_core_lab_softdelete_project`、`spring_core_lab_softdelete_validate` 僅供本次驗證使用，可刪除。
+- 2026-10-27 角色驗證建立的 `spring_core_lab_role_test_*` 為獨立測試庫，保留供檢查；確認不再需要後可清除。
 
 ## AWS Ubuntu 正式部署
 
-- 正式 DB 的會議與驗收資料表已由使用者更新（2026-10-27）。部署本版時確認 project-service 以 deploy profile 的 `ddl-auto: validate` 啟動成功，並確認正式角色已授予 `meeting:write`；完成條件為正式網址的會議與驗收頁可讀寫。
+- 正式 DB 的會議與驗收資料表已由使用者更新（2026-10-27）。部署本版時同步更新 basic-data、web-server 與前端，確認 project-service 的 `ddl-auto: validate` 通過。既有角色須配置 `meeting:write` 與新增的 `manual-qa:write`；三個預設角色可用 `deploy/role-permissions.sql` 預覽再套用，自訂角色由管理員個別決定。此腳本已通過本機獨立 MySQL 驗證，尚未套用正式或既有本機環境。完成條件為正式網址的會議與驗收頁可讀寫、缺權限時後端拒絕。
 - 已改為直接 Google OIDC；建立 Google Auth Platform Web Client，依 `deploy/google-oidc.md` 在 web-server 資料庫建立 oidc_client_registration、寫入並啟用 Google 設定，部署新版並重啟。本機 Google 設定已填入、服務已啟動；正式資料庫尚未確認增量建表與 OIDC 資料。移除舊 GOOGLE_CLIENT_*、AUTHENTIK_* 與 spring.security.oauth2.client.*，清除該應用舊 Session，還原 OAuth 日誌 INFO。完成條件：正式 Google 登入後 `/backend/api/auth/me` 回 200、登出後回 401，並驗證角色與業務操作。原 authentik Cloudflare 例外已非新方案必要條件。
 - Google 帳號使用新的 issuer＋sub 識別；若須沿用舊 authentik 帳號的角色、專案成員與任務歸屬，先確認舊 user ID 與 Google 身分對照，再遷移。現有資料未改動，不會依相同 email 自動合併。第一位 Google 管理員須以 `/api/auth/me` 的 subject 配置。
 - 2026-10-27 已在本機內建瀏覽器以 Google 按鈕完成真實登入（t2 測試庫）；仍須補驗取消登入、錯誤重試與登出，正式網址另需驗證。

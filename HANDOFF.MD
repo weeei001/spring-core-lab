@@ -80,6 +80,10 @@
 
 ## Maven 建置會修改 Java 排版
 
+- PowerShell 呼叫 `mvnw.cmd` 時，未加引號的 `-Dspotless.skip=true`、`-Dmdep.outputFile=...` 曾被拆成不同參數，出現 `Unknown lifecycle phase ".skip=true"`。完整 `-D...` 參數加上引號，例如 `'-Dspotless.skip=true'`。
+- Spotless 的 `spotlessFiles` 使用逗號分隔的 regex，不能使用 `**/` glob；Windows `mvnw.cmd` 也會再次解析 `|`。縮小排版範圍時用 `'-DspotlessFiles=.*RoleSetup.*\.java,.*ManualQaPermissionTest\.java'` 這種不含管線的形式。
+- 以 JDK main 執行 Spring Boot 整合檢查時，DevTools 的 restart 執行緒可能讓失敗仍回 exit code 0。須在 `SpringApplication.run` 前用 `System.setProperty("spring.devtools.restart.enabled", "false")` 停用；只傳 Spring 啟動參數太晚。
+
 - 依據：`backend/pom.xml` 在 `process-sources` 綁定 `spotless:apply`。
 - 處理：只檢查排版時使用 `./mvnw spotless:check`；執行建置後檢查差異，避免夾帶無關修改。
 - Windows 本機服務執行中的 JAR 會鎖住 `target`，造成 Maven clean 失敗。正式產物可在獨立目錄複製後端來源後建置，複製時排除 `target` 與 `application-local.*`，不用中止使用者正在執行的服務。
@@ -119,6 +123,8 @@
 - 此次補建上述空資料庫後，以 local profile 啟動，Hibernate 建立 7 張資料表。這是新建結構，不是恢復舊資料。JAR 不含 application-local.yml，以 JAR 啟動時須保留 `--spring.config.additional-location=file:./src/main/resources/application-local.yml`，並以各模組目錄為工作目錄。
 
 ## Hibernate @SoftDelete 軟刪除
+
+- JDK main 整合檢查若直接用 `Set.of(...)` 填入更新請求的 JPA 集合，Hibernate merge 清集合時會拋 `UnsupportedOperationException`。測試請求應用 `new HashSet<>(...)`，與實際 JSON 反序列化得到的可變集合一致；權限期望值仍可用 `Set.of(...)`。
 
 - 2026-10-27 起 `BaseEntity` 以 `@SoftDelete(columnName = "db_mark", converter = NumericBooleanConverter.class)` 軟刪除，`db_mark` 不再是 Entity 欄位。JPQL、Criteria、衍生查詢、`findById` 與 entity join 都會自動加 `db_mark=0`；原生 SQL 不會，須自行加條件。
 - 無法針對單一 JPQL 關閉過濾。需要包含已刪除資料時（角色代碼、編號規則的唯一檢查，以及判斷帳號已停用）改用原生 SQL 的 count，不要改回衍生查詢，否則會撞上唯一約束或重建帳號。

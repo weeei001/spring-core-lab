@@ -35,14 +35,14 @@ public class WebManualQaItemController {
         return Result.success(item);
     }
 
-    @PreAuthorize("hasAuthority('task:write')")
+    @PreAuthorize("hasAuthority('manual-qa:write')")
     @PostMapping
     public Result<ManualQaItem> create(@Validated(ValidGroup.Create.class) @RequestBody ManualQaItem item) {
         projectAccessGuard.requireMember(projectAccessGuard.projectOfQaBatch(item.getBatchId()));
         return Result.success(manualQaItemApi.create(item));
     }
 
-    @PreAuthorize("hasAuthority('task:write')")
+    @PreAuthorize("hasAuthority('manual-qa:write')")
     @PatchMapping("/{id}")
     public Result<ManualQaItem> update(
             @PathVariable Long id, @Validated(ValidGroup.Update.class) @RequestBody ManualQaItem item) {
@@ -50,7 +50,7 @@ public class WebManualQaItemController {
         return Result.success(manualQaItemApi.update(id, item));
     }
 
-    @PreAuthorize("hasAuthority('task:write')")
+    @PreAuthorize("hasAuthority('manual-qa:write')")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         projectAccessGuard.requireMember(projectAccessGuard.projectOfQaItem(id));
