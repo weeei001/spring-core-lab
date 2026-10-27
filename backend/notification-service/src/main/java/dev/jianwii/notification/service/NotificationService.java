@@ -2,7 +2,6 @@ package dev.jianwii.notification.service;
 
 import dev.jianwii.api.notification.NotificationQueryParameter;
 import dev.jianwii.api.notification.NotificationSendRequest;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.service.BaseService;
 import dev.jianwii.entity.notification.Notification;
@@ -56,7 +55,6 @@ public class NotificationService extends BaseService<Notification, NotificationQ
             notification.setTitle(request.getTitle());
             notification.setContent(request.getContent());
             notification.setLink(request.getLink());
-            notification.setDbMark(BaseEntity.VALID);
             notifications.add(notification);
         }
         List<Notification> saved = notificationDAO.saveAllAndFlush(notifications);
@@ -73,7 +71,7 @@ public class NotificationService extends BaseService<Notification, NotificationQ
 
     @Transactional(readOnly = true)
     public long unreadCount(String recipientId) {
-        return notificationDAO.countByRecipientIdAndReadTimeIsNullAndDbMark(recipientId, BaseEntity.VALID);
+        return notificationDAO.countByRecipientIdAndReadTimeIsNull(recipientId);
     }
 
     /** 只能標記自己的通知；已讀的不改，已讀時間維持第一次讀的時間。 */
@@ -93,8 +91,7 @@ public class NotificationService extends BaseService<Notification, NotificationQ
      * 逐筆更新而不是一句 UPDATE：批次 UPDATE 會略過 JPA Auditing，transId、transTime 不會更新（見 BaseDAO）。
      */
     public int markAllRead(String recipientId) {
-        List<Notification> unread =
-                notificationDAO.findByRecipientIdAndReadTimeIsNullAndDbMark(recipientId, BaseEntity.VALID);
+        List<Notification> unread = notificationDAO.findByRecipientIdAndReadTimeIsNull(recipientId);
         LocalDateTime now = LocalDateTime.now();
         unread.forEach(notification -> notification.setReadTime(now));
         notificationDAO.saveAll(unread);

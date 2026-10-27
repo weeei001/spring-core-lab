@@ -2,7 +2,6 @@ package dev.jianwii.project.service;
 
 import dev.jianwii.api.project.ProjectLabelQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.service.BaseService;
 import dev.jianwii.entity.project.ProjectLabel;
@@ -76,7 +75,7 @@ public class ProjectLabelService extends BaseService<ProjectLabel, ProjectLabelQ
     @Override
     protected void beforeDelete(ProjectLabel entity) {
         projectRules.requireOpen(entity.getProjectId());
-        List<Task> tagged = taskDAO.findByLabelIdsContainingAndDbMark(entity.getId(), BaseEntity.VALID);
+        List<Task> tagged = taskDAO.findByLabelIdsContaining(entity.getId());
         for (Task task : tagged) {
             task.getLabelIds().remove(entity.getId());
             // 只改中間表時主表不會 UPDATE，強制更新修改者與時間
@@ -91,7 +90,7 @@ public class ProjectLabelService extends BaseService<ProjectLabel, ProjectLabelQ
     }
 
     private void requireUniqueName(Long projectId, Long selfId, String name) {
-        boolean duplicated = projectLabelDAO.findByProjectIdAndDbMark(projectId, BaseEntity.VALID).stream()
+        boolean duplicated = projectLabelDAO.findByProjectId(projectId).stream()
                 .anyMatch(label ->
                         !label.getId().equals(selfId) && label.getName().equalsIgnoreCase(name));
         if (duplicated) {

@@ -1,7 +1,6 @@
 package dev.jianwii.project.service;
 
 import dev.jianwii.api.project.TaskCommentQueryParameter;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.service.BaseService;
@@ -114,9 +113,7 @@ public class TaskCommentService extends BaseService<TaskComment, TaskCommentQuer
 
     /** 任務必須有效，且所屬專案未結案。 */
     private Task requireOpenTask(Long taskId) {
-        Task task = taskDAO.findById(taskId)
-                .filter(entity -> entity.getDbMark() == BaseEntity.VALID)
-                .orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
+        Task task = taskDAO.findById(taskId).orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
         projectRules.requireOpen(task.getProjectId());
         return task;
     }

@@ -1,6 +1,5 @@
 package dev.jianwii.notification.service;
 
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.entity.notification.EmailMessage;
 import dev.jianwii.entity.notification.EmailStatus;
 import dev.jianwii.entity.notification.Notification;
@@ -53,7 +52,6 @@ public class EmailOutbox {
                     message.setBody(body(notification));
                     message.setStatus(EmailStatus.PENDING);
                     message.setAttempts(0);
-                    message.setDbMark(BaseEntity.VALID);
                     return message;
                 })
                 .toList();

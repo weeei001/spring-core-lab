@@ -3,7 +3,6 @@ package dev.jianwii.project.service;
 import dev.jianwii.api.basicdata.SerialNumberApi;
 import dev.jianwii.api.project.TaskQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.service.BaseService;
@@ -29,7 +28,6 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -162,8 +160,8 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         Task task = find(id);
         projectRules.requireOpen(task.getProjectId());
         Tracked before = Tracked.of(task);
-        List<Task> column = new ArrayList<>(taskDAO.findByProjectIdAndStatusAndDbMarkOrderBySortOrderAscIdAsc(
-                task.getProjectId(), status, BaseEntity.VALID));
+        List<Task> column =
+                new ArrayList<>(taskDAO.findByProjectIdAndStatusOrderBySortOrderAscIdAsc(task.getProjectId(), status));
         column.removeIf(other -> other.getId().equals(id));
         int index = 0;
         if (previousId != null) {
@@ -202,7 +200,7 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         projectRules.requireOpen(projectId);
         request.setClearFields(null);
         if (request.getParentId() != null) {
-            Task parent = findValid(request.getParentId())
+            Task parent = taskDAO.findById(request.getParentId())
                     .orElseThrow(() -> new BusinessException("父任務不存在：" + request.getParentId()));
             if (!parent.getProjectId().equals(projectId)) {
                 throw new BusinessException("父任務必須在同一個專案");
@@ -305,10 +303,10 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     @Override
     protected void beforeDelete(Task entity) {
         projectRules.requireOpen(entity.getProjectId());
-        if (taskDAO.existsByParentIdAndDbMark(entity.getId(), BaseEntity.VALID)) {
+        if (taskDAO.existsByParentId(entity.getId())) {
             throw new ConflictException("請先刪除子任務：" + entity.getCode());
         }
-        List<Task> dependents = taskDAO.findByPredecessorIdsContainingAndDbMark(entity.getId(), BaseEntity.VALID);
+        List<Task> dependents = taskDAO.findByPredecessorIdsContaining(entity.getId());
         for (Task dependent : dependents) {
             dependent.getPredecessorIds().remove(entity.getId());
             touch(dependent);
@@ -364,7 +362,7 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         if (taskId != null && predecessorIds.contains(taskId)) {
             throw new BusinessException("前置任務不能是自己");
         }
-        Map<Long, Set<Long>> graph = taskDAO.findByProjectIdAndDbMark(projectId, BaseEntity.VALID).stream()
+        Map<Long, Set<Long>> graph = taskDAO.findByProjectId(projectId).stream()
                 .collect(Collectors.toMap(Task::getId, Task::getPredecessorIds));
         List<Long> missing = predecessorIds.stream()
                 .filter(id -> !graph.containsKey(id))
@@ -395,7 +393,7 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
         if (labelIds.isEmpty()) {
             return;
         }
-        Set<Long> valid = projectLabelDAO.findByProjectIdAndDbMark(projectId, BaseEntity.VALID).stream()
+        Set<Long> valid = projectLabelDAO.findByProjectId(projectId).stream()
                 .map(ProjectLabel::getId)
                 .collect(Collectors.toSet());
         List<Long> missing =
@@ -408,10 +406,6 @@ public class TaskService extends BaseService<Task, TaskQueryParameter> {
     private Long nextSortOrder(Long projectId, TaskStatus status) {
         Long max = taskDAO.findMaxSortOrder(projectId, status);
         return max == null ? GAP : max + GAP;
-    }
-
-    private Optional<Task> findValid(Long id) {
-        return taskDAO.findById(id).filter(task -> task.getDbMark() == BaseEntity.VALID);
     }
 
     private void recordChanges(Tracked before, Task after) {

@@ -9,7 +9,7 @@ public interface NotificationDAO extends BaseDAO<Notification, Long> {
 
     Optional<Notification> findByRecipientIdAndDedupKey(String recipientId, String dedupKey);
 
-    long countByRecipientIdAndReadTimeIsNullAndDbMark(String recipientId, Integer dbMark);
+    long countByRecipientIdAndReadTimeIsNull(String recipientId);
 
-    List<Notification> findByRecipientIdAndReadTimeIsNullAndDbMark(String recipientId, Integer dbMark);
+    List<Notification> findByRecipientIdAndReadTimeIsNull(String recipientId);
 }

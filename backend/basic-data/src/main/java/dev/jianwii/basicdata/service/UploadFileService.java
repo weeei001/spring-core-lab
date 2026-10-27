@@ -1,7 +1,6 @@
 package dev.jianwii.basicdata.service;
 
 import dev.jianwii.basicdata.dao.UploadFileDAO;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.exception.NotFoundException;
@@ -13,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -92,7 +92,6 @@ public class UploadFileService {
             uploaded.setSize(file.getSize());
             uploaded.setBusinessManaged(businessManaged);
             uploaded.setStoragePath(relative);
-            uploaded.setDbMark(BaseEntity.VALID);
             return uploadFileDAO.saveAndFlush(uploaded);
         } catch (IOException e) {
             removeFailedUpload(target);
@@ -105,10 +104,7 @@ public class UploadFileService {
 
     @Transactional(readOnly = true)
     public UploadFile get(Long id) {
-        return uploadFileDAO
-                .findById(id)
-                .filter(file -> Integer.valueOf(BaseEntity.VALID).equals(file.getDbMark()))
-                .orElseThrow(() -> new NotFoundException("查無檔案，id：" + id));
+        return uploadFileDAO.findById(id).orElseThrow(() -> new NotFoundException("查無檔案，id：" + id));
     }
 
     @Transactional(readOnly = true)
@@ -151,8 +147,11 @@ public class UploadFileService {
         if (!Operator.current().equals(file.getCreateId())) {
             throw new ForbiddenException("只能刪除自己上傳的檔案");
         }
-        file.setDbMark(BaseEntity.INVALID);
+        // 軟刪除的 UPDATE 只改 db_mark、不經 JPA Auditing，先更新修改者與時間
+        file.setTransTime(LocalDateTime.now());
         uploadFileDAO.saveAndFlush(file);
+        uploadFileDAO.delete(file);
+        uploadFileDAO.flush();
     }
 
     private void removeFailedUpload(Path target) {

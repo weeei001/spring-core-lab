@@ -26,7 +26,7 @@ public class SerialNumberSetup implements ApplicationRunner {
     }
 
     private void createIfAbsent(String serialKey, String name, String rule, ResetCycle resetCycle) {
-        if (serialNumberDAO.existsBySerialKey(serialKey)) {
+        if (serialNumberDAO.countIncludingDeletedBySerialKey(serialKey) > 0) {
             return;
         }
         SerialNumber serialNumber = new SerialNumber();

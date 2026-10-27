@@ -14,7 +14,7 @@ public interface LeaveRequestDAO extends BaseDAO<LeaveRequest, Long> {
     @Query("""
             select new dev.jianwii.api.basicdata.leave.LeaveAbsence(r.applicantId, r.startDate, r.endDate)
             from LeaveRequest r
-            where r.dbMark = 0 and r.status = :status and r.applicantId in :userIds
+            where r.status = :status and r.applicantId in :userIds
               and r.startDate <= :toDate and r.endDate >= :fromDate
             order by r.startDate, r.id
             """)

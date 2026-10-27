@@ -5,5 +5,5 @@ import dev.jianwii.entity.project.ManualQaItem;
 import java.util.List;
 
 public interface ManualQaItemDAO extends BaseDAO<ManualQaItem, Long> {
-    List<ManualQaItem> findByBatchIdAndDbMarkOrderByIdAsc(Long batchId, Integer dbMark);
+    List<ManualQaItem> findByBatchIdOrderByIdAsc(Long batchId);
 }

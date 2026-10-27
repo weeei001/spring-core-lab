@@ -11,6 +11,10 @@
 - 自動化回歸測試：目前無測試設施；最小方案是在受影響模組加入 Spring Boot 管理版本的 `spring-boot-starter-test`，以 JUnit 與隔離測試庫測試實際服務與權限。新增依賴前須取得同意。
 - 驗收項目第一次執行與同時修改項目內容的歷史保護方式仍待確認。
 
+## 軟刪除改用 @SoftDelete
+
+- 測試庫 `spring_core_lab_softdelete_basic_data`、`spring_core_lab_softdelete_project`、`spring_core_lab_softdelete_validate` 僅供本次驗證使用，可刪除。
+
 ## AWS Ubuntu 正式部署
 
 - 正式 DB 的會議與驗收資料表已由使用者更新（2026-10-27）。部署本版時確認 project-service 以 deploy profile 的 `ddl-auto: validate` 啟動成功，並確認正式角色已授予 `meeting:write`；完成條件為正式網址的會議與驗收頁可讀寫。

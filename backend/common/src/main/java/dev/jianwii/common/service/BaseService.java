@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 共用 CRUD：query、queryPage、create、update（部分更新）、delete（軟刪除），輸入輸出直接用 Entity， 查詢條件用
- * {@link QueryParameter}。已軟刪除的資料（dbMark = INVALID）查不到，也不能修改或再刪除。
+ * {@link QueryParameter}。已軟刪除的資料由 {@link BaseEntity} 的 @SoftDelete 自動排除，查不到，也不能修改或再刪除。
  *
  * <p>
  * 用法：XxxService 繼承此類別並加 @Service，建構子把 DAO 傳給 super。 需要額外檢查時覆寫 before* 方法（丟例外即中止，交易會
@@ -35,9 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter<E>> {
 
-    /** id、軟刪除標記與審計欄位由系統維護，更新時一律不從 request 複製。 */
+    /** id 與審計欄位由系統維護，更新時一律不從 request 複製。 */
     private static final Set<String> MANAGED_PROPERTIES =
-            Set.of("id", "dbMark", "createId", "createTime", "transId", "transTime");
+            Set.of("id", "createId", "createTime", "transId", "transTime");
 
     protected final BaseDAO<E, Long> dao;
 
@@ -58,18 +58,15 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
     @Transactional(readOnly = true)
     public PageResponse<E> queryPage(Q parameter) {
         beforeList();
-        Specification<E> valid = (root, query, builder) -> builder.equal(root.get("dbMark"), BaseEntity.VALID);
-        Page<E> page =
-                dao.findAll(valid.and(toSpecification(parameter)), PageResponse.pageable(parameter, sortableFields()));
+        Page<E> page = dao.findAll(toSpecification(parameter), PageResponse.pageable(parameter, sortableFields()));
         page.forEach(this::initialize);
         return new PageResponse<>(page);
     }
 
-    /** 新增；id 與 dbMark 由系統設定。 */
+    /** 新增；id 由系統設定。 */
     public E create(E request) {
         // 清掉前端送來的 id：有 id 時 save 會變成更新既有資料
         request.setId(null);
-        request.setDbMark(BaseEntity.VALID);
         beforeCreate(request);
         E saved = dao.saveAndFlush(request);
         initialize(saved);
@@ -86,23 +83,24 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
         return saved;
     }
 
-    /** 軟刪除：只把 dbMark 改為 INVALID，資料仍在資料表中。 */
+    /** 軟刪除：Hibernate 只把 db_mark 改為 1，資料仍在資料表中。 */
     public void delete(Long id) {
         E entity = find(id);
         beforeDelete(entity);
-        entity.setDbMark(BaseEntity.INVALID);
+        // 軟刪除的 UPDATE 只改 db_mark、不經 JPA Auditing，先更新修改者與時間，才知道是誰刪的
+        touch(entity);
         dao.saveAndFlush(entity);
+        dao.delete(entity);
+        dao.flush();
     }
 
-    /** 取得有效資料；不存在或已軟刪除時丟 {@link NotFoundException}。 */
+    /** 取得資料；不存在或已軟刪除時丟 {@link NotFoundException}。 */
     protected E find(Long id) {
-        return dao.findById(id)
-                .filter(entity -> entity.getDbMark() == BaseEntity.VALID)
-                .orElseThrow(() -> new NotFoundException("查無資料，id：" + id));
+        return dao.findById(id).orElseThrow(() -> new NotFoundException("查無資料，id：" + id));
     }
 
     /**
-     * 把 request 中非 null 的欄位複製到 entity（PATCH 語意），略過 id、dbMark 與審計欄位。 因此無法透過 update 把欄位設為
+     * 把 request 中非 null 的欄位複製到 entity（PATCH 語意），略過 id 與審計欄位。 因此無法透過 update 把欄位設為
      * null；需要時覆寫此方法。
      */
     protected void applyUpdate(E request, E entity) {
@@ -117,7 +115,7 @@ public abstract class BaseService<E extends BaseEntity, Q extends QueryParameter
     }
 
     /**
-     * 查詢條件，預設由 {@link QueryParameter#toQueryConditions} 轉換；軟刪除的過濾由 queryPage 另外加上，這裡不必處理。
+     * 查詢條件，預設由 {@link QueryParameter#toQueryConditions} 轉換；已軟刪除的資料由 Hibernate 排除，這裡不必處理。
      * 需要子查詢、join 等條件清單表達不了的情況時覆寫，以 {@code super.toSpecification(parameter).and(...)} 補上。
      */
     protected Specification<E> toSpecification(Q parameter) {

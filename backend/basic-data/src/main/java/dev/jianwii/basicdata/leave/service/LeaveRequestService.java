@@ -11,7 +11,6 @@ import dev.jianwii.basicdata.leave.dao.LeaveRequestDAO;
 import dev.jianwii.basicdata.service.UserService;
 import dev.jianwii.common.dao.QuerySpecifications;
 import dev.jianwii.common.dto.PageResponse;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.exception.ForbiddenException;
@@ -59,7 +58,6 @@ public class LeaveRequestService {
         request.setEndDate(submission.endDate());
         request.setReason(submission.reason().strip());
         request.setStatus(LeaveStatus.PENDING);
-        request.setDbMark(BaseEntity.VALID);
         LeaveRequest saved = leaveRequestDAO.saveAndFlush(request);
         leaveNotifier.submitted(saved);
         return saved;
@@ -149,18 +147,14 @@ public class LeaveRequestService {
 
     private PageResponse<LeaveRequest> page(LeaveQueryParameter parameter, String ownerField) {
         String userId = currentUser();
-        Specification<LeaveRequest> scope = (root, query, builder) -> builder.and(
-                builder.equal(root.get("dbMark"), BaseEntity.VALID), builder.equal(root.get(ownerField), userId));
+        Specification<LeaveRequest> scope = (root, query, builder) -> builder.equal(root.get(ownerField), userId);
         return new PageResponse<>(leaveRequestDAO.findAll(
                 scope.and(QuerySpecifications.of(parameter.toQueryConditions())),
                 PageResponse.pageable(parameter, Set.of("id", "createTime", "startDate", "endDate"))));
     }
 
     private LeaveRequest find(Long id) {
-        return leaveRequestDAO
-                .findById(id)
-                .filter(request -> Integer.valueOf(BaseEntity.VALID).equals(request.getDbMark()))
-                .orElseThrow(() -> new NotFoundException("查無請假申請，id：" + id));
+        return leaveRequestDAO.findById(id).orElseThrow(() -> new NotFoundException("查無請假申請，id：" + id));
     }
 
     private static void requireUser(String userId) {

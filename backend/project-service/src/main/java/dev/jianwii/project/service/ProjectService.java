@@ -3,7 +3,6 @@ package dev.jianwii.project.service;
 import dev.jianwii.api.basicdata.SerialNumberApi;
 import dev.jianwii.api.project.ProjectQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.service.BaseService;
@@ -94,7 +93,6 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
             manager.setProjectId(saved.getId());
             manager.setUserId(operator);
             manager.setRole(ProjectRole.MANAGER);
-            manager.setDbMark(BaseEntity.VALID);
             projectMemberDAO.save(manager);
         }
         return saved;
@@ -146,13 +144,13 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
 
     @Override
     protected void beforeDelete(Project entity) {
-        if (manualQaBatchDAO.existsByProjectIdAndDbMark(entity.getId(), BaseEntity.VALID)) {
+        if (manualQaBatchDAO.existsByProjectId(entity.getId())) {
             throw new ConflictException("專案仍有驗收批次，請改為結案或取消");
         }
-        if (meetingDAO.existsByProjectIdAndDbMark(entity.getId(), BaseEntity.VALID)) {
+        if (meetingDAO.existsByProjectId(entity.getId())) {
             throw new ConflictException("專案仍有會議紀錄，請改為結案或取消");
         }
-        if (taskDAO.existsByProjectIdAndDbMark(entity.getId(), BaseEntity.VALID)) {
+        if (taskDAO.existsByProjectId(entity.getId())) {
             throw new ConflictException("專案仍有任務，請先刪除任務，或把專案改為取消");
         }
     }
@@ -171,8 +169,7 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
             Root<ProjectMember> member = members.from(ProjectMember.class);
             List<Predicate> predicates = new ArrayList<>(List.of(
                     builder.equal(member.get("projectId"), root.get("id")),
-                    builder.equal(member.get("userId"), memberUserId),
-                    builder.equal(member.get("dbMark"), BaseEntity.VALID)));
+                    builder.equal(member.get("userId"), memberUserId)));
             if (memberRole != null) {
                 predicates.add(builder.equal(member.get("role"), memberRole));
             }

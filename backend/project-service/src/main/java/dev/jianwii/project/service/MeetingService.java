@@ -4,7 +4,6 @@ import dev.jianwii.api.project.MeetingQueryParameter;
 import dev.jianwii.api.project.MeetingTaskCreateRequest;
 import dev.jianwii.api.project.MeetingTaskView;
 import dev.jianwii.common.dto.PageResponse;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.query.QueryParameter;
@@ -61,7 +60,7 @@ public class MeetingService extends BaseService<Meeting, MeetingQueryParameter> 
                 .sorted()
                 .map(taskId -> {
                     Task task = tasks.get(taskId);
-                    return task == null || task.getDbMark() != BaseEntity.VALID
+                    return task == null
                             ? new MeetingTaskView(taskId, true, null, null, null, null, null)
                             : toTaskView(task);
                 })
@@ -71,9 +70,7 @@ public class MeetingService extends BaseService<Meeting, MeetingQueryParameter> 
     public Meeting linkTask(Long id, Long taskId) {
         Meeting meeting = get(id);
         projectRules.requireOpen(meeting.getProjectId());
-        Task task = taskDAO.findById(taskId)
-                .filter(value -> value.getDbMark() == BaseEntity.VALID)
-                .orElseThrow(() -> new NotFoundException("查無任務"));
+        Task task = taskDAO.findById(taskId).orElseThrow(() -> new NotFoundException("查無任務"));
         if (!task.getProjectId().equals(meeting.getProjectId())) {
             throw new BusinessException("任務不屬於指定專案");
         }
@@ -131,9 +128,7 @@ public class MeetingService extends BaseService<Meeting, MeetingQueryParameter> 
     public PageResponse<Meeting> queryPage(MeetingQueryParameter parameter) {
         requireProject(parameter.getProjectId());
         if (parameter.getTaskId() != null) {
-            var task = taskDAO.findById(parameter.getTaskId())
-                    .filter(value -> value.getDbMark() == BaseEntity.VALID)
-                    .orElseThrow(() -> new NotFoundException("查無任務"));
+            var task = taskDAO.findById(parameter.getTaskId()).orElseThrow(() -> new NotFoundException("查無任務"));
             if (!task.getProjectId().equals(parameter.getProjectId())) {
                 throw new BusinessException("任務不屬於指定專案");
             }
@@ -190,11 +185,7 @@ public class MeetingService extends BaseService<Meeting, MeetingQueryParameter> 
     }
 
     private void requireProject(Long projectId) {
-        if (projectId == null
-                || projectDAO
-                        .findById(projectId)
-                        .filter(project -> project.getDbMark() == BaseEntity.VALID)
-                        .isEmpty()) {
+        if (projectId == null || projectDAO.findById(projectId).isEmpty()) {
             throw new NotFoundException("查無專案");
         }
     }

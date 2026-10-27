@@ -8,7 +8,6 @@ import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.service.BaseService;
 import dev.jianwii.entity.basicdata.Permission;
 import dev.jianwii.entity.basicdata.Role;
-import dev.jianwii.entity.basicdata.User;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +29,7 @@ public class RoleService extends BaseService<Role, RoleQueryParameter> {
 
     @Override
     protected void beforeCreate(Role request) {
-        if (roleDAO.existsByCode(request.getCode())) {
+        if (roleDAO.countIncludingDeletedByCode(request.getCode()) > 0) {
             throw new ConflictException("角色代碼已存在（含已刪除）：" + request.getCode());
         }
         requirePermissions(request.getPermissionCodes());
@@ -57,7 +56,7 @@ public class RoleService extends BaseService<Role, RoleQueryParameter> {
         if (Role.DEFAULT_CODE.equals(entity.getCode())) {
             throw new BusinessException("預設角色不可刪除，可以調整它的權限");
         }
-        if (userDAO.existsByRoleIdsContainingAndDbMark(entity.getId(), User.VALID)) {
+        if (userDAO.existsByRoleIdsContaining(entity.getId())) {
             throw new ConflictException("仍有使用者擁有此角色：" + entity.getName());
         }
     }

@@ -1,6 +1,5 @@
 package dev.jianwii.notification.service;
 
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.entity.notification.EmailMessage;
 import dev.jianwii.entity.notification.EmailStatus;
 import dev.jianwii.notification.dao.EmailMessageDAO;
@@ -52,10 +51,7 @@ public class EmailMessageService {
      * OptimisticLockingFailureException，由呼叫端放棄。
      */
     public Optional<EmailMessage> claim(Long id) {
-        EmailMessage message = emailMessageDAO
-                .findById(id)
-                .filter(found -> found.getDbMark() == BaseEntity.VALID)
-                .orElse(null);
+        EmailMessage message = emailMessageDAO.findById(id).orElse(null);
         if (message == null || !claimable(message)) {
             return Optional.empty();
         }

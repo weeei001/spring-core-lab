@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
- * 統計查詢只算有效、未取消的任務；done 為完成數，overdue 為過了到期日仍未完成的數量。 dbMark = 0 即 BaseEntity.VALID。
+ * 統計查詢只算有效、未取消的任務；done 為完成數，overdue 為過了到期日仍未完成的數量。
  */
 public interface TaskDAO extends BaseDAO<Task, Long> {
 
@@ -19,11 +19,11 @@ public interface TaskDAO extends BaseDAO<Task, Long> {
     @Query("""
             select new dev.jianwii.project.dao.TaskDigestItem(t.id, t.code, t.title, t.assigneeId, t.dueDate)
             from Task t join Project p on p.id = t.projectId
-            where t.dbMark = 0 and p.dbMark = 0 and p.status in :projectStatuses
+            where p.status in :projectStatuses
               and t.status in :taskStatuses and t.dueDate <= :until
               and t.assigneeId is not null
               and exists (select m.id from ProjectMember m
-                  where m.projectId = t.projectId and m.userId = t.assigneeId and m.dbMark = 0)
+                  where m.projectId = t.projectId and m.userId = t.assigneeId)
             order by t.assigneeId, t.dueDate, t.id
             """)
     List<TaskDigestItem> findDigestItems(
@@ -32,31 +32,30 @@ public interface TaskDAO extends BaseDAO<Task, Long> {
             @Param("projectStatuses") Collection<ProjectStatus> projectStatuses);
 
     /** 看板一欄（同專案、同狀態）的任務，依排序。 */
-    List<Task> findByProjectIdAndStatusAndDbMarkOrderBySortOrderAscIdAsc(
-            Long projectId, TaskStatus status, Integer dbMark);
+    List<Task> findByProjectIdAndStatusOrderBySortOrderAscIdAsc(Long projectId, TaskStatus status);
 
-    /** 欄位最後一張的排序值；欄位是空的時回 null。含已刪除的任務，不影響排序。 */
+    /** 欄位最後一張的排序值；欄位是空的時回 null。 */
     @Query("select max(t.sortOrder) from Task t where t.projectId = :projectId and t.status = :status")
     Long findMaxSortOrder(@Param("projectId") Long projectId, @Param("status") TaskStatus status);
 
     /** 專案內所有有效任務；檢查前置任務是否成環時用。 */
-    List<Task> findByProjectIdAndDbMark(Long projectId, Integer dbMark);
+    List<Task> findByProjectId(Long projectId);
 
     /** 移除成員時，找出指派給該成員的任務。 */
-    List<Task> findByProjectIdAndAssigneeIdAndDbMark(Long projectId, String assigneeId, Integer dbMark);
+    List<Task> findByProjectIdAndAssigneeId(Long projectId, String assigneeId);
 
     /** 前置任務含此任務的有效任務；刪除任務時一併移除關聯。 */
-    List<Task> findByPredecessorIdsContainingAndDbMark(Long predecessorId, Integer dbMark);
+    List<Task> findByPredecessorIdsContaining(Long predecessorId);
 
     /** 移除成員時，找出該成員關注的任務。 */
-    List<Task> findByProjectIdAndWatcherIdsContainingAndDbMark(Long projectId, String watcherId, Integer dbMark);
+    List<Task> findByProjectIdAndWatcherIdsContaining(Long projectId, String watcherId);
 
     /** 標籤含此標籤的有效任務；刪除標籤時一併移除關聯。 */
-    List<Task> findByLabelIdsContainingAndDbMark(Long labelId, Integer dbMark);
+    List<Task> findByLabelIdsContaining(Long labelId);
 
-    boolean existsByProjectIdAndDbMark(Long projectId, Integer dbMark);
+    boolean existsByProjectId(Long projectId);
 
-    boolean existsByParentIdAndDbMark(Long parentId, Integer dbMark);
+    boolean existsByParentId(Long parentId);
 
     /** 各專案的主任務計數。 */
     @Query("""
@@ -64,7 +63,7 @@ public interface TaskDAO extends BaseDAO<Task, Long> {
                    sum(case when t.status = :done then 1 else 0 end) as done,
                    sum(case when t.status <> :done and t.dueDate < :today then 1 else 0 end) as overdue
             from Task t
-            where t.projectId in :ids and t.parentId is null and t.status <> :cancelled and t.dbMark = 0
+            where t.projectId in :ids and t.parentId is null and t.status <> :cancelled
             group by t.projectId""")
     List<TaskCount> countByProject(
             @Param("ids") Collection<Long> projectIds,
@@ -78,7 +77,7 @@ public interface TaskDAO extends BaseDAO<Task, Long> {
                    sum(case when t.status = :done then 1 else 0 end) as done,
                    sum(case when t.status <> :done and t.dueDate < :today then 1 else 0 end) as overdue
             from Task t
-            where t.parentId in :ids and t.status <> :cancelled and t.dbMark = 0
+            where t.parentId in :ids and t.status <> :cancelled
             group by t.parentId""")
     List<TaskCount> countByParent(
             @Param("ids") Collection<Long> parentIds,
@@ -92,7 +91,7 @@ public interface TaskDAO extends BaseDAO<Task, Long> {
                    sum(case when t.status = :done then 1 else 0 end) as done,
                    sum(case when t.status <> :done and t.dueDate < :today then 1 else 0 end) as overdue
             from Task t join t.labelIds l
-            where l in :ids and t.status <> :cancelled and t.dbMark = 0
+            where l in :ids and t.status <> :cancelled
             group by l""")
     List<TaskCount> countByLabel(
             @Param("ids") Collection<Long> labelIds,

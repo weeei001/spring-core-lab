@@ -9,14 +9,13 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/** 統計查詢只算有效資料（dbMark = 0 即 BaseEntity.VALID）。 */
 public interface WorkLogDAO extends BaseDAO<WorkLog, Long> {
 
     /** 各任務已登記的工時合計。 */
     @Query("""
             select w.taskId as taskId, sum(w.hours) as hours
             from WorkLog w
-            where w.taskId in :ids and w.dbMark = 0
+            where w.taskId in :ids
             group by w.taskId""")
     List<TaskHours> sumHoursByTask(@Param("ids") Collection<Long> taskIds);
 
@@ -24,7 +23,7 @@ public interface WorkLogDAO extends BaseDAO<WorkLog, Long> {
     @Query("""
             select coalesce(sum(w.hours), 0)
             from WorkLog w
-            where w.userId = :userId and w.workDate = :workDate and w.id <> :excludeId and w.dbMark = 0""")
+            where w.userId = :userId and w.workDate = :workDate and w.id <> :excludeId""")
     BigDecimal sumHoursOfDay(
             @Param("userId") String userId, @Param("workDate") LocalDate workDate, @Param("excludeId") Long excludeId);
 }

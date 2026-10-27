@@ -2,7 +2,6 @@ package dev.jianwii.project.service;
 
 import dev.jianwii.api.project.ManualQaBatchQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.query.QueryParameter;
@@ -65,7 +64,7 @@ public class ManualQaBatchService extends BaseService<ManualQaBatch, ManualQaBat
         if (request.getVersionLabel() == null || request.getEnvironment() == null) {
             throw new BusinessException("請填寫版本與環境");
         }
-        List<ManualQaItem> sourceItems = itemDAO.findByBatchIdAndDbMarkOrderByIdAsc(id, BaseEntity.VALID);
+        List<ManualQaItem> sourceItems = itemDAO.findByBatchIdOrderByIdAsc(id);
         List<String> invalid = new ArrayList<>();
         for (ManualQaItem item : sourceItems) {
             try {
@@ -81,7 +80,6 @@ public class ManualQaBatchService extends BaseService<ManualQaBatch, ManualQaBat
         result.setProjectId(source.getProjectId());
         result.setVersionLabel(request.getVersionLabel());
         result.setEnvironment(request.getEnvironment());
-        result.setDbMark(BaseEntity.VALID);
         dao.saveAndFlush(result);
         for (ManualQaItem item : sourceItems) {
             ManualQaItem copy = new ManualQaItem();
@@ -91,7 +89,6 @@ public class ManualQaBatchService extends BaseService<ManualQaBatch, ManualQaBat
             copy.setExpectedResult(item.getExpectedResult());
             copy.setTaskId(item.getTaskId());
             copy.setAssigneeId(item.getAssigneeId());
-            copy.setDbMark(BaseEntity.VALID);
             itemDAO.save(copy);
         }
         itemDAO.flush();
@@ -116,7 +113,7 @@ public class ManualQaBatchService extends BaseService<ManualQaBatch, ManualQaBat
     /** 依各項目最新一筆紀錄統計；未測不寫紀錄，所以未測 = 總數 − 有紀錄的項目。 */
     @Override
     protected void initialize(ManualQaBatch batch) {
-        List<ManualQaItem> items = itemDAO.findByBatchIdAndDbMarkOrderByIdAsc(batch.getId(), BaseEntity.VALID);
+        List<ManualQaItem> items = itemDAO.findByBatchIdOrderByIdAsc(batch.getId());
         itemService.withLatest(items);
         Map<String, Long> counts =
                 items.stream().collect(Collectors.groupingBy(ManualQaItem::getStatus, Collectors.counting()));

@@ -1,6 +1,5 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.entity.project.ProjectMember;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
@@ -20,8 +19,7 @@ final class ProjectMemberScope {
             members.select(member.get("id"))
                     .where(
                             builder.equal(member.get("projectId"), root.get("projectId")),
-                            builder.equal(member.get("userId"), userId),
-                            builder.equal(member.get("dbMark"), BaseEntity.VALID));
+                            builder.equal(member.get("userId"), userId));
             return builder.exists(members);
         };
     }

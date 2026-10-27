@@ -117,3 +117,11 @@
 
 - 2026-10-26 本機 `basic-data` 的 application-local.yml 實際指向 `spring_core_lab_verify_basic_data`，覆寫了公開設定中含 `createDatabaseIfNotExist=true` 的 URL。即使 local 的 Hibernate 設為 `ddl-auto=update`，也必須先有資料庫才能建表；不能只看公開 application.yml 就認為會自動建庫。
 - 此次補建上述空資料庫後，以 local profile 啟動，Hibernate 建立 7 張資料表。這是新建結構，不是恢復舊資料。JAR 不含 application-local.yml，以 JAR 啟動時須保留 `--spring.config.additional-location=file:./src/main/resources/application-local.yml`，並以各模組目錄為工作目錄。
+
+## Hibernate @SoftDelete 軟刪除
+
+- 2026-10-27 起 `BaseEntity` 以 `@SoftDelete(columnName = "db_mark", converter = NumericBooleanConverter.class)` 軟刪除，`db_mark` 不再是 Entity 欄位。JPQL、Criteria、衍生查詢、`findById` 與 entity join 都會自動加 `db_mark=0`；原生 SQL 不會，須自行加條件。
+- 無法針對單一 JPQL 關閉過濾。需要包含已刪除資料時（角色代碼、編號規則的唯一檢查，以及判斷帳號已停用）改用原生 SQL 的 count，不要改回衍生查詢，否則會撞上唯一約束或重建帳號。
+- 軟刪除 UPDATE 只改 `db_mark`，不經 JPA Auditing。`BaseService.delete` 先 touch＋saveAndFlush 記錄刪除者，再 `dao.delete`；自行寫刪除時須照做。
+- 已用 SQL 日誌確認：軟刪除實體時，Hibernate 會**實刪**其 `@ElementCollection` 中間表的列（例如 task_label、task_predecessor、task_watcher、sys_role_permission）。HQL `delete` 也會先清中間表。使用者已接受此行為（2026-10-27），手動把 db_mark 改回 0 不會救回這些關聯；若要保留，只能讓集合也使用 `@SoftDelete`，但中間表須新增欄位。
+- 新建表時，Hibernate 產生 `db_mark integer not null` 與 check (0,1)；既有 `int NOT NULL` 欄位可通過 `ddl-auto=validate`（已用 deploy schema 的 basic_data 驗證）。

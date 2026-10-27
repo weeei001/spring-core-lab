@@ -2,7 +2,6 @@ package dev.jianwii.project.service;
 
 import dev.jianwii.api.project.WorkLogQueryParameter;
 import dev.jianwii.api.project.WorkLogSummary;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.service.BaseService;
@@ -62,14 +61,12 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<WorkLogSummary> query = builder.createQuery(WorkLogSummary.class);
         Root<WorkLog> root = query.from(WorkLog.class);
-        Specification<WorkLog> valid =
-                (workLog, criteria, criteriaBuilder) -> criteriaBuilder.equal(workLog.get("dbMark"), BaseEntity.VALID);
         query.select(builder.construct(
                         WorkLogSummary.class,
                         root.get("userId"),
                         root.get("workDate"),
                         builder.sum(root.<BigDecimal>get("hours"))))
-                .where(valid.and(toSpecification(parameter)).toPredicate(root, query, builder))
+                .where(toSpecification(parameter).toPredicate(root, query, builder))
                 .groupBy(root.get("userId"), root.get("workDate"))
                 .orderBy(builder.asc(root.get("workDate")), builder.asc(root.get("userId")));
         return entityManager.createQuery(query).getResultList();
@@ -78,7 +75,6 @@ public class WorkLogService extends BaseService<WorkLog, WorkLogQueryParameter> 
     @Override
     protected void beforeCreate(WorkLog request) {
         Task task = taskDAO.findById(request.getTaskId())
-                .filter(entity -> entity.getDbMark() == BaseEntity.VALID)
                 .orElseThrow(() -> new BusinessException("任務不存在：" + request.getTaskId()));
         projectRules.requireOpen(task.getProjectId());
         request.setProjectId(task.getProjectId());

@@ -59,7 +59,7 @@ public class RoleSetup implements ApplicationRunner {
 
     /** 回傳這次是否有建立。 */
     private boolean createIfAbsent(String code, String name, Permission... permissions) {
-        if (roleDAO.existsByCode(code)) {
+        if (roleDAO.countIncludingDeletedByCode(code) > 0) {
             return false;
         }
         Set<String> permissionCodes =

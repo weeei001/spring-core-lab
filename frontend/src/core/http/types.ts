@@ -38,5 +38,4 @@ export interface BaseEntity {
   /** 最後修改者的 user id */
   transId: string;
   transTime: string;
-  dbMark: number;
 }

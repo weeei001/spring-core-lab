@@ -2,7 +2,6 @@ package dev.jianwii.project.service;
 
 import dev.jianwii.api.project.ManualQaItemQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ConflictException;
 import dev.jianwii.common.exception.NotFoundException;
@@ -90,7 +89,7 @@ public class ManualQaItemService extends BaseService<ManualQaItem, ManualQaItemQ
         Map<Long, ManualQaExecution> latest =
                 executionDAO
                         .findLatestByItemIds(
-                                items.stream().map(ManualQaItem::getId).toList(), BaseEntity.VALID)
+                                items.stream().map(ManualQaItem::getId).toList())
                         .stream()
                         .collect(Collectors.toMap(ManualQaExecution::getItemId, Function.identity()));
         for (ManualQaItem item : items) {
@@ -113,9 +112,7 @@ public class ManualQaItemService extends BaseService<ManualQaItem, ManualQaItemQ
 
     /** 任務須有效且在同專案；bug 為 true 時還須是 BUG 類型。 */
     public Task requireTask(Long projectId, Long taskId, boolean bug) {
-        Task task = taskDAO.findById(taskId)
-                .filter(entity -> entity.getDbMark() == BaseEntity.VALID)
-                .orElseThrow(() -> new NotFoundException("查無任務：" + taskId));
+        Task task = taskDAO.findById(taskId).orElseThrow(() -> new NotFoundException("查無任務：" + taskId));
         if (!task.getProjectId().equals(projectId)) {
             throw new BusinessException("任務不屬於此專案：" + taskId);
         }
@@ -133,7 +130,6 @@ public class ManualQaItemService extends BaseService<ManualQaItem, ManualQaItemQ
     @Override
     protected void beforeCreate(ManualQaItem request) {
         ManualQaBatch batch = batchDAO.findById(request.getBatchId())
-                .filter(entity -> entity.getDbMark() == BaseEntity.VALID)
                 .orElseThrow(() -> new NotFoundException("查無驗收批次：" + request.getBatchId()));
         projectRules.requireOpen(batch.getProjectId());
         request.setClearFields(null);
@@ -157,7 +153,7 @@ public class ManualQaItemService extends BaseService<ManualQaItem, ManualQaItemQ
                 throw new BusinessException("不能同時給值又清空：" + field);
             }
         }
-        if (executionDAO.existsByItemIdAndDbMark(entity.getId(), BaseEntity.VALID)
+        if (executionDAO.existsByItemId(entity.getId())
                 && (LOCKED.stream().anyMatch(field -> values.getPropertyValue(field) != null)
                         || clearFields.contains("taskId"))) {
             throw new ConflictException("已執行的項目不可修改內容或任務");
@@ -182,7 +178,7 @@ public class ManualQaItemService extends BaseService<ManualQaItem, ManualQaItemQ
     @Override
     protected void beforeDelete(ManualQaItem entity) {
         projectRules.requireOpen(projectOf(entity));
-        if (executionDAO.existsByItemIdAndDbMark(entity.getId(), BaseEntity.VALID)) {
+        if (executionDAO.existsByItemId(entity.getId())) {
             throw new ConflictException("已執行的項目不可刪除");
         }
     }

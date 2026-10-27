@@ -2,7 +2,6 @@ package dev.jianwii.project.service;
 
 import dev.jianwii.api.basicdata.UploadFileApi;
 import dev.jianwii.api.project.TaskAttachmentQueryParameter;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.ForbiddenException;
 import dev.jianwii.common.exception.NotFoundException;
@@ -66,9 +65,7 @@ public class TaskAttachmentService extends BaseService<TaskAttachment, TaskAttac
 
     /** 先檢查業務規則，再呼叫共用上傳，任務只保存檔案 id 與列表顯示資訊。 */
     public TaskAttachment upload(Long taskId, MultipartFile file) {
-        Task task = taskDAO.findById(taskId)
-                .filter(entity -> entity.getDbMark() == BaseEntity.VALID)
-                .orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
+        Task task = taskDAO.findById(taskId).orElseThrow(() -> new BusinessException("任務不存在：" + taskId));
         projectRules.requireOpen(task.getProjectId());
         UploadFile uploaded = uploadFileApi.uploadManaged(file);
         // basic-data 已獨立提交；本地關聯存檔失敗時，盡可能停用尚未被引用的共用檔案。
@@ -91,7 +88,6 @@ public class TaskAttachmentService extends BaseService<TaskAttachment, TaskAttac
         attachment.setContentType(uploaded.getContentType());
         attachment.setSize(uploaded.getSize());
         attachment.setStoragePath("");
-        attachment.setDbMark(BaseEntity.VALID);
         return taskAttachmentDAO.saveAndFlush(attachment);
     }
 

@@ -48,15 +48,15 @@ public class UserService extends BaseService<User, UserQueryParameter> {
                 : StringUtils.hasText(login.getUsername()) ? login.getUsername() : login.getSubject();
         User user = userDAO.findBySubject(login.getSubject()).orElse(null);
         if (user == null) {
+            if (userDAO.countDeletedBySubject(login.getSubject()) > 0) {
+                throw new ForbiddenException("帳號已停用");
+            }
             login.setName(name);
             // 其他角色只能由管理員指派，忽略呼叫端帶來的值
             Set<Long> roleIds = new HashSet<>();
             defaultRoleId().ifPresent(roleIds::add);
             login.setRoleIds(roleIds);
             return create(login);
-        }
-        if (user.getDbMark() != User.VALID) {
-            throw new ForbiddenException("帳號已停用");
         }
         user.setUsername(login.getUsername());
         user.setName(name);
@@ -87,7 +87,7 @@ public class UserService extends BaseService<User, UserQueryParameter> {
         if (roleId == null) {
             return 0;
         }
-        List<User> users = userDAO.findAllByRoleIdsIsEmptyAndDbMark(User.VALID);
+        List<User> users = userDAO.findAllByRoleIdsIsEmpty();
         // 只改中間表，交易結束時寫入
         users.forEach(user -> user.getRoleIds().add(roleId));
         return users.size();
@@ -101,13 +101,11 @@ public class UserService extends BaseService<User, UserQueryParameter> {
 
     @Transactional(readOnly = true)
     public UserAuthorization authorization(Long id) {
-        List<UserDAO.AuthorizationRow> rows = userDAO.authorization(id);
-        if (rows.isEmpty()
-                || !Integer.valueOf(User.VALID).equals(rows.getFirst().getDbMark())) {
+        List<String> rows = userDAO.authorization(id);
+        if (rows.isEmpty()) {
             return new UserAuthorization(false, Set.of());
         }
         Set<String> permissions = rows.stream()
-                .map(UserDAO.AuthorizationRow::getPermissionCode)
                 .filter(Objects::nonNull)
                 .filter(Permission::exists)
                 .collect(Collectors.toCollection(TreeSet::new));
@@ -133,7 +131,6 @@ public class UserService extends BaseService<User, UserQueryParameter> {
                     .where(
                             builder.equal(user.get("id"), root.get("id")),
                             builder.equal(role.get("id"), roleId),
-                            builder.equal(role.get("dbMark"), Role.VALID),
                             builder.isMember(permission, role.get("permissionCodes")));
             return builder.exists(eligible);
         });
@@ -145,7 +142,7 @@ public class UserService extends BaseService<User, UserQueryParameter> {
     }
 
     private Optional<Long> defaultRoleId() {
-        return roleDAO.findByCodeAndDbMark(Role.DEFAULT_CODE, Role.VALID).map(Role::getId);
+        return roleDAO.findByCode(Role.DEFAULT_CODE).map(Role::getId);
     }
 
     /** roleIds 必須都是有效角色，否則列出不存在的 id。 */
@@ -156,9 +153,8 @@ public class UserService extends BaseService<User, UserQueryParameter> {
         if (roleIds.isEmpty()) {
             return;
         }
-        Set<Long> found = roleDAO.findAllByIdInAndDbMark(roleIds, Role.VALID).stream()
-                .map(Role::getId)
-                .collect(Collectors.toSet());
+        Set<Long> found =
+                roleDAO.findAllByIdIn(roleIds).stream().map(Role::getId).collect(Collectors.toSet());
         List<Long> missing =
                 roleIds.stream().filter(id -> !found.contains(id)).sorted().toList();
         if (!missing.isEmpty()) {

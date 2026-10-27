@@ -3,7 +3,6 @@ package dev.jianwii.project.service;
 import dev.jianwii.api.project.ManualQaBugSource;
 import dev.jianwii.api.project.ManualQaExecutionQueryParameter;
 import dev.jianwii.common.dto.PageResponse;
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.common.exception.BusinessException;
 import dev.jianwii.common.exception.NotFoundException;
 import dev.jianwii.common.query.QueryParameter;
@@ -73,13 +72,10 @@ public class ManualQaExecutionService extends BaseService<ManualQaExecution, Man
 
     @Transactional(readOnly = true)
     public PageResponse<ManualQaBugSource> bugSources(Long taskId, int page, int size) {
-        taskDAO.findById(taskId)
-                .filter(task -> task.getDbMark() == BaseEntity.VALID)
-                .orElseThrow(() -> new NotFoundException("查無任務：" + taskId));
+        taskDAO.findById(taskId).orElseThrow(() -> new NotFoundException("查無任務：" + taskId));
         Sort sort = Sort.by(Sort.Direction.DESC, "executedAt", "id");
         return new PageResponse<>(
-                executionDAO.findByBugTaskIdAndDbMark(taskId, BaseEntity.VALID, PageRequest.of(page - 1, size, sort)),
-                execution -> {
+                executionDAO.findByBugTaskId(taskId, PageRequest.of(page - 1, size, sort)), execution -> {
                     ManualQaItem item = itemDAO.findById(execution.getItemId()).orElseThrow();
                     ManualQaBatch batch = batchDAO.findById(item.getBatchId()).orElseThrow();
                     return new ManualQaBugSource(
@@ -103,7 +99,6 @@ public class ManualQaExecutionService extends BaseService<ManualQaExecution, Man
     @Override
     protected void beforeCreate(ManualQaExecution request) {
         ManualQaItem item = itemDAO.findById(request.getItemId())
-                .filter(entity -> entity.getDbMark() == BaseEntity.VALID)
                 .orElseThrow(() -> new NotFoundException("查無驗收項目：" + request.getItemId()));
         Long projectId = itemService.projectOf(item);
         projectRules.requireOpen(projectId);

@@ -1,6 +1,5 @@
 package dev.jianwii.project.service;
 
-import dev.jianwii.common.entity.BaseEntity;
 import dev.jianwii.entity.project.TaskActivity;
 import dev.jianwii.entity.project.TaskActivityType;
 import dev.jianwii.project.dao.TaskActivityDAO;
@@ -41,7 +40,6 @@ public class TaskActivityRecorder {
         activity.setField(field);
         activity.setOldValue(oldValue);
         activity.setNewValue(newValue);
-        activity.setDbMark(BaseEntity.VALID);
         taskActivityDAO.save(activity);
     }
 

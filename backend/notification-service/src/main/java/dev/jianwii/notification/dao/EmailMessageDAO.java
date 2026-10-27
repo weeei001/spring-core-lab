@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/** dbMark = 0 即 BaseEntity.VALID。 */
 public interface EmailMessageDAO extends BaseDAO<EmailMessage, Long> {
 
     /**
@@ -21,13 +20,12 @@ public interface EmailMessageDAO extends BaseDAO<EmailMessage, Long> {
      */
     @Query("""
             select e.id from EmailMessage e
-            where e.dbMark = 0 and (
-                (e.status = dev.jianwii.entity.notification.EmailStatus.PENDING
+            where (e.status = dev.jianwii.entity.notification.EmailStatus.PENDING
                     and e.createTime < :pendingBefore)
                 or (e.status = dev.jianwii.entity.notification.EmailStatus.FAILED
                     and e.attempts < :maxAttempts and e.transTime < :failedBefore)
                 or (e.status = dev.jianwii.entity.notification.EmailStatus.SENDING
-                    and e.transTime < :sendingBefore))
+                    and e.transTime < :sendingBefore)
             order by e.id""")
     List<Long> findRetryableIds(
             @Param("maxAttempts") int maxAttempts,
