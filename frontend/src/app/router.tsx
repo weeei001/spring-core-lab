@@ -13,6 +13,7 @@ import { ProjectListPage } from '@/pages/project/project-list/ProjectListPage';
 import { TimesheetPage } from '@/pages/project/timesheet/TimesheetPage';
 import { TaskDetailPage } from '@/pages/project/task-detail/TaskDetailPage';
 import { MeetingDetailPage } from '@/pages/project/meeting-detail/MeetingDetailPage';
+import { ManualQaPage } from '@/pages/project/manual-qa/ManualQaPage';
 import { AnnouncementPage } from '@/pages/system/announcement/AnnouncementPage';
 import { RolePage } from '@/pages/system/role/RolePage';
 import { UserPage } from '@/pages/system/user/UserPage';
@@ -76,6 +77,14 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
             <ProjectDetailPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'projects/:id/qa/:batchId',
+        element: (
+          <RequirePermission permission={PERMISSIONS.PROJECT_READ}>
+            <ManualQaPage />
           </RequirePermission>
         ),
       },

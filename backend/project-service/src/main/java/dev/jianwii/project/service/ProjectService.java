@@ -13,6 +13,7 @@ import dev.jianwii.entity.project.ProjectMember;
 import dev.jianwii.entity.project.ProjectRole;
 import dev.jianwii.entity.project.ProjectStatus;
 import dev.jianwii.entity.project.TaskStatus;
+import dev.jianwii.project.dao.ManualQaBatchDAO;
 import dev.jianwii.project.dao.MeetingDAO;
 import dev.jianwii.project.dao.ProjectDAO;
 import dev.jianwii.project.dao.ProjectMemberDAO;
@@ -44,6 +45,7 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
     // 用 DAO 而非 TaskService，避免兩個 Service 互相注入
     private final TaskDAO taskDAO;
     private final MeetingDAO meetingDAO;
+    private final ManualQaBatchDAO manualQaBatchDAO;
     private final SerialNumberApi serialNumberApi;
 
     public ProjectService(
@@ -51,11 +53,13 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
             ProjectMemberDAO projectMemberDAO,
             TaskDAO taskDAO,
             MeetingDAO meetingDAO,
+            ManualQaBatchDAO manualQaBatchDAO,
             SerialNumberApi serialNumberApi) {
         super(projectDAO);
         this.projectMemberDAO = projectMemberDAO;
         this.taskDAO = taskDAO;
         this.meetingDAO = meetingDAO;
+        this.manualQaBatchDAO = manualQaBatchDAO;
         this.serialNumberApi = serialNumberApi;
     }
 
@@ -142,6 +146,9 @@ public class ProjectService extends BaseService<Project, ProjectQueryParameter> 
 
     @Override
     protected void beforeDelete(Project entity) {
+        if (manualQaBatchDAO.existsByProjectIdAndDbMark(entity.getId(), BaseEntity.VALID)) {
+            throw new ConflictException("專案仍有驗收批次，請改為結案或取消");
+        }
         if (meetingDAO.existsByProjectIdAndDbMark(entity.getId(), BaseEntity.VALID)) {
             throw new ConflictException("專案仍有會議紀錄，請改為結案或取消");
         }

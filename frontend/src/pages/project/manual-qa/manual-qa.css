@@ -1,0 +1,8 @@
+.qa-layout { display: grid; grid-template-columns: minmax(230px, 32%) minmax(0, 1fr); gap: 16px; align-items: start; }
+.qa-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.qa-back { display: none; }
+@media (max-width: 767px) {
+  .qa-layout { display: block; }
+  .qa-layout:not(.qa-selected) .qa-detail, .qa-selected .qa-list { display: none; }
+  .qa-back { display: inline-flex; margin-bottom: 16px; }
+}
