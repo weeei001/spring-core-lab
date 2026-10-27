@@ -1,12 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, App, Breadcrumb, Button, Card, Descriptions, Flex, Form, Input, InputNumber, List, Modal, Pagination, Popconfirm, Result, Select, Skeleton, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { Link, useBeforeUnload, useBlocker, useNavigate, useParams } from 'react-router';
+import { Link, useBeforeUnload, useBlocker, useNavigate, useParams, useSearchParams } from 'react-router';
 import { manualQaApi } from '@/api/project/manual-qa-api';
-import type { QaBatchInput, QaExecutionInput, QaItem, QaItemInput, QaStatus } from '@/api/project/manual-qa.types';
+import type { QaBatchInput, QaExecution, QaExecutionInput, QaItem, QaItemInput, QaStatus } from '@/api/project/manual-qa.types';
 import { taskApi } from '@/api/project/task-api';
-import { useProjectContext } from '@/components/project/hooks';
+import { useProjectContext, useProjectTasks } from '@/components/project/hooks';
+import { useTaskActions } from '@/components/project/useTaskActions';
 import { TASK_TYPE_LABELS } from '@/components/project/labels';
 import { useMemberDirectory } from '@/components/project/useMemberDirectory';
 import { useUserDirectory } from '@/components/user/useUserDirectory';
@@ -31,8 +32,25 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
   const client = useQueryClient();
   const context = useProjectContext(projectId);
   const memberDirectory = useMemberDirectory(context.members);
+  const [searchParams] = useSearchParams();
+  const sourceItemId = Number(searchParams.get('item'));
+  const sourceExecutionId = Number(searchParams.get('execution'));
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<number>();
+  const source = useQuery({
+    queryKey: ['manual-qa', 'source', batchId, sourceItemId],
+    enabled: Number.isSafeInteger(sourceItemId) && sourceItemId > 0,
+    queryFn: async () => {
+      for (let current = 1; ; current++) {
+        const result = await manualQaApi.items(batchId, current);
+        if (result.items.some((item) => item.id === sourceItemId)) { return current; }
+        if (current * 100 >= result.total) { throw new Error('找不到來源驗收項目'); }
+      }
+    },
+  });
+  useEffect(() => {
+    if (source.data !== undefined) { setPage(source.data); setSelectedId(sourceItemId); }
+  }, [source.data, sourceItemId]);
   const [dirty, setDirty] = useState(false);
   const [batchAction, setBatchAction] = useState<'edit' | 'copy'>();
   const [itemAction, setItemAction] = useState<'new' | 'edit'>();
@@ -89,10 +107,11 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
     <Flex vertical gap={16} style={{ minWidth: 0 }}>
       <Breadcrumb items={[{ title: <Link to="/projects">專案</Link> }, { title: <Link to={`/projects/${String(projectId)}?tab=qa`}>{context.project.name}</Link> }, { title: record.versionLabel }]} />
       {error ? <Alert type="error" title={`重新載入失敗，畫面可能不是最新資料：${error.message}`} action={<Button onClick={() => { context.retry(); void batch.refetch(); void items.refetch(); }}>重試</Button>} /> : null}
+      {source.error ? <Alert type="error" title={source.error.message} /> : null}
       <Card>
         <Flex justify="space-between" gap={16} wrap>
           <div><Typography.Title level={3}>{record.versionLabel}</Typography.Title><Typography.Paragraph style={{ whiteSpace: 'pre-wrap' }}>{record.environment}</Typography.Paragraph>
-            <Typography.Text>共 {record.total} 項 · 通過 {record.passed} · 失敗 {record.failed} · 受阻 {record.blocked} · 未測 {record.notTested} · {record.passRate === null ? '尚無項目' : `通過率 ${String(Math.round(record.passRate * 100))}%`}</Typography.Text>
+            <Typography.Text>共 {record.total} 項 · 通過 {record.passed} · 失敗 {record.failed} · 受阻 {record.blocked} · 未測 {record.notTested}{record.total === 0 ? ' · 尚無項目' : ''}</Typography.Text>
           </div>
           {canEdit ? <Space wrap><Button disabled={dirty} onClick={() => { openBatch('edit'); }}>修改批次</Button><Button disabled={dirty} onClick={() => { openBatch('copy'); }}>複製新批次</Button><Button type="primary" disabled={dirty} onClick={() => { openItem('new'); }}>新增項目</Button></Space> : null}
         </Flex>
@@ -119,7 +138,7 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
               { key: 'assignee', label: '負責人', children: selected.assigneeId === null ? '未指定' : memberDirectory.directory.name(selected.assigneeId) },
             ]} />
             {selected.latestExecution ? <Alert type="info" title="此項目已執行，標題、步驟、預期結果與關聯任務已鎖定。" /> : null}
-            <ExecutionPanel key={selected.id} item={selected} canEdit={canEdit} dirty={dirty} setDirty={setDirty} onSaved={(next) => {
+            <ExecutionPanel key={selected.id} item={selected} projectId={projectId} environment={record.environment} sourceExecutionId={selected.id === sourceItemId ? sourceExecutionId : 0} canEdit={canEdit} dirty={dirty} setDirty={setDirty} onSaved={(next) => {
               void refresh();
               if (next) {
                 const index = list.items.findIndex((item) => item.id === selected.id);
@@ -159,14 +178,37 @@ function ManualQaDetail({ projectId, batchId }: { projectId: number; batchId: nu
   );
 }
 
-function ExecutionPanel({ item, canEdit, dirty, setDirty, onSaved }: { item: QaItem; canEdit: boolean; dirty: boolean; setDirty: (dirty: boolean) => void; onSaved: (next: boolean) => void }) {
+function ExecutionPanel({ item, projectId, environment, sourceExecutionId, canEdit, dirty, setDirty, onSaved }: { item: QaItem; projectId: number; environment: string; sourceExecutionId: number; canEdit: boolean; dirty: boolean; setDirty: (dirty: boolean) => void; onSaved: (next: boolean) => void }) {
   const { message } = App.useApp();
   const client = useQueryClient();
   const [page, setPage] = useState(1);
   const [form] = Form.useForm<QaExecutionInput>();
   const [bugForm] = Form.useForm<{ bugTaskId: number | null }>();
-  const [bugExecution, setBugExecution] = useState<number>();
+  const [bugExecution, setBugExecution] = useState<QaExecution>();
+  const [newBugExecution, setNewBugExecution] = useState<QaExecution>();
+  const [createdBugs, setCreatedBugs] = useState<Record<number, number | undefined>>({});
+  const createdBugId = newBugExecution === undefined ? undefined : createdBugs[newBugExecution.id];
+  const [newBugForm] = Form.useForm<{ title: string; description: string }>();
+  const tasks = useProjectTasks(projectId);
+  const bugOptions = (tasks.data ?? []).filter((task) => task.type === 'BUG').map((task) => ({ value: task.id, label: `${task.code} ${task.title}（${task.status}）` }));
+  const sourcePage = useQuery({
+    queryKey: ['manual-qa', 'execution-source', item.id, sourceExecutionId],
+    enabled: Number.isSafeInteger(sourceExecutionId) && sourceExecutionId > 0,
+    queryFn: async () => {
+      for (let current = 1; ; current++) {
+        const result = await manualQaApi.executions(item.id, current);
+        if (result.items.some((execution) => execution.id === sourceExecutionId)) { return current; }
+        if (current * 20 >= result.total) { throw new Error('找不到來源失敗紀錄'); }
+      }
+    },
+  });
+  useEffect(() => { if (sourcePage.data !== undefined) { setPage(sourcePage.data); } }, [sourcePage.data]);
   const history = useQuery({ queryKey: ['manual-qa', 'executions', item.id, page], queryFn: () => manualQaApi.executions(item.id, page) });
+  useEffect(() => {
+    if (history.data?.items.some((execution) => execution.id === sourceExecutionId)) {
+      document.getElementById(`qa-execution-${String(sourceExecutionId)}`)?.scrollIntoView({ block: 'center' });
+    }
+  }, [history.data, sourceExecutionId]);
   const directory = useUserDirectory((history.data?.items ?? []).map((execution) => execution.testerId));
   const result = Form.useWatch('result', form);
   const save = useMutation({
@@ -181,18 +223,28 @@ function ExecutionPanel({ item, canEdit, dirty, setDirty, onSaved }: { item: QaI
     },
   });
   const updateBug = useMutation({
-    mutationFn: (value: number | null) => manualQaApi.updateBug(bugExecution ?? 0, value),
+    mutationFn: (value: number | null) => manualQaApi.updateBug(bugExecution?.id ?? 0, value),
     onSuccess: () => { setBugExecution(undefined); void client.invalidateQueries({ queryKey: ['manual-qa', 'executions', item.id] }); onSaved(false); },
+  });
+  const linkCreatedBug = useMutation({
+    mutationFn: (id: number) => manualQaApi.updateBug(newBugExecution?.id ?? 0, id),
+    onSuccess: () => { if (newBugExecution) { setCreatedBugs((current) => ({ ...current, [newBugExecution.id]: undefined })); } setNewBugExecution(undefined); setDirty(false); void client.invalidateQueries({ queryKey: ['manual-qa', 'executions', item.id] }); onSaved(false); void message.success('已建立並連結 BUG'); },
+  });
+  const createBug = useMutation({
+    mutationFn: (values: { title: string; description: string }) => taskApi.create({ projectId, type: 'BUG', title: values.title, description: values.description }),
+    onSuccess: (task) => { if (newBugExecution) { setCreatedBugs((current) => ({ ...current, [newBugExecution.id]: task.id })); } void client.invalidateQueries({ queryKey: ['task', 'project', projectId] }); linkCreatedBug.mutate(task.id); },
   });
   return (
     <Flex vertical gap={16} style={{ marginTop: 24 }}>
+      {sourcePage.error ? <Alert type="error" title={sourcePage.error.message} /> : null}
+      {tasks.isError ? <Alert type="error" title={`BUG 清單載入失敗：${tasks.error.message}`} action={<Button onClick={() => { void tasks.refetch(); }}>重試</Button>} /> : null}
       {canEdit ? <Card title="記錄結果" size="small">
         {save.error ? <Alert type="error" title={save.error.message} style={{ marginBottom: 12 }} /> : null}
         <Form<QaExecutionInput> form={form} layout="vertical" disabled={save.isPending} onValuesChange={() => { setDirty(true); }} onFinish={(values) => { save.mutate({ values, next: false }); }}>
           <Form.Item name="testedVersion" label="實測版本" rules={[{ required: true, whitespace: true }, { max: 200 }]}><Input maxLength={200} /></Form.Item>
           <Form.Item name="result" label="結果" rules={[{ required: true }]}><Select options={[{ value: 'PASS', label: '通過' }, { value: 'FAIL', label: '失敗' }, { value: 'BLOCKED', label: '受阻' }]} /></Form.Item>
           <Form.Item name="actual" label="實際現象" rules={[{ required: true, whitespace: true, message: '請填寫實際現象或受阻原因' }]}><Input.TextArea rows={4} /></Form.Item>
-          {result === 'FAIL' ? <Form.Item name="bugTaskId" label="BUG 任務 ID（選填）"><InputNumber min={1} precision={0} style={{ width: '100%' }} /></Form.Item> : null}
+          {result === 'FAIL' ? <Form.Item name="bugTaskId" label="連結既有 BUG（選填）"><Select allowClear showSearch={{ optionFilterProp: 'label' }} options={bugOptions} loading={tasks.isPending} /></Form.Item> : null}
           <Space wrap>
             <Button type="primary" htmlType="submit" loading={save.isPending}>儲存結果</Button>
             <Button loading={save.isPending} onClick={() => { void form.validateFields().then((values) => { save.mutate({ values, next: true }); }).catch(() => undefined); }}>儲存並前往下一項</Button>
@@ -203,20 +255,48 @@ function ExecutionPanel({ item, canEdit, dirty, setDirty, onSaved }: { item: QaI
       <Card title="歷次紀錄" size="small">
         {history.error ? <Alert type="error" title={history.error.message} action={<Button onClick={() => { void history.refetch(); }}>重試</Button>} /> : null}
         <List loading={history.isPending} dataSource={history.data?.items ?? []} locale={{ emptyText: history.isError ? '紀錄載入失敗' : '尚無執行紀錄' }} renderItem={(execution) => (
-          <List.Item><Flex vertical gap={4} style={{ width: '100%', minWidth: 0 }}>
+          <List.Item id={`qa-execution-${String(execution.id)}`}><Flex vertical gap={4} style={{ width: '100%', minWidth: 0 }}>
             <Space wrap><Tag color={COLORS[execution.result]}>{STATUS[execution.result]}</Tag><Typography.Text>{execution.testedVersion}</Typography.Text><Typography.Text>{directory.name(execution.testerId)}</Typography.Text><Typography.Text>{dayjs(execution.executedAt).format('YYYY-MM-DD HH:mm:ss')}</Typography.Text></Space>
+            {execution.id === sourceExecutionId ? <Tag color="blue">來源紀錄</Tag> : null}
             <Typography.Text className="qa-text">{execution.actual}</Typography.Text>
-            {execution.result === 'FAIL' ? <Space wrap><Typography.Text>BUG：{execution.bugTaskId === null ? '未連結' : <TaskReference id={execution.bugTaskId} />}</Typography.Text>{canEdit ? <Button size="small" disabled={dirty} onClick={() => { bugForm.setFieldsValue({ bugTaskId: execution.bugTaskId }); setBugExecution(execution.id); }}>修改連結</Button> : null}</Space> : null}
+            {execution.result === 'FAIL' ? <Space wrap><Typography.Text>BUG：{execution.bugTaskId === null ? '未連結' : <TaskReference id={execution.bugTaskId} />}</Typography.Text>{canEdit ? <Button size="small" disabled={dirty} onClick={() => { bugForm.setFieldsValue({ bugTaskId: execution.bugTaskId }); setBugExecution(execution); }}>修改連結</Button> : null}
+              {canEdit && execution.bugTaskId === null ? <Button size="small" disabled={dirty || tasks.isPending || tasks.isError} onClick={() => {
+                createBug.reset(); linkCreatedBug.reset();
+                const sourceUrl = `${window.location.origin}/projects/${String(projectId)}/qa/${String(item.batchId)}?item=${String(item.id)}&execution=${String(execution.id)}`;
+                newBugForm.setFieldsValue({ title: item.title, description: `重現步驟\n${item.steps}\n\n預期結果\n${item.expectedResult}\n\n實際結果\n${execution.actual}\n\n環境\n${environment}\n\n實測版本\n${execution.testedVersion}\n\n來源\n${sourceUrl}` });
+                setNewBugExecution(execution); setDirty(true);
+              }}>{createdBugs[execution.id] === undefined ? '建立 BUG' : `重試連結 BUG #${String(createdBugs[execution.id])}`}</Button> : null}
+              {execution.bugTaskId !== null ? <BugStatusActions id={execution.bugTaskId} projectId={projectId} result={item.status} canEdit={canEdit} disabled={dirty} /> : null}
+            </Space> : null}
           </Flex></List.Item>
         )} />
         {(history.data?.total ?? 0) > 20 ? <Pagination current={page} pageSize={20} total={history.data?.total} showSizeChanger={false} onChange={setPage} /> : null}
       </Card>
       <Modal title="修改 BUG 連結" open={bugExecution !== undefined} onCancel={() => { setBugExecution(undefined); }} onOk={() => { bugForm.submit(); }} confirmLoading={updateBug.isPending} okText="儲存" cancelText="取消">
         {updateBug.error ? <Alert type="error" title={updateBug.error.message} /> : null}
-        <Form<{ bugTaskId: number | null }> form={bugForm} layout="vertical" onFinish={(values) => { updateBug.mutate(values.bugTaskId ?? null); }}><Form.Item name="bugTaskId" label="BUG 任務 ID，留空解除連結"><InputNumber min={1} precision={0} style={{ width: '100%' }} /></Form.Item></Form>
+        <Form<{ bugTaskId: number | null }> form={bugForm} layout="vertical" onFinish={(values) => { updateBug.mutate(values.bugTaskId ?? null); }}><Form.Item name="bugTaskId" label="選擇 BUG，留空解除連結"><Select allowClear showSearch={{ optionFilterProp: 'label' }} options={bugOptions} loading={tasks.isPending} /></Form.Item></Form>
+      </Modal>
+      <Modal title="建立 BUG" open={newBugExecution !== undefined} onCancel={() => { if (!createBug.isPending && !linkCreatedBug.isPending) { setNewBugExecution(undefined); setDirty(false); } }} onOk={() => { if (createdBugId !== undefined) { linkCreatedBug.mutate(createdBugId); } else { newBugForm.submit(); } }} confirmLoading={createBug.isPending || linkCreatedBug.isPending} okText={createdBugId === undefined ? '確認建立並連結' : '重試連結'} cancelText="關閉">
+        {createdBugId !== undefined ? <Alert type="warning" title={`BUG #${String(createdBugId)} 已建立，連結失敗時請重試或使用此 ID 連結，避免重複建立。`} /> : null}
+        {createBug.error ? <Alert type="error" title={createBug.error.message} /> : null}
+        {linkCreatedBug.error ? <Alert type="error" title={linkCreatedBug.error.message} /> : null}
+        <Form form={newBugForm} layout="vertical" disabled={createdBugId !== undefined} onFinish={(values: { title: string; description: string }) => { createBug.mutate(values); }}>
+          <Form.Item name="title" label="標題" rules={[{ required: true, whitespace: true }, { max: 200 }]}><Input maxLength={200} /></Form.Item>
+          <Form.Item name="description" label="說明" rules={[{ required: true, whitespace: true }, { max: 5000 }]}><Input.TextArea rows={12} maxLength={5000} /></Form.Item>
+        </Form>
       </Modal>
     </Flex>
   );
+}
+
+function BugStatusActions({ id, projectId, result, canEdit, disabled }: { id: number; projectId: number; result: QaStatus; canEdit: boolean; disabled: boolean }) {
+  const tasks = useProjectTasks(projectId);
+  const { update, confirmStatus } = useTaskActions();
+  const task = tasks.data?.find((candidate) => candidate.id === id && candidate.type === 'BUG');
+  if (!canEdit || !task || (result !== 'PASS' && result !== 'FAIL')) { return null; }
+  const status = result === 'PASS' ? 'DONE' : 'IN_PROGRESS';
+  if (status === task.status) { return null; }
+  return <Popconfirm title={status === 'DONE' ? '將 BUG 標記完成？' : '將 BUG 改回進行中？'} description="驗收結果不會隨任務狀態變動。" onConfirm={() => { void confirmStatus(task, status, tasks.data ?? []).then((confirmed) => { if (confirmed) { update.mutate({ id, values: { status } }); } }); }}><Button size="small" disabled={disabled} loading={update.isPending}>{status === 'DONE' ? '標記 BUG 完成' : 'BUG 改回進行中'}</Button></Popconfirm>;
 }
 
 function TaskReference({ id }: { id: number }) {

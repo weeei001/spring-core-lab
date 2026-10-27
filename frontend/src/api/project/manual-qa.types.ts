@@ -14,6 +14,18 @@ export interface QaBatch {
   passRate: number | null;
 }
 
+export interface QaBugExecution {
+  executionId: number;
+  itemId: number;
+  itemTitle: string;
+  batchId: number;
+  versionLabel: string;
+  environment: string;
+  testedVersion: string;
+  actual: string;
+  executedAt: string;
+}
+
 export interface QaExecution {
   id: number;
   itemId: number;

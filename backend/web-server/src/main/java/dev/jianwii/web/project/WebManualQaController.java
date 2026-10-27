@@ -3,6 +3,7 @@ package dev.jianwii.web.project;
 import dev.jianwii.api.project.ManualQaApi;
 import dev.jianwii.api.project.ManualQaApi.BatchInput;
 import dev.jianwii.api.project.ManualQaApi.BatchView;
+import dev.jianwii.api.project.ManualQaApi.BugExecutionView;
 import dev.jianwii.api.project.ManualQaApi.ExecutionInput;
 import dev.jianwii.api.project.ManualQaApi.ExecutionView;
 import dev.jianwii.api.project.ManualQaApi.ItemInput;
@@ -124,6 +125,16 @@ public class WebManualQaController {
             @PathVariable Long executionId, @RequestBody Map<String, Object> input) {
         requireItemMember(manualQaApi.getExecution(executionId).itemId());
         return Result.success(manualQaApi.updateExecutionBug(executionId, input));
+    }
+
+    @PreAuthorize("hasAuthority('project:read')")
+    @GetMapping("/manual-qa-bug/{taskId}/executions")
+    public Result<PageResponse<BugExecutionView>> bugExecutions(
+            @PathVariable Long taskId,
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "100") @Min(1) @Max(100) int size) {
+        projectAccessGuard.requireMember(projectAccessGuard.projectOfTask(taskId));
+        return Result.success(manualQaApi.bugExecutions(taskId, page, size));
     }
 
     private void requireProjectMember(Long projectId) {

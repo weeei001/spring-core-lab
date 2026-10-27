@@ -81,4 +81,9 @@ public class ManualQaController implements ManualQaApi {
     public ExecutionView updateExecutionBug(Long id, Map<String, Object> input) {
         return service.updateExecutionBug(id, input);
     }
+
+    @Override
+    public PageResponse<BugExecutionView> bugExecutions(Long id, Integer page, Integer size) {
+        return service.bugExecutions(id, page, size);
+    }
 }

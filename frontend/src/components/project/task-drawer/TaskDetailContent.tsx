@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { Link } from 'react-router';
 import { taskApi } from '@/api/project/task-api';
 import { meetingApi } from '@/api/project/meeting-api';
+import { manualQaApi } from '@/api/project/manual-qa-api';
 import type { ClearableTaskField, Task, TaskPriority, TaskStatus, TaskType } from '@/api/project/task.types';
 import { toOptions } from '@/shared/lib/format';
 import { UserAvatar } from '@/components/user/UserAvatar';
@@ -400,6 +401,7 @@ function TaskDetailBody({ task, onDeleted, onOpen }: { task: Task; onDeleted: (p
       </Flex>
 
       <TaskMeetings projectId={task.projectId} taskId={task.id} />
+      {task.type === 'BUG' ? <TaskQaSources projectId={task.projectId} taskId={task.id} /> : null}
 
       <div data-tour="drawer-tabs" data-tour-inner=".ant-tabs-nav">
         <Tabs
@@ -456,6 +458,21 @@ function TaskDetailBody({ task, onDeleted, onOpen }: { task: Task; onDeleted: (p
       <PageTour id="task-drawer" steps={TASK_DRAWER_TOUR} />
     </Flex>
   );
+}
+
+function TaskQaSources({ projectId, taskId }: { projectId: number; taskId: number }) {
+  const [page, setPage] = useState(1);
+  const sources = useQuery({
+    queryKey: ['manual-qa', 'bug', taskId, page],
+    queryFn: () => manualQaApi.bugExecutions(taskId, page),
+  });
+  return <Flex vertical gap={8}>
+    <Typography.Text type="secondary">驗收失敗紀錄</Typography.Text>
+    {sources.isPending ? <Skeleton active paragraph={{ rows: 1 }} /> : sources.isError ? <Alert type="error" title={sources.error.message} action={<Button onClick={() => { void sources.refetch(); }}>重試</Button>} /> : sources.data.items.length === 0 ? <Typography.Text type="secondary">沒有連結失敗紀錄</Typography.Text> : <>
+      {sources.data.items.map((source) => <Link key={source.executionId} to={`/projects/${String(projectId)}/qa/${String(source.batchId)}?item=${String(source.itemId)}&execution=${String(source.executionId)}`}>{source.itemTitle} · {source.testedVersion} · {dayjs(source.executedAt).format('YYYY-MM-DD HH:mm')}</Link>)}
+      {sources.data.total > 20 ? <Pagination current={page} pageSize={20} total={sources.data.total} showSizeChanger={false} onChange={setPage} /> : null}
+    </>}
+  </Flex>;
 }
 
 function TaskMeetings({ projectId, taskId }: { projectId: number; taskId: number }) {

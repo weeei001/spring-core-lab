@@ -55,6 +55,17 @@ public interface ManualQaApi {
             String actual,
             Long bugTaskId) {}
 
+    record BugExecutionView(
+            Long executionId,
+            Long itemId,
+            String itemTitle,
+            Long batchId,
+            String versionLabel,
+            String environment,
+            String testedVersion,
+            String actual,
+            LocalDateTime executedAt) {}
+
     @PostExchange("/api/manual-qa-batch/queryPage")
     PageResponse<BatchView> queryBatches(@RequestBody Query query);
 
@@ -98,4 +109,8 @@ public interface ManualQaApi {
 
     @PatchExchange("/api/manual-qa-execution/{id}/bug")
     ExecutionView updateExecutionBug(@PathVariable("id") Long id, @RequestBody Map<String, Object> input);
+
+    @GetExchange("/api/manual-qa-bug/{id}/executions")
+    PageResponse<BugExecutionView> bugExecutions(
+            @PathVariable("id") Long id, @RequestParam("page") Integer page, @RequestParam("size") Integer size);
 }

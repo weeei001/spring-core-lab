@@ -215,6 +215,31 @@ public class ManualQaService {
         return executionView(executions.saveAndFlush(execution));
     }
 
+    @Transactional(readOnly = true)
+    public PageResponse<BugExecutionView> bugExecutions(Long taskId, Integer number, Integer size) {
+        Task task = tasks.findById(taskId)
+                .filter(v -> v.getDbMark() == BaseEntity.VALID)
+                .orElseThrow(() -> new NotFoundException("查無任務：" + taskId));
+        requireProject(task.getProjectId());
+        return new PageResponse<>(
+                executions.findByBugTaskIdAndDbMark(
+                        taskId, BaseEntity.VALID, page(number, size, Sort.by(Sort.Direction.DESC, "executedAt", "id"))),
+                e -> {
+                    ManualQaItem item = item(e.getItemId());
+                    ManualQaBatch batch = batch(item.getBatchId());
+                    return new BugExecutionView(
+                            e.getId(),
+                            item.getId(),
+                            item.getTitle(),
+                            batch.getId(),
+                            batch.getVersionLabel(),
+                            batch.getEnvironment(),
+                            e.getTestedVersion(),
+                            e.getActual(),
+                            e.getExecutedAt());
+                });
+    }
+
     private BatchView batchView(ManualQaBatch batch) {
         List<ItemView> views = items.findByBatchIdAndDbMarkOrderByIdAsc(batch.getId(), BaseEntity.VALID).stream()
                 .map(this::itemView)

@@ -12,4 +12,6 @@ public interface ManualQaExecutionDAO extends BaseDAO<ManualQaExecution, Long> {
     Optional<ManualQaExecution> findFirstByItemIdAndDbMarkOrderByExecutedAtDescIdDesc(Long itemId, Integer dbMark);
 
     Page<ManualQaExecution> findByItemIdAndDbMark(Long itemId, Integer dbMark, Pageable page);
+
+    Page<ManualQaExecution> findByBugTaskIdAndDbMark(Long bugTaskId, Integer dbMark, Pageable page);
 }
