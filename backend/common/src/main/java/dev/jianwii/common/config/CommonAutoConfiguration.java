@@ -19,15 +19,15 @@ import org.springframework.http.HttpStatusCode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * 服務只要依賴 common 就會自動套用：全域例外處理、JPA Auditing（自動填 BaseEntity 的建立／修改者與時間）、 呼叫其他服務時的操作者傳遞與錯誤轉換。 跟 Spring
+ * 服務只要依賴 common 就會自動套用：全域 JSON 設定、例外處理、JPA Auditing（自動填 BaseEntity 的建立／修改者與時間）、 呼叫其他服務時的操作者傳遞與錯誤轉換。 跟 Spring
  * Boot 各 starter 的自動設定同一套機制：類別名稱列在
  * META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports，
  * 因此服務的 @SpringBootApplication 不必掃描 dev.jianwii.common。
  */
 // 排在 JPA 自動設定之後，下面的 @ConditionalOnBean(EntityManagerFactory) 才判斷得準
 @AutoConfiguration(afterName = "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration")
-// 註冊全域例外處理
-@Import(ExceptionHandleController.class)
+// 註冊共用 JSON 設定與全域例外處理
+@Import({JacksonConfiguration.class, ExceptionHandleController.class})
 public class CommonAutoConfiguration {
 
     /** JPA Auditing：存檔時自動填入 @CreatedBy、@CreatedDate 等欄位。有資料庫的服務才啟用，web-server 不套用。 */

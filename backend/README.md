@@ -131,6 +131,20 @@ curl http://127.0.0.1:9080/actuator/health
 
 [`../http/`](../http/) 提供手動 API 範例，使用目前設定的 Cookie 名稱 `SPRING_CORE_SESSION`。依照 `auth.http` 的說明登入，將 Cookie 值填入被忽略的 `http-client.private.env.json` 的 `session`，不要提交 Cookie。
 
+## JSON 日期與時間
+
+依賴 common 的服務會由 `CommonAutoConfiguration` 載入 [JacksonConfiguration](common/src/main/java/dev/jianwii/common/config/JacksonConfiguration.java)。全域規則套用到 Spring Boot 自動設定的 JsonMapper、HTTP request body 與 RestClient JSON 回應。
+
+| Java 型別 | 接受的 ISO local 字串範例 |
+| --- | --- |
+| LocalDate | `2026-10-27` |
+| LocalTime | `14:30`、`14:30:00.123456789` |
+| LocalDateTime | `2026-10-27T14:30:00`、`2026-10-27T14:30:00.123456789` |
+
+三者都拒絕 Z、offset、混用格式、非法日期時間、空白字串與數字／陣列／物件輸入。JSON null 由 Jackson 保留，是否必填仍由欄位的 Bean Validation 決定。
+
+Entity 與查詢參數移除 `@JsonDeserialize`，保留各自的 JPA、Validation 與查詢註解即可。不需為這項規則新增 `@JsonFormat`。序列化及 Instant／OffsetDateTime 沿用既有行為；URL query／path 參數由 Spring 型別轉換處理，不屬於 Jackson 配置範圍。實測見 [日期時間 JSON 驗收](../docs/json-time-acceptance.md)。
+
 ## 部署設定
 
 將 [`../deploy/application.properties.example`](../deploy/application.properties.example) 複製成 `deploy/application.properties`，填妥帳密與部署設定；該檔案已被 Git 忽略。各服務透過 `spring.config.import` 直接讀取，不需額外載入腳本或套件。
