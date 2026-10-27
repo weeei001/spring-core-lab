@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface LeaveRequestDAO extends BaseDAO<LeaveRequest, Long> {
     @Query("""
-            select new dev.jianwii.api.basicdata.leave.LeaveAbsence(r.applicantId, r.startDate, r.endDate)
+            select new dev.jianwii.api.basicdata.dto.LeaveAbsence(r.applicantId, r.startDate, r.endDate)
             from LeaveRequest r
             where r.status = :status and r.applicantId in :userIds
               and r.startDate <= :toDate and r.endDate >= :fromDate
