@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>共用版面回歸驗證</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      // 開啟 /tests/layout.html，以 320、390、768、1440 寬度驗證實際元件。
+      // 僅替換未啟動的外部服務與登入資料，不載入正式路由、不寫入後端。
+      import React, { useState } from 'react';
+      import { createRoot } from 'react-dom/client';
+      import { App, Button, ConfigProvider } from 'antd';
+      import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+      import { createMemoryRouter, RouterProvider, useLocation } from 'react-router';
+      import { AppLayout } from '/src/app/layout/AppLayout.tsx';
+      import { AuthContext } from '/src/core/auth/auth-context.ts';
+      import { ThemeModeContext } from '/src/app/theme-mode.ts';
+      import { getV4Theme } from '/src/app/theme-v4.ts';
+      import 'antd/dist/reset.css';
+
+      const h = React.createElement;
+      const client = new QueryClient({ defaultOptions: { queries: { enabled: false, retry: false } } });
+      client.setQueryData(['notification', 'unread-count'], 0);
+      client.setQueryData(['notification', 'latest'], { items: [], total: 0 });
+      client.setQueryDefaults(['notification', 'latest'], { queryFn: () => ({ items: [], total: 0 }), staleTime: Infinity });
+      const user = { id: 1, subject: 'layout-fixture', username: null, name: '這是用來驗證手機版不會逐字換行的長使用者名稱', email: null, permissions: [] };
+
+      function FixturePage() {
+        const location = useLocation();
+        const [result, setResult] = useState('尚未檢查');
+        return h('section', {},
+          h('h1', {}, '版面回歸驗證'),
+          h('p', { 'data-testid': 'route' }, location.pathname),
+          h('p', {}, '測試資料；檢查首頁連結、選單開關、通知、搜尋與帳號設定。'),
+          h(Button, { onClick: () => {
+            const header = document.querySelector('.app-header');
+            const buttons = [...header.querySelectorAll('button')];
+            const failed = [];
+            if (document.documentElement.scrollWidth > window.innerWidth) failed.push('頁面橫向溢出');
+            if (header.scrollWidth > header.clientWidth) failed.push('頁首橫向溢出');
+            if (!document.querySelector('a[aria-label="案步就班，回到首頁"][href="/"]')) failed.push('首頁連結不存在');
+            if (window.innerWidth < 992 && buttons.some(button => button.getBoundingClientRect().height < 44)) failed.push('手機按鈕高度不足 44px');
+            setResult(failed.length ? `FAIL：${failed.join('、')}` : `PASS：${window.innerWidth}px，無橫向溢出、首頁連結正確、按鈕尺寸通過`);
+          } }, '檢查目前尺寸'),
+          h('p', { role: 'status' }, result));
+      }
+      const router = createMemoryRouter([{ path: '/', element: h(AppLayout), children: [{ index: true, element: h(FixturePage) }, { path: '*', element: h(FixturePage) }] }], { initialEntries: ['/projects'] });
+      function Fixture() {
+        const [mode, setMode] = useState('light');
+        return h(ThemeModeContext.Provider, { value: { mode, toggle: () => setMode(mode === 'light' ? 'dark' : 'light') } },
+          h(ConfigProvider, { theme: getV4Theme(mode) }, h(App, {},
+            h(QueryClientProvider, { client }, h(AuthContext.Provider, { value: { user, can: () => true, logout: async () => {} } }, h(RouterProvider, { router }))))));
+      }
+      createRoot(document.getElementById('root')).render(h(Fixture));
+    </script>
+  </body>
+</html>

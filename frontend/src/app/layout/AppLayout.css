@@ -1,0 +1,53 @@
+.app-brand {
+  display: block;
+  color: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.app-sidebar > .ant-layout-sider-children > .app-brand {
+  padding: 20px 24px;
+}
+
+.app-sidebar.ant-layout-sider {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+}
+
+.app-header.ant-layout-header {
+  padding-inline: 24px;
+}
+
+.app-content {
+  min-width: 0;
+  margin: 24px;
+}
+
+.app-brand:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
+@media (max-width: 991px) {
+  .app-header.ant-layout-header {
+    padding-inline: 8px;
+  }
+
+  .app-header .app-brand {
+    margin-inline-end: auto;
+    font-size: 16px;
+  }
+
+  .app-header .ant-btn {
+    min-width: 40px;
+    height: 44px;
+    padding-inline: 8px;
+  }
+
+  .app-content {
+    margin: 16px 12px;
+  }
+}

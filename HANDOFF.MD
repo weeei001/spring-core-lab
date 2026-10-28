@@ -32,6 +32,11 @@
 
 ## 內建瀏覽器 UI 驗收
 
+- 2026-10-28 共用版面驗證：通知 Popover 在 320px 即使內容縮窄、改 bottom 與 shiftX，實測仍超出右緣；僅縮內容寬度不能證明浮層可用。手機通知改用 Drawer，實測 dialog 左右為 0／320、頁面 scrollWidth=320；桌面保留 Popover。驗證浮層須等待開啟動畫結束再量測實際邊界。
+- 瀏覽器改 viewport 或元件熱更新後立即連續點擊，曾讀到舊尺寸結果或點中移位前的位置。先讀更新後畫面，再點控制項並等待結果；測試頁使用 MemoryRouter 時須有 index route，否則品牌回 `/` 只有版面、沒有測試內容。
+
+- 2026-10-28 前端建置在 sandbox 內遇到 Vite `spawn EPERM`；提權後預設 WindowsApps `pwsh.exe` 又發生程序啟動存取拒絕。改用 `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe` 提權執行 `yarn.cmd build` 可完成。這是執行環境限制，不需修改 Vite 設定。
+
 - 內建瀏覽器窗格窄時，1440 模擬畫面會縮小，座標點擊常落空；用 `find` 的 ref 或元素 `click()` 操作，以 `scrollWidth`、`activeElement` 等 DOM 量測當證據。窗格寬度變動會清掉模擬尺寸，需重新設定。
 - Ant Design Select 選完立即送 Tab，偶爾焦點仍留在 Select；連續按鍵間稍等再查 `activeElement`，不要直接判定為焦點 bug。Modal 中日期面板開著按 Escape 會連同 Modal 關閉。
 - 製造請求失敗可在測試中強制停止本機 `project-service`，web-server 會回 500；重啟後約 30 秒才完成 Eureka 註冊。

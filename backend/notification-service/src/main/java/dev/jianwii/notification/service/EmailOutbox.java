@@ -17,22 +17,23 @@ import org.springframework.util.StringUtils;
  */
 @Component
 public class EmailOutbox {
-    private static final String SUBJECT_PREFIX = "[spring-core-lab] ";
-
     private final EmailMessageDAO emailMessageDAO;
     private final ApplicationEventPublisher eventPublisher;
     private final String frontendUrl;
+    private final String displayName;
     private final boolean enabled;
 
     public EmailOutbox(
             EmailMessageDAO emailMessageDAO,
             ApplicationEventPublisher eventPublisher,
             @Value("${app.frontend-url}") String frontendUrl,
+            @Value("${app.display-name}") String displayName,
             @Value("${app.mail.enabled:true}") boolean enabled) {
         this.emailMessageDAO = emailMessageDAO;
         this.eventPublisher = eventPublisher;
         // 連結是 / 開頭的路徑，去掉網址結尾的 / 避免變成 //
         this.frontendUrl = frontendUrl.replaceAll("/+$", "");
+        this.displayName = displayName;
         this.enabled = enabled;
     }
 
@@ -48,7 +49,7 @@ public class EmailOutbox {
                     EmailMessage message = new EmailMessage();
                     message.setNotificationId(notification.getId());
                     message.setRecipient(emails.get(notification.getRecipientId()));
-                    message.setSubject(SUBJECT_PREFIX + notification.getTitle());
+                    message.setSubject("[" + displayName + "] " + notification.getTitle());
                     message.setBody(body(notification));
                     message.setStatus(EmailStatus.PENDING);
                     message.setAttempts(0);

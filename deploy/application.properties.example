@@ -46,3 +46,5 @@ SMTP_FROM=No Reply <no-reply@jianwii.dev>
 spring.mail.properties.mail.smtp.starttls.required=true
 # 新部署尚未配置 SMTP 時先保持 false；正式寄信需改為 true，站內通知不受影響。
 APP_MAIL_ENABLED=false
+# 通知郵件主旨的系統名稱，可依部署用途更換；寄件名稱另由 SMTP_FROM 設定。
+APP_DISPLAY_NAME=案步就班

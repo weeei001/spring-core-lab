@@ -1,3 +1,6 @@
+app:
+  display-name: ${APP_DISPLAY_NAME:案步就班}
+
 server:
   port: 8083
 
@@ -61,7 +64,7 @@ app:
   frontend-url: http://localhost:3000
   mail:
     enabled: ${APP_MAIL_ENABLED:true}
-    from: "spring-core-lab <no-reply@localhost>"
+    from: "${app.display-name} <no-reply@localhost>"
     max-attempts: 3
     retry-interval: PT1M
 eureka:

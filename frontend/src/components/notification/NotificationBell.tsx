@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Badge, Button, Empty, Flex, Popover, Skeleton, Typography, theme } from 'antd';
+import { Badge, Button, Drawer, Empty, Flex, Grid, Popover, Skeleton, Typography, theme } from 'antd';
 import { BellOutlined, CalendarOutlined, CheckCircleOutlined, CommentOutlined, MessageOutlined, NotificationOutlined, SwapOutlined, UserAddOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router';
 import { notificationApi } from '@/api/notification/notification-api';
@@ -31,6 +31,7 @@ const TYPE_ICONS: Record<NotificationType, ReactNode> = {
  */
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const mobile = !Grid.useBreakpoint().lg;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -72,7 +73,7 @@ export function NotificationBell() {
 
   const items = list.data?.items ?? [];
   const content = (
-    <Flex vertical style={{ width: 360 }}>
+    <Flex vertical style={{ width: mobile ? '100%' : 360 }}>
       <Flex justify="space-between" align="center" style={{ paddingBottom: 8 }}>
         <Typography.Text strong>通知</Typography.Text>
         <Button
@@ -87,7 +88,7 @@ export function NotificationBell() {
           全部標為已讀
         </Button>
       </Flex>
-      <div style={{ maxHeight: 420, overflowY: 'auto' }}>
+      <div style={{ maxHeight: mobile ? undefined : 420, overflowY: 'auto' }}>
         {list.isPending ? (
           <Skeleton active paragraph={{ rows: 4 }} />
         ) : items.length === 0 ? (
@@ -101,11 +102,22 @@ export function NotificationBell() {
     </Flex>
   );
 
-  return (
+  const trigger = (
+    <Badge count={unread.data ?? 0} size="small" overflowCount={99}>
+      <Button type="text" aria-label="通知" icon={<BellOutlined />} onClick={mobile ? () => { setOpen(true); } : undefined} />
+    </Badge>
+  );
+
+  return mobile ? (
+    <>
+      {trigger}
+      <Drawer title="通知中心" size="min(380px, 100vw)" open={open} onClose={() => { setOpen(false); }}>
+        {content}
+      </Drawer>
+    </>
+  ) : (
     <Popover content={content} trigger="click" placement="bottomRight" open={open} onOpenChange={setOpen}>
-      <Badge count={unread.data ?? 0} size="small" overflowCount={99}>
-        <Button type="text" aria-label="通知" icon={<BellOutlined />} />
-      </Badge>
+      {trigger}
     </Popover>
   );
 }

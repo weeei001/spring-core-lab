@@ -23,7 +23,7 @@ interface Item {
  * 全站搜尋（Ctrl / ⌘ + K）：搜尋我參與的專案與指派給我的任務，上下鍵選擇、Enter 開啟。
  * 放在版面的上方列；沒有 project:read 時不顯示。
  */
-export function GlobalSearch() {
+export function GlobalSearch({ compact = false }: { compact?: boolean }) {
   const { user, can } = useAuth();
   const navigate = useNavigate();
   const { token } = theme.useToken();
@@ -96,17 +96,20 @@ export function GlobalSearch() {
   return (
     <>
       <Button
+        type={compact ? 'text' : 'default'}
+        aria-label="搜尋專案與任務"
         icon={<SearchOutlined />}
         onClick={() => {
           setOpen(true);
         }}
         style={{ color: token.colorTextSecondary }}
       >
-        搜尋 <Typography.Text keyboard>Ctrl K</Typography.Text>
+        {compact ? null : <>搜尋 <Typography.Text keyboard>Ctrl K</Typography.Text></>}
       </Button>
       <Modal open={open} onCancel={close} footer={null} closable={false} destroyOnHidden styles={{ body: { padding: 0 } }}>
         <Flex vertical>
           <Input
+            aria-label="搜尋專案、指派給我的任務"
             autoFocus
             size="large"
             variant="borderless"

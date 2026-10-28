@@ -1,4 +1,6 @@
-# spring-core-lab 後端
+# cloud-platform 後端
+
+`cloud-platform` 是多模組後端的 Maven 父專案名稱，不綁定單一業務系統。通知郵件的系統名稱由 `APP_DISPLAY_NAME` 設定，預設為「案步就班」；正式寄件者名稱與地址由 `SMTP_FROM` 設定。修改後重啟 notification-service，新產生的郵件才會使用新名稱。
 
 提供專案、任務、工時、請假與通知功能的後端，並集中處理使用者登入、角色權限及檔案上傳。採用 Java 21、Spring Boot 4、Spring Cloud、MySQL 與 Google OIDC；前端透過 `web-server` 存取業務服務。
 
@@ -168,7 +170,7 @@ Maven 的 `-Pdeploy` 會替各服務設定 Spring `deploy` profile，並以儲�
 
 ```text
 --spring.profiles.active=deploy
-"--spring.config.import=file:C:/Users/Wei/Desktop/spring-core-lab/deploy/application.properties"
+"--spring.config.import=file:C:/Users/Wei/Desktop/cloud-platform/deploy/application.properties"
 ```
 
 啟動已打包的 JAR 時，也在 `java -jar <服務.jar>` 後加上這兩個參數。分機部署可改成各服務專用的設定檔路徑；外部 properties 檔不會打包進 JAR。環境變數仍可覆寫檔案中的同名設定。
