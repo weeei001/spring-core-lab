@@ -14,13 +14,14 @@ import { TaskDrawer } from '@/components/project/task-drawer/TaskDrawer';
 import { useMemberDirectory } from '@/components/project/useMemberDirectory';
 import { PageTour } from '@/shared/ui/PageTour';
 import { MemberTab } from './components/MemberTab';
+import { LabelTab } from './components/LabelTab';
 import { MeetingsTab } from './components/MeetingsTab';
 import { ManualQaTab } from './components/ManualQaTab';
 import { TasksTab } from './components/tasks/TasksTab';
 import { PROJECT_DETAIL_TOUR } from './tour';
 
 // ponytail: 雛形先完成任務協作；進階管理頁等實際試用有需求再接回。
-const TABS = ['tasks', 'members', 'meetings', 'qa'] as const;
+const TABS = ['tasks', 'members', 'meetings', 'qa', 'labels'] as const;
 type TabKey = (typeof TABS)[number];
 
 function isTab(value: string | null): value is TabKey {
@@ -197,6 +198,11 @@ function ProjectDetail({ projectId }: { projectId: number }) {
               key: 'members',
               label: `成員（${String(members.length)}）`,
               children: <MemberTab projectId={projectId} members={members} directory={directory} access={access} />,
+            },
+            {
+              key: 'labels',
+              label: '標籤設定',
+              children: <LabelTab projectId={projectId} access={access} />,
             },
           ]}
         />
